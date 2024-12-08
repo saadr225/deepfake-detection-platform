@@ -1,34 +1,73 @@
 import Link from 'next/link'
 import { useState } from 'react'
-import { Menu, X } from 'lucide-react'
+import { Menu, X, User } from 'lucide-react'
+import { useUser } from '../contexts/UserContext'
+import { Button } from "@/components/ui/button"
+import { ThemeToggle } from './ThemeToggle'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
+  const { user, logout } = useUser()
 
   return (
-    <div className="min-h-screen flex flex-col">
-      <header className="bg-white shadow-sm">
+    <div className="min-h-screen flex flex-col dark:bg-black">
+      <header className="bg-white dark:bg-black">
         <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
-              <Link href="/" className="flex-shrink-0 flex items-center">
-                <span className="text-blue-600 text-xl font-bold">PixelD</span>
-              </Link>
+              <Button variant="ghost" asChild className="flex-shrink-0 flex items-center mt-4">
+                <Link href="/">
+                  <span className="text-primary text-xl font-bold dark:text-white">DMI</span>
+                </Link>
+              </Button>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              <Link href="/login" className="text-gray-500 hover:text-gray-900 px-3 py-5 rounded-md text-sm font-medium">Login</Link>
-              <Link href="/register" className="text-gray-500 hover:text-gray-900 px-3 py-5 rounded-md text-sm font-medium">Sign Up</Link>
-              <Link href="/detect" className="text-gray-500 hover:text-gray-900 px-3 py-5 rounded-md text-sm font-medium">Detection Tools</Link>
-              <Link href="/forum" className="text-gray-500 hover:text-gray-900 px-3 py-5 rounded-md text-sm font-medium">Forum</Link>
+            <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-2">
+              <Button variant="ghost" asChild>
+                <Link href="/detect">Deepfake Detection</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/aicontentdetection">AI Content Detection</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/forum">Forum</Link>
+              </Button>
+              {user ? (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </Button>
+                  <Button 
+                    onClick={logout} 
+                    variant="ghost"
+                  >
+                    Logout
+                  </Button>
+                  <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+                    <User className="h-5 w-5 mr-1" />
+                    {user.name}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button variant="ghost" asChild>
+                    <Link href="/register">Sign Up</Link>
+                  </Button>
+                </>
+              )}
+              <ThemeToggle />
             </div>
             <div className="-mr-2 flex items-center sm:hidden">
-              <button
+              <Button 
+                variant="outline"
+                size="icon"
                 onClick={() => setIsMenuOpen(!isMenuOpen)}
-                className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
               >
                 <span className="sr-only">Open main menu</span>
-                {isMenuOpen ? <X className="block h-6 w-6" /> : <Menu className="block h-6 w-6" />}
-              </button>
+                {isMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              </Button>
             </div>
           </div>
         </nav>
@@ -36,39 +75,77 @@ export default function Layout({ children }: { children: React.ReactNode }) {
         {isMenuOpen && (
           <div className="sm:hidden">
             <div className="pt-2 pb-3 space-y-1">
-              <Link href="/login" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Login</Link>
-              <Link href="/register" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Sign Up</Link>
-              <Link href="/detect" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Detection Tools</Link>
-              <Link href="/forum" className="block px-3 py-2 rounded-md text-base font-medium text-gray-700 hover:text-gray-900 hover:bg-gray-50">Forum</Link>
+              <Button variant="ghost" className="w-full" asChild>
+                <Link href="/detect">Deepfake Detection</Link>
+              </Button>
+              <Button variant="ghost" className="w-full" asChild>
+                <Link href="/aicontentdetection">AI Content Detection</Link>
+              </Button>
+              <Button variant="ghost" className="w-full" asChild>
+                <Link href="/forum">Forum</Link>
+              </Button>
+              {user ? (
+                <>
+                  <Button variant="ghost" className="w-full" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </Button>
+                  <Button 
+                    onClick={logout} 
+                    variant="ghost" 
+                    className="w-full"
+                  >
+                    Logout
+                  </Button>
+                  <div className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-white">
+                    <User className="h-5 w-5 inline mr-1" />
+                    {user.name}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" className="w-full" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button variant="ghost" className="w-full" asChild>
+                    <Link href="/register">Sign Up</Link>
+                  </Button>
+                </>
+              )}
+              <div className="px-3 py-2">
+                <ThemeToggle />
+              </div>
             </div>
           </div>
         )}
       </header>
+      <div className="border-t border-gray-200 dark:border-gray-800"></div>
 
-      <main className="flex-grow">
+      <main className="flex-grow dark:bg-black">
         {children}
       </main>
 
-      <footer className="bg-gray-800">
+      <div className="border-t border-gray-200 dark:border-gray-800"></div>
+
+      <footer className="bg-white dark:bg-black">
         <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
           <nav className="-mx-5 -my-2 flex flex-wrap justify-center">
             <div className="px-5 py-2">
-              <Link href="/privacy" className="text-base text-gray-300 hover:text-white">
-                Privacy Policy
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/privacy">Privacy Policy</Link>
+              </Button>
             </div>
             <div className="px-5 py-2">
-              <Link href="/terms" className="text-base text-gray-300 hover:text-white">
-                Terms of Service
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/terms">Terms of Service</Link>
+              </Button>
             </div>
             <div className="px-5 py-2">
-              <Link href="/contact" className="text-base text-gray-300 hover:text-white">
-                Contact Us
-              </Link>
+              <Button variant="link" asChild>
+                <Link href="/contact">Contact Us</Link>
+              </Button>
             </div>
           </nav>
-          <p className="mt-8 text-center text-base text-gray-400">
+          <p className="mt-8 text-center text-base text-black dark:text-white">
             &copy; 2023 DeepfakeDetect. All rights reserved.
           </p>
         </div>

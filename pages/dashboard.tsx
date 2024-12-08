@@ -5,10 +5,19 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
+import { useUser } from '../contexts/UserContext'
+import { useRouter } from 'next/router'
 
 export default function Dashboard() {
-  const [username, setUsername] = useState('JohnDoe')
-  const [email, setEmail] = useState('johndoe@example.com')
+  const { user } = useUser()
+  const router = useRouter()
+  const [username, setUsername] = useState(user?.name || '')
+  const [email, setEmail] = useState(user?.email || '')
+
+  if (!user) {
+    typeof window !== 'undefined' && router.push('/login')
+    return null
+  }
 
   const handleProfileUpdate = (e: React.FormEvent) => {
     e.preventDefault()
@@ -18,8 +27,9 @@ export default function Dashboard() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">User Dashboard</h1>
+      <div className="bg-background">
+      <div className="max-w-3xl mx-auto py-12 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-6">Welcome, {user.name}</h1>
         <Tabs defaultValue="profile">
           <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="profile">Profile Settings</TabsTrigger>
@@ -66,10 +76,10 @@ export default function Dashboard() {
               <CardContent>
                 <div className="space-y-4">
                   {[1, 2, 3].map((item) => (
-                    <div key={item} className="flex items-center justify-between border-b pb-2">
+                    <div key={item} className="flex items-center justify-between border-b dark:border-gray-700 pb-2">
                       <div>
                         <h3 className="text-lg font-semibold">Detection #{item}</h3>
-                        <p className="text-sm text-gray-500">Date: {new Date().toLocaleDateString()}</p>
+                        <p className="text-sm text-gray-500 dark:text-gray-400">Date: {new Date().toLocaleDateString()}</p>
                       </div>
                       <Button variant="outline">View Details</Button>
                     </div>
@@ -79,6 +89,7 @@ export default function Dashboard() {
             </Card>
           </TabsContent>
         </Tabs>
+      </div>
       </div>
     </Layout>
   )

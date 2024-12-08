@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { MessageCircle, Clock, User } from 'lucide-react'
+import { motion } from 'framer-motion'
 
 // Mock data for forum topics
 const mockTopics = [
@@ -23,10 +24,11 @@ export default function ForumOverview() {
 
   return (
     <Layout>
-      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
-        <h1 className="text-3xl font-bold text-gray-900 mb-6">Community Forum</h1>
+      <div className="bg-background">
+      <div className="max-w-7xl mx-auto py-12 sm:px-6 lg:px-8">
+        <h1 className="text-3xl font-bold text-foreground mb-6">Community Forum</h1>
         
-        <div className="mb-6 flex justify-between items-center">
+        <div className="mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
           <Input
             type="text"
             placeholder="Search topics..."
@@ -37,29 +39,39 @@ export default function ForumOverview() {
           <Button>Create New Topic</Button>
         </div>
 
-        <div className="bg-white shadow overflow-hidden sm:rounded-md">
-          <ul className="divide-y divide-gray-200">
-            {filteredTopics.map((topic) => (
-              <li key={topic.id}>
-                <Link href={`/forum/${topic.id}`} className="block hover:bg-gray-50">
+        <motion.div 
+          className="bg-card shadow overflow-hidden sm:rounded-md dark:bg-white dark:bg-opacity-5"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <ul className="divide-y divide-border">
+            {filteredTopics.map((topic, index) => (
+              <motion.li 
+                key={topic.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+              >
+                <Link href={`/forum/${topic.id}`} className="block hover:bg-muted transition-colors duration-200">
                   <div className="px-4 py-4 sm:px-6">
                     <div className="flex items-center justify-between">
-                      <p className="text-sm font-medium text-blue-600 truncate">{topic.title}</p>
+                      <p className="text-sm font-medium text-primary truncate">{topic.title}</p>
                       <div className="ml-2 flex-shrink-0 flex">
-                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                        <p className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-primary/10 text-primary">
                           {topic.replies} replies
                         </p>
                       </div>
                     </div>
                     <div className="mt-2 sm:flex sm:justify-between">
                       <div className="sm:flex">
-                        <p className="flex items-center text-sm text-gray-500">
-                          <User className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                        <p className="flex items-center text-sm text-muted-foreground">
+                          <User className="flex-shrink-0 mr-1.5 h-5 w-5 text-muted-foreground" />
                           {topic.author}
                         </p>
                       </div>
-                      <div className="mt-2 flex items-center text-sm text-gray-500 sm:mt-0">
-                        <Clock className="flex-shrink-0 mr-1.5 h-5 w-5 text-gray-400" />
+                      <div className="mt-2 flex items-center text-sm text-muted-foreground sm:mt-0">
+                        <Clock className="flex-shrink-0 mr-1.5 h-5 w-5 text-muted-foreground" />
                         <p>
                           Last reply on <time dateTime={topic.lastReply}>{new Date(topic.lastReply).toLocaleDateString()}</time>
                         </p>
@@ -67,10 +79,11 @@ export default function ForumOverview() {
                     </div>
                   </div>
                 </Link>
-              </li>
+              </motion.li>
             ))}
           </ul>
-        </div>
+        </motion.div>
+      </div>
       </div>
     </Layout>
   )
