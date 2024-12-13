@@ -1,5 +1,5 @@
+// pages/login.tsx
 import { useState } from 'react'
-import { useRouter } from 'next/router'
 import Layout from '../components/Layout'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -12,13 +12,24 @@ import { useUser } from '../contexts/UserContext'
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
-  const { login } = useUser()
-  const router = useRouter()
+  const [isLoading, setIsLoading] = useState(false)
+  const { login, loginError } = useUser()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    login(email, password)
-    router.push('/dashboard')
+    setIsLoading(true)
+
+    try {
+      const success = await login(email, password)
+      
+      if (!success) {
+        // Login failed, error handled in context
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Login error:', error)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -34,7 +45,15 @@ export default function Login() {
             <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
               Sign in to your account
             </h2>
+            
+            {/* Error Message */}
+            {loginError && (
+              <div className="mt-4 text-center text-red-500">
+                {loginError}
+              </div>
+            )}
           </div>
+          
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm -space-y-px">
               <div className="mb-4">
@@ -51,6 +70,7 @@ export default function Login() {
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div>
@@ -67,6 +87,7 @@ export default function Login() {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
             </div>
@@ -90,8 +111,9 @@ export default function Login() {
               <Button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors dark:bg-primary dark:text-primary-foreground dark:hover:bg-primary/90"
+                disabled={isLoading}
               >
-                Sign in
+                {isLoading ? 'Signing in...' : 'Sign in'}
               </Button>
             </div>
           </form>

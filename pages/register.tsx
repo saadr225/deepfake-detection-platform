@@ -1,3 +1,4 @@
+// pages/register.tsx
 import { useState } from 'react'
 import Layout from '../components/Layout'
 import Link from 'next/link'
@@ -5,19 +6,38 @@ import { motion } from 'framer-motion'
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useUser } from '../contexts/UserContext'
 
 export default function Register() {
   const [username, setUsername] = useState('')
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
-  const [role, setRole] = useState('guest')
+  const [isLoading, setIsLoading] = useState(false)
+  
+  const { register, registerError } = useUser()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle registration logic here
-    console.log('Registration attempt with:', { username, email, password, role })
+    
+    // Validate password match
+    if (password !== confirmPassword) {
+      alert("Passwords do not match")
+      return
+    }
+
+    setIsLoading(true)
+
+    try {
+      const success = await register(username, email, password)
+      
+      if (!success) {
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Registration error:', error)
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -33,7 +53,15 @@ export default function Register() {
             <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
               Create your account
             </h2>
+            
+            {/* Error Message */}
+            {registerError && (
+              <div className="mt-4 text-center text-red-500">
+                {registerError}
+              </div>
+            )}
           </div>
+          
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm">
               <div className="mb-4">
@@ -49,6 +77,7 @@ export default function Register() {
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div className="mb-4">
@@ -65,6 +94,7 @@ export default function Register() {
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div className="mb-4">
@@ -81,6 +111,7 @@ export default function Register() {
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  disabled={isLoading}
                 />
               </div>
               <div className="mb-4">
@@ -96,34 +127,19 @@ export default function Register() {
                   className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                   placeholder="Confirm Password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  onChange={(e) => setConfirmPassword(e.target. value)}
+                  disabled={isLoading}
                 />
               </div>
-            </div>
-
-            <div>
-              <Label htmlFor="role" className="block text-sm font-medium text-foreground mb-3 ml-0.5">
-                User Role
-              </Label>
-              <Select value={role} onValueChange={setRole}>
-                <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Select a role" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="guest">Guest</SelectItem>
-                  <SelectItem value="registered">Registered User</SelectItem>
-                  <SelectItem value="moderator">Moderator</SelectItem>
-                  <SelectItem value="administrator">Administrator</SelectItem>
-                </SelectContent>
-              </Select>
             </div>
 
             <div>
               <Button
                 type="submit"
                 className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                disabled={isLoading}
               >
-                Register
+                {isLoading ? 'Registering...' : 'Register'}
               </Button>
             </div>
           </form>
