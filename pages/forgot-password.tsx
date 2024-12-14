@@ -18,11 +18,12 @@ export default function ForgotPassword() {
   
   const { forgotPassword } = useUser()
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // In pages/forgot-password.tsx, modify the handleSubmit function:
+const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
     setStatus({ type: null, message: '' })
-
+  
     try {
       const { success, message } = await forgotPassword(email)
       
@@ -30,9 +31,10 @@ export default function ForgotPassword() {
         type: success ? 'success' : 'error',
         message: message
       })
-
+  
       if (success) {
         setEmail('') // Clear the form on success
+        console.log('Check the console for the reset link!');
       }
     } catch (error) {
       console.error('Password reset error:', error)

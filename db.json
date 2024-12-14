@@ -4,19 +4,25 @@
       "id": "1",
       "name": "John Doe Morgan Loki",
       "email": "johndoe@example.com",
-      "password": "password123"
+      "password": "password123",
+      "resetPasswordToken": "ok1jophbq8krck541o887p",
+      "resetPasswordExpires": "2024-12-14T17:48:36.231Z"
     },
     {
       "id": "8f2b",
       "name": "Jane",
       "email": "jane@example.com",
-      "password": "password456"
+      "password": "password1234",
+      "resetPasswordToken": "wgfwv6njvvc33lb5jgdd3b",
+      "resetPasswordExpires": "2024-12-14T17:45:20.022Z"
     },
     {
       "id": "8387",
       "name": "jane morgan",
       "email": "jane1@example.com",
-      "password": "password456"
+      "password": "jane12345",
+      "resetPasswordToken": "zk9uai3x18a6tbh4mnmjp8",
+      "resetPasswordExpires": "2024-12-14T17:46:56.171Z"
     }
   ]
 }
