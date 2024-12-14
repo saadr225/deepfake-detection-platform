@@ -40,7 +40,7 @@ async function determineMediaType(url: string): Promise<'image' | 'video' | 'unk
 }
 
 export default function Dashboard() {
-  const { user, updateProfile } = useUser()
+  const { user, updateProfile, changePassword } = useUser()
   const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory()
   const router = useRouter()
   
@@ -51,6 +51,13 @@ export default function Dashboard() {
   // State for profile update
   const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null)
   const [isUpdating, setIsUpdating] = useState(false)
+  const [showPasswordForm, setShowPasswordForm] = useState(false)
+  const [currentPassword, setCurrentPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmNewPassword, setConfirmNewPassword] = useState('')
+  const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null)
+  const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null)
+  const [isChangingPassword, setIsChangingPassword] = useState(false)
 
   // State for media types
   const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({})
@@ -140,6 +147,45 @@ export default function Dashboard() {
     }
   }, [updateProfile, username, email])
 
+  // Add this handler function with your other handlers
+const handlePasswordChange = async (e: React.FormEvent) => {
+  e.preventDefault()
+  setPasswordUpdateError(null)
+  setPasswordUpdateSuccess(null)
+  setIsChangingPassword(true)
+
+  try {
+    if (newPassword !== confirmNewPassword) {
+      setPasswordUpdateError('New passwords do not match')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordUpdateError('New password must be at least 8 characters long')
+      return
+    }
+
+    const { success, message } = await changePassword(currentPassword, newPassword)
+
+    if (success) {
+      setPasswordUpdateSuccess(message)
+      //setShowPasswordForm(false)
+      // Clear form
+      setCurrentPassword('')
+      setNewPassword('')
+      setConfirmNewPassword('')
+    } else {
+      setPasswordUpdateError(message)
+    }
+  } catch (error) {
+    console.error('Password change error:', error)
+    setPasswordUpdateError('An unexpected error occurred')
+  } finally {
+    setIsChangingPassword(false)
+  }
+}
+
+
   return (
     <Layout>
       <motion.div 
@@ -208,6 +254,71 @@ export default function Dashboard() {
                         {isUpdating ? 'Updating...' : 'Update Profile'}
                       </Button>
                     </form>
+                    <div className="mt-6 pt-6 border-t">
+                      <div className="flex justify-between items-center mb-4">
+                        <div>
+                          <h3 className="text-lg font-medium">Password Settings</h3>
+                          <p className="text-sm text-muted-foreground">Update your password here.</p>
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={() => setShowPasswordForm(!showPasswordForm)}
+                        >
+                          {showPasswordForm ? 'Cancel' : 'Change Password'}
+                        </Button>
+                      </div>
+
+                      {showPasswordForm && (
+                        <form onSubmit={handlePasswordChange} className="space-y-4">
+                          {passwordUpdateError && (
+                            <div className="text-red-500 text-sm">{passwordUpdateError}</div>
+                          )}
+                          {passwordUpdateSuccess && (
+                            <div className="text-green-500 text-sm">{passwordUpdateSuccess}</div>
+                          )}
+                          
+                          <div className="space-y-2">
+                            <Label htmlFor="current-password">Current Password</Label>
+                            <Input
+                              id="current-password"
+                              type="password"
+                              value={currentPassword}
+                              onChange={(e) => setCurrentPassword(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="new-password">New Password</Label>
+                            <Input
+                              id="new-password"
+                              type="password"
+                              value={newPassword}
+                              onChange={(e) => setNewPassword(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <div className="space-y-2">
+                            <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                            <Input
+                              id="confirm-new-password"
+                              type="password"
+                              value={confirmNewPassword}
+                              onChange={(e) => setConfirmNewPassword(e.target.value)}
+                              required
+                            />
+                          </div>
+
+                          <Button 
+                            type="submit" 
+                            disabled={isChangingPassword}
+                          >
+                            {isChangingPassword ? 'Updating Password...' : 'Update Password'}
+                          </Button>
+                        </form>
+                      )}
+                    </div>
                   </CardContent>
                 </Card>
               </motion.div>

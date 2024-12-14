@@ -28,7 +28,7 @@ interface UserContextType {
   registerError: string | null;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
-}
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;}
 
 // Create context
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -149,6 +149,53 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     router.push('/login');
   };
 
+  // Add the changePassword method in the UserProvider:
+  const changePassword = async (
+    currentPassword: string, 
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      // Verify current password
+      const response = await fetch(`${API_URL}/users?email=${user?.email}`);
+      const users = await response.json();
+      const currentUser = users[0];
+  
+      if (!currentUser || currentUser.password !== currentPassword) {
+        return {
+          success: false,
+          message: 'Current password is incorrect'
+        };
+      }
+  
+      // Update password
+      const updateResponse = await fetch(`${API_URL}/users/${currentUser.id}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          ...currentUser,
+          password: newPassword
+        })
+      });
+  
+      if (!updateResponse.ok) {
+        throw new Error('Failed to update password');
+      }
+  
+      return {
+        success: true,
+        message: 'Password updated successfully'
+      };
+    } catch (error) {
+      console.error('Change password error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while changing the password'
+      };
+    }
+  };
+  
   // Add updateProfile method
   const updateProfile = async (username: string, email: string): Promise<boolean> => {
     try {
@@ -344,7 +391,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     loginError,
     registerError,
     forgotPassword,
-    resetPassword
+    resetPassword,
+    changePassword
   };
 
   return (
