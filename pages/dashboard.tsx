@@ -29,20 +29,27 @@ export default function Dashboard() {
   const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory()
   
   // State for profile
-  const [username, setUsername] = useState(user?.name || '');
-  const [email, setEmail] = useState(user?.email || '');
-  const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null);
-  const [isUpdating, setIsUpdating] = useState(false);
-  const [showPasswordForm, setShowPasswordForm] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState('');
-  const [newPassword, setNewPassword] = useState('');
-  const [confirmNewPassword, setConfirmNewPassword] = useState('');
-  const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
-  const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
-  const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({});
+   // All useState hooks MUST come before any conditional logic
+   const [username, setUsername] = useState(user?.name || '');
+   const [email, setEmail] = useState(user?.email || '');
+   const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null);
+   const [isUpdating, setIsUpdating] = useState(false);
+   const [showPasswordForm, setShowPasswordForm] = useState(false);
+   const [currentPassword, setCurrentPassword] = useState('');
+   const [newPassword, setNewPassword] = useState('');
+   const [confirmNewPassword, setConfirmNewPassword] = useState('');
+   const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
+   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
+   const [isChangingPassword, setIsChangingPassword] = useState(false);
+   const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({});
 
-  // Detect media types when detection history changes
+  // All useEffect hooks must also come before any conditional logic
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
   useEffect(() => {
     const detectMediaTypes = async () => {
       const typeMap: {[key: string]: 'image' | 'video' | 'unknown'} = {}
@@ -58,25 +65,34 @@ export default function Dashboard() {
     if (detectionHistory.length > 0) {
       detectMediaTypes()
     }
-  }, [detectionHistory])
+  }, [detectionHistory]);
 
-  // Redirect if no user
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user, router]);
+  // // If no user, render a loading state instead of returning null
+  // if (!user) {
+  //   return (
+  //     <Layout>
+  //       <div className="min-h-screen flex items-center justify-center">
+  //         <p>Loading...</p>
+  //       </div>
+  //     </Layout>
+  //   );
+  // }
 
-  // If no user, render a loading state instead of returning null
-  if (!user) {
-    return (
-      <Layout>
-        <div className="min-h-screen flex items-center justify-center">
-          <p>Loading...</p>
-        </div>
-      </Layout>
-    );
+  // Utility function to determine media type
+async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const mimeType = blob.type
+
+    if (mimeType.startsWith('image/')) return 'image'
+    if (mimeType.startsWith('video/')) return 'video'
+    return 'unknown'
+  } catch (error) {
+    console.error('Error determining media type:', error)
+    return 'unknown'
   }
+}
 
   // Handle view detection details
   const handleViewDetectionDetails = useCallback((entry: DetectionEntry) => {
@@ -177,20 +193,15 @@ const handlePasswordChange = async (e: React.FormEvent) => {
   }
 }
 
-// Utility function to determine media type
-async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
-  try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const mimeType = blob.type
-
-    if (mimeType.startsWith('image/')) return 'image'
-    if (mimeType.startsWith('video/')) return 'video'
-    return 'unknown'
-  } catch (error) {
-    console.error('Error determining media type:', error)
-    return 'unknown'
-  }
+// Render loading state if no user
+if (!user) {
+  return (
+    <Layout>
+      <div className="min-h-screen flex items-center justify-center">
+        <p>Loading...</p>
+      </div>
+    </Layout>
+  );
 }
 
   return (
