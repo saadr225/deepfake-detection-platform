@@ -180,12 +180,7 @@ export default function AIContentReportPage() {
           >
             <div className="flex justify-between items-center">
               <h1 className="text-3xl font-bold text-primary flex items-center">
-                AI Content Detection Report
-                {mediaType === 'image' ? (
-                  <ImageIcon className="ml-2 h-8 w-8 text-muted-foreground" />
-                ) : mediaType === 'text' ? (
-                  <FileText className="ml-2 h-8 w-8 text-muted-foreground" />
-                ) : null}
+                AI Detection Report
               </h1>
               <div className="flex space-x-2">
                 <Button 

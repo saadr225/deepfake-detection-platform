@@ -81,13 +81,24 @@ export default function Dashboard() {
 
   // Handle view detection details
   const handleViewDetectionDetails = useCallback((entry: DetectionEntry) => {
-    router.push({
-      pathname: '/deepfakereport',
-      query: {
-        detectionResult: JSON.stringify(entry.detailedReport),
-        fromHistory: true
-      }
-    })
+    if(entry.detectionType === 'deepfake') {
+      router.push({
+        pathname: '/deepfakereport',
+        query: {
+          detectionResult: JSON.stringify(entry.detailedReport),
+          fromHistory: true
+        }
+      })
+    }
+    else if(entry.detectionType === 'ai-content') {
+      router.push({
+        pathname: '/aicontentreport',
+        query: {
+          detectionResult: JSON.stringify(entry.detailedReport),
+          fromHistory: true
+        }
+      })
+    }
   }, [router])
 
   // Handle delete single entry
@@ -292,7 +303,9 @@ export default function Dashboard() {
                                       : 'bg-green-500 text-white'
                                     }`}
                                   >
-                                    {detection.isDeepfake ? 'Deepfake' : 'Authentic'}
+                                    {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake' 
+                                    : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
+
                                   </span>
                                 </h3>
                                 <p className="text-sm text-muted-foreground"> Date: {new Date(detection.date).toLocaleDateString()}</p>
