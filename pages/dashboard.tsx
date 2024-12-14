@@ -23,44 +23,24 @@ import {
   AlertDialogTrigger 
 } from "@/components/ui/alert-dialog"
 
-// Utility function to determine media type
-async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
-  try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const mimeType = blob.type
-
-    if (mimeType.startsWith('image/')) return 'image'
-    if (mimeType.startsWith('video/')) return 'video'
-    return 'unknown'
-  } catch (error) {
-    console.error('Error determining media type:', error)
-    return 'unknown'
-  }
-}
-
 export default function Dashboard() {
+  const router = useRouter(); 
   const { user, updateProfile, changePassword } = useUser()
   const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory()
-  const router = useRouter()
   
   // State for profile
-  const [username, setUsername] = useState(user?.name || '')
-  const [email, setEmail] = useState(user?.email || '')
-  
-  // State for profile update
-  const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null)
-  const [isUpdating, setIsUpdating] = useState(false)
-  const [showPasswordForm, setShowPasswordForm] = useState(false)
-  const [currentPassword, setCurrentPassword] = useState('')
-  const [newPassword, setNewPassword] = useState('')
-  const [confirmNewPassword, setConfirmNewPassword] = useState('')
-  const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null)
-  const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null)
-  const [isChangingPassword, setIsChangingPassword] = useState(false)
-
-  // State for media types
-  const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({})
+  const [username, setUsername] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
+  const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({});
 
   // Detect media types when detection history changes
   useEffect(() => {
@@ -81,9 +61,21 @@ export default function Dashboard() {
   }, [detectionHistory])
 
   // Redirect if no user
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  // If no user, render a loading state instead of returning null
   if (!user) {
-    typeof window !== 'undefined' && router.push('/login')
-    return null
+    return (
+      <Layout>
+        <div className="min-h-screen flex items-center justify-center">
+          <p>Loading...</p>
+        </div>
+      </Layout>
+    );
   }
 
   // Handle view detection details
@@ -185,6 +177,21 @@ const handlePasswordChange = async (e: React.FormEvent) => {
   }
 }
 
+// Utility function to determine media type
+async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
+  try {
+    const response = await fetch(url)
+    const blob = await response.blob()
+    const mimeType = blob.type
+
+    if (mimeType.startsWith('image/')) return 'image'
+    if (mimeType.startsWith('video/')) return 'video'
+    return 'unknown'
+  } catch (error) {
+    console.error('Error determining media type:', error)
+    return 'unknown'
+  }
+}
 
   return (
     <Layout>

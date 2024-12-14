@@ -1,5 +1,6 @@
 // pages/login.tsx
 import { useState } from 'react'
+import { useEffect } from 'react';
 import Layout from '../components/Layout'
 import Link from 'next/link'
 import { motion } from 'framer-motion'
@@ -8,12 +9,14 @@ import { Button } from "@/components/ui/button"
 import { Checkbox } from "@/components/ui/checkbox"
 import { Label } from "@/components/ui/label"
 import { useUser } from '../contexts/UserContext'
+import { useRouter } from 'next/router'
 
 export default function Login() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const { login, loginError } = useUser()
+  const { user, login, loginError } = useUser()
+  const router = useRouter();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,6 +34,13 @@ export default function Login() {
       setIsLoading(false)
     }
   }
+
+  // Add this useEffect to handle redirects
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   return (
     <Layout>

@@ -143,11 +143,17 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Logout method
-  const logout = () => {
+  // In UserContext.tsx, update the logout method
+const logout = async () => {
+  try {
+    // First set user to null
     setUser(null);
-    router.push('/login');
-  };
+    // Then redirect after a small delay to ensure state is updated
+    await router.push('/login');
+  } catch (error) {
+    console.error('Logout error:', error);
+  }
+};
 
   // Add the changePassword method in the UserProvider:
   const changePassword = async (
