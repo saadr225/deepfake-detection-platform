@@ -26,7 +26,8 @@ interface UserContextType {
   updateProfile: (username: string, email: string) => Promise<boolean>;
   loginError: string | null;
   registerError: string | null;
-  
+  forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
+  resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
 }
 
 // Create context
@@ -193,7 +194,76 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Context value
+  // New forgot password method
+  const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
+    try {
+      // Check if user exists
+      const response = await fetch(`${API_URL}/users?email=${email}`);
+      const users = await response.json();
+  
+      if (users.length === 0) {
+        return {
+          success: false,
+          message: 'No account exists with this email address. Please check your email or sign up for a new account.'
+        };
+      }
+  
+      // If we get here, the user exists
+      // In a real implementation, you would:
+      // 1. Generate a password reset token
+      // 2. Save it to the database with an expiration
+      // 3. Send an email with the reset link
+      
+      return {
+        success: true,
+        message: 'Password reset instructions have been sent to your email.'
+      };
+    } catch (error) {
+      console.error('Forgot password error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while processing your request. Please try again.'
+      };
+    }
+  };
+
+  // New reset password method
+  const resetPassword = async (
+    token: string,
+    newPassword: string
+  ): Promise<{ success: boolean; message: string }> => {
+    try {
+      // In a real implementation, you would:
+      // 1. Verify the token is valid and not expired
+      // 2. Find the user associated with the token
+      // 3. Update their password
+      // 4. Invalidate the token
+
+      // For now, we'll simulate the process
+      if (newPassword.length < 8) {
+        return {
+          success: false,
+          message: 'Password must be at least 8 characters long'
+        };
+      }
+
+      console.log('Password reset with token:', token);
+      
+      return {
+        success: true,
+        message: 'Password has been successfully reset. Please login with your new password.'
+      };
+    } catch (error) {
+      console.error('Reset password error:', error);
+      return {
+        success: false,
+        message: 'An error occurred while resetting your password.'
+      };
+    }
+  };
+
+
+  // Updated context value with new methods
   const contextValue = {
     user,
     login,
@@ -201,7 +271,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     logout,
     updateProfile,
     loginError,
-    registerError
+    registerError,
+    forgotPassword,
+    resetPassword
   };
 
   return (
@@ -212,6 +284,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 // Custom hook to use the UserContext
+// Keep the existing useUser hook
 export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
