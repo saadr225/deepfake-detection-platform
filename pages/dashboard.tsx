@@ -148,9 +148,9 @@ export default function Dashboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="max-w-3xl mx-auto py-12 sm:px-6 lg:px-8">
+        <div className="max-w-5xl mx-auto py-12 sm:px-6 lg:px-8">
           <motion.h1 
-            className="text-3xl font-bold text-gray-900 dark:text-white mb-6"
+            className="text-3xl font-bold text-gray-900 dark:text-white mb-10"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
