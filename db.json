@@ -13,8 +13,8 @@
       "name": "Jane",
       "email": "jane@example.com",
       "password": "password",
-      "resetPasswordToken": "92cxa2d8wbp73cra8agm6e",
-      "resetPasswordExpires": "2024-12-14T19:43:10.356Z"
+      "resetPasswordToken": null,
+      "resetPasswordExpires": null
     },
     {
       "id": "8387",
