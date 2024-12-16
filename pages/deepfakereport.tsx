@@ -89,17 +89,17 @@ export default function DeepfakeReportPage() {
       // Here is a placeholder for frame extraction
       const frames = [
         'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D', // These should be the actual frame URLs
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D', // These should be the actual frame URLs
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D', // These should be the actual frame URLs
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
-        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D' 
+        'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg',
+        'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg', // These should be the actual frame URLs
+        'https://next-images.123rf.com/index/_next/image/?url=https://assets-cdn.123rf.com/index/static/assets/top-section-bg.jpeg&w=3840&q=75',
+        'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg',
+        'https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg', // These should be the actual frame URLs
+        'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg',
+        'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg', // These should be the actual frame URLs
+        'https://next-images.123rf.com/index/_next/image/?url=https://assets-cdn.123rf.com/index/static/assets/top-section-bg.jpeg&w=3840&q=75',
+        'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg',
+        'https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg',
+        'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg'
       ]
 
       setAnalysisResult(prev => ({ ...prev, frames }))
@@ -301,8 +301,20 @@ const ImageModal = ({
   onSlideChange: (index: number) => void;
 }) => {
   const modalSliderRef = useRef<Slider | null>(null);
+  const thumbnailSliderRef = useRef<Slider | null>(null);
 
   const modalSettings: Settings = {
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    initialSlide: currentSlide,
+    beforeChange: (_, next) => onSlideChange(next)
+  };
+
+  const thumbnailSettings: Settings = {
     dots: false,
     infinite: false,
     speed: 500,
@@ -310,30 +322,25 @@ const ImageModal = ({
     slidesToScroll: 1,
     arrows: false,
     initialSlide: currentSlide,
+    focusOnSelect: true,
+    centerMode: false,
     responsive: [
       {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 4,
-        }
-      },
-      {
-        breakpoint: 600,
+        breakpoint: 768,
         settings: {
           slidesToShow: 3,
         }
       }
-    ],
-    beforeChange: (_, next) => onSlideChange(next)
+    ]
   };
-  
+
   return (
-    <div className="fixed inset-0 bg-black/75 z-50 flex flex-col items-center justify-center p-4">
+    <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4">
       <div className="relative w-full max-w-6xl mx-auto">
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute -top-2 right-0 text-white hover:text-gray-300 z-50"
+          className="absolute -top-2 right-0 text-white hover:text-gray-300 z-50 p-2"
         >
           <svg
             xmlns="http://www.w3.org/2000/svg"
@@ -349,33 +356,99 @@ const ImageModal = ({
             <path d="M18 6L6 18M6 6l12 12"/>
           </svg>
         </button>
-        {/* Enlarged image */}
-        <div className="w-full mb-4">
-          <img
-            src={image}
-            alt="Enlarged view"
-            className="w-full h-[70vh] object-contain mx-auto"
-          />
+
+        {/* Main image slider */}
+        <div className="mb-4">
+          <Slider ref={modalSliderRef} {...modalSettings}>
+            {frames.map((frame, index) => (
+              <div key={index} className="focus:outline-none">
+                <img
+                  src={frame}
+                  alt={`View ${index + 1}`}
+                  className="w-full h-[70vh] object-contain mx-auto"
+                />
+              </div>
+            ))}
+          </Slider>
         </div>
 
-        {/* Thumbnail slider */}
-        <div className="w-full bg-white/10 p-4 rounded-lg">
-          <div className="slider-container">
-            <Slider ref={modalSliderRef} {...modalSettings}>
-              {frames.map((frame, index) => (
-                <div key={index} className="px-2">
-                  <img
-                    src={frame}
-                    alt={`Thumbnail ${index + 1}`}
-                    className={`h-20 w-full object-cover rounded cursor-pointer transition-all ${
-                      frame === image ? 'ring-2 ring-primary' : ''
-                    }`}
-                    onClick={() => onSlideChange(index)}
-                  />
-                </div>
-              ))}
-            </Slider>
+        {/* Navigation bar */}
+        <div className="bg-white/10 p-4 rounded-lg">
+          <div className="relative">
+            {/* Previous button */}
+            <button 
+              onClick={() => thumbnailSliderRef.current?.slickPrev()}
+              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m14 18-6-6 6-6"/>
+              </svg>
+            </button>
+
+            {/* Thumbnail slider */}
+            <div className="px-8">
+              <Slider ref={thumbnailSliderRef} {...thumbnailSettings}>
+                {frames.map((frame, index) => (
+                  <div key={index} className="px-1">
+                    <div 
+                      className={`
+                        relative cursor-pointer rounded-lg overflow-hidden
+                        ${currentSlide === index ? 'ring-2 ring-blue-500' : ''}
+                      `}
+                      onClick={() => {
+                        modalSliderRef.current?.slickGoTo(index);
+                        onSlideChange(index);
+                      }}
+                    >
+                      <img
+                        src={frame}
+                        alt={`Thumbnail ${index + 1}`}
+                        className="h-20 w-full object-cover"
+                      />
+                      {currentSlide === index && (
+                        <div className="absolute inset-0 bg-blue-500/20" />
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </Slider>
+            </div>
+
+            {/* Next button */}
+            <button 
+              onClick={() => thumbnailSliderRef.current?.slickNext()}
+              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              >
+                <path d="m10 18 6-6-6-6"/>
+              </svg>
+            </button>
           </div>
+        </div>
+
+        {/* Image counter */}
+        <div className="text-center text-white mt-2">
+          {currentSlide + 1} of {frames.length}
         </div>
       </div>
     </div>
