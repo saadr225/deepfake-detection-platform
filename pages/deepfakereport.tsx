@@ -213,9 +213,25 @@ export default function DeepfakeReportPage() {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
+    slidesToShow: 4, // Show 4 images at once
+    slidesToScroll: 4, // Scroll 4 images at a time
     arrows: false,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 3,
+          slidesToScroll: 3,
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 2,
+          slidesToScroll: 2,
+        }
+      }
+    ],
     afterChange: (current: number) => setCurrentSlide(current)
   };
 
@@ -357,37 +373,65 @@ export default function DeepfakeReportPage() {
                   )}
                   {mediaType === 'video' && (
                     // Update the slider section in your JSX where the video frames are shown:
-                  <div className="space-y-4">
+                    <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Analysed Frames</h3>
                     <div className="relative">
                       <div className="slider-container">
                         <Slider ref={sliderRef} {...settings}>
                           {analysisResult.frames?.map((frame, index) => (
-                            <div key={index} className="hover-enlarge-container">
-                              <img 
-                                src={frame} 
-                                alt={`Frame ${index + 1}`} 
-                                className="w-full max-h-[200px] object-contain hover-enlarge"
-                              />
+                            <div key={index} className="px-2"> {/* Add padding between slides */}
+                              <div className="hover-enlarge-container">
+                                <img 
+                                  src={frame} 
+                                  alt={`Frame ${index + 1}`} 
+                                  className="w-full h-[150px] object-cover hover-enlarge rounded-lg"
+                                />
+                              </div>
                             </div>
                           ))}
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                      <button 
-                        onClick={goToPrevSlide}
-                        className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
-                      >
-                        Previous
-                      </button>
-                      <div className="text-sm text-muted-foreground">
-                          Page {currentSlide + 1} of {totalSlides}
+                        <button 
+                          onClick={goToPrevSlide}
+                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          aria-label="Previous slides"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <path d="m15 18-6-6 6-6"/>
+                          </svg>
+                        </button>
+                        <div className="text-sm text-muted-foreground">
+                          Page {Math.floor(currentSlide / 4) + 1} of {Math.ceil(totalSlides / 4)}
                         </div>
                         <button 
                           onClick={goToNextSlide}
-                          className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
+                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          aria-label="Next slides"
                         >
-                          Next
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <path d="m9 18 6-6-6-6"/>
+                          </svg>
                         </button>
                       </div>
                     </div>
@@ -432,37 +476,65 @@ export default function DeepfakeReportPage() {
                   )}
                   {mediaType === 'video' && (
                     // Update the slider section in your JSX where the video frames are shown:
-                  <div className="space-y-4">
+                    <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Analysed Frames</h3>
                     <div className="relative">
                       <div className="slider-container">
                         <Slider ref={sliderRef} {...settings}>
                           {analysisResult.frames?.map((frame, index) => (
-                            <div key={index} className="hover-enlarge-container">
-                              <img 
-                                src={frame} 
-                                alt={`Frame ${index + 1}`} 
-                                className="w-full max-h-[200px] object-contain hover-enlarge"
-                              />
+                            <div key={index} className="px-2"> {/* Add padding between slides */}
+                              <div className="hover-enlarge-container">
+                                <img 
+                                  src={frame} 
+                                  alt={`Frame ${index + 1}`} 
+                                  className="w-full h-[150px] object-cover hover-enlarge rounded-lg"
+                                />
+                              </div>
                             </div>
                           ))}
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                      <button 
-                        onClick={goToPrevSlide}
-                        className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
-                      >
-                        Previous
-                      </button>
-                      <div className="text-sm text-muted-foreground">
-                          Page {currentSlide + 1} of {totalSlides}
+                        <button 
+                          onClick={goToPrevSlide}
+                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          aria-label="Previous slides"
+                        >
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <path d="m15 18-6-6 6-6"/>
+                          </svg>
+                        </button>
+                        <div className="text-sm text-muted-foreground">
+                          Page {Math.floor(currentSlide / 4) + 1} of {Math.ceil(totalSlides / 4)}
                         </div>
                         <button 
                           onClick={goToNextSlide}
-                          className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
+                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          aria-label="Next slides"
                         >
-                          Next
+                          <svg 
+                            xmlns="http://www.w3.org/2000/svg" 
+                            width="24" 
+                            height="24" 
+                            viewBox="0 0 24 24" 
+                            fill="none" 
+                            stroke="currentColor" 
+                            strokeWidth="2" 
+                            strokeLinecap="round" 
+                            strokeLinejoin="round"
+                          >
+                            <path d="m9 18 6-6-6-6"/>
+                          </svg>
                         </button>
                       </div>
                     </div>
