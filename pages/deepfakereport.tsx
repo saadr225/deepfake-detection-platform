@@ -84,6 +84,9 @@ export default function DeepfakeReportPage() {
       const frames = [
         'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
         'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D', // These should be the actual frame URLs
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
         'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D' // These should be the actual frame URLs
       ]
 
@@ -213,8 +216,8 @@ export default function DeepfakeReportPage() {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 4, // Show 4 images at once
-    slidesToScroll: 4, // Scroll 4 images at a time
+    slidesToShow: 3, // Show 4 images at once
+    slidesToScroll: 3, // Scroll 4 images at a time
     arrows: false,
     responsive: [
       {
@@ -392,9 +395,9 @@ export default function DeepfakeReportPage() {
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                        <button 
+                        <button
                           onClick={goToPrevSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
                           aria-label="Previous slides"
                         >
                           <svg 
@@ -416,7 +419,7 @@ export default function DeepfakeReportPage() {
                         </div>
                         <button 
                           onClick={goToNextSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
                           aria-label="Next slides"
                         >
                           <svg 
@@ -497,7 +500,7 @@ export default function DeepfakeReportPage() {
                       <div className="flex items-center justify-between mt-4">
                         <button 
                           onClick={goToPrevSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
                           aria-label="Previous slides"
                         >
                           <svg 
@@ -519,7 +522,7 @@ export default function DeepfakeReportPage() {
                         </div>
                         <button 
                           onClick={goToNextSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-secondary/80 transition-colors"
+                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
                           aria-label="Next slides"
                         >
                           <svg 
