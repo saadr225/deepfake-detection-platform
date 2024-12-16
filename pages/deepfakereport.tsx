@@ -318,7 +318,7 @@ const ImageModal = ({
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 5,
+    slidesToShow: 10, // Reduced from 5 to 4 for better spacing
     slidesToScroll: 1,
     arrows: false,
     initialSlide: currentSlide,
@@ -372,32 +372,33 @@ const ImageModal = ({
           </Slider>
         </div>
 
-        {/* Navigation bar */}
-        <div className="bg-white/10 p-4 rounded-lg">
-          <div className="relative">
-            {/* Previous button */}
-            <button 
-              onClick={() => thumbnailSliderRef.current?.slickPrev()}
-              className="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m14 18-6-6 6-6"/>
-              </svg>
-            </button>
+        
+{/* Navigation bar */}
+<div className="bg-white/10 p-4 rounded-lg">
+  <div className="relative">
+    {/* Previous button */}
+    <button 
+      onClick={() => thumbnailSliderRef.current?.slickPrev()}
+      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
+    >
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="20"
+        height="20"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      >
+        <path d="m14 18-6-6 6-6"/>
+      </svg>
+    </button>
 
             {/* Thumbnail slider */}
-            <div className="px-8">
-              <Slider ref={thumbnailSliderRef} {...thumbnailSettings}>
+            <div className="px-12"> {/* Changed from px-8 to px-12 for more space from arrows */}
+              <Slider ref={thumbnailSliderRef} {...thumbnailSettings} className="modal-thumbnail-slider">
                 {frames.map((frame, index) => (
                   <div key={index} className="px-1">
                     <div 
@@ -413,7 +414,7 @@ const ImageModal = ({
                       <img
                         src={frame}
                         alt={`Thumbnail ${index + 1}`}
-                        className="h-20 w-full object-cover"
+                        className="h-16 w-full object-cover" /* Changed from h-20 to h-16 for smaller thumbnails */
                       />
                       {currentSlide === index && (
                         <div className="absolute inset-0 bg-blue-500/20" />
@@ -427,7 +428,7 @@ const ImageModal = ({
             {/* Next button */}
             <button 
               onClick={() => thumbnailSliderRef.current?.slickNext()}
-              className="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
+              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
