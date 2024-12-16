@@ -310,14 +310,14 @@ const ImageModal = ({
   const thumbnailSliderRef = useRef<Slider | null>(null);
 
   const modalSettings: Settings = {
-    dots: true,
-    infinite: false,
+    dots: false,
+    infinite: true,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
-    arrows: false,
+    arrows: true,
     initialSlide: currentSlide,
-    beforeChange: (_, next) => onSlideChange(next)
+    //beforeChange: (_, next) => onSlideChange(next)
   };
 
   const thumbnailSettings: Settings = {
@@ -396,7 +396,7 @@ const ImageModal = ({
       `}
       onClick={() => {
         modalSliderRef.current?.slickGoTo(index, true); // Added true for immediate update
-        onSlideChange(index);
+        //onSlideChange(index);
       }}
     >
       <img
