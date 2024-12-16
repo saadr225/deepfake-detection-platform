@@ -113,10 +113,17 @@
     animation: slideUp 0.5s ease-out;
   }
 
+  /* Add this to your global CSS or component CSS */
+  .hover-enlarge-container {
+    overflow: hidden;
+    display: inline-block;
+  }
+
   .hover-enlarge {
     transition: transform 0.3s ease-in-out;
   }
-  .hover-enlarge:hover {
+
+  .hover-enlarge-container:hover .hover-enlarge {
     transform: scale(1.5);
     z-index: 10;
     position: relative;

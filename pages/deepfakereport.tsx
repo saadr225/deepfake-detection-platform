@@ -1,19 +1,20 @@
-import { useState, useEffect, useCallback } from 'react'
-import { useRouter } from 'next/router'
-import { motion } from 'framer-motion'
-import Layout from '@/components/Layout'
-import { Button } from "@/components/ui/button"
-import { Download, Share2 } from 'lucide-react'
-import { useUser } from '../contexts/UserContext'
-import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
-import { DetectionResult } from '../services/detectionService'
-import Slider from 'react-slick' // Add this import for the slider
+import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/router';
+import { motion } from 'framer-motion';
+import Layout from '@/components/Layout';
+import { Button } from "@/components/ui/button";
+import { Download, Share2 } from 'lucide-react';
+import { useUser } from '../contexts/UserContext';
+import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
+import { DetectionResult } from '../services/detectionService';
+import "react-responsive-carousel/lib/styles/carousel.min.css"; // Import carousel styles
+import { Carousel } from 'react-responsive-carousel';
 
 export default function DeepfakeReportPage() {
-  const router = useRouter()
-  const { user } = useUser()
-  const { detectionHistory, addDetectionEntry } = useDetectionHistory()
-  const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown')
+  const router = useRouter();
+  const { user } = useUser();
+  const { detectionHistory, addDetectionEntry } = useDetectionHistory();
+  const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
 
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: '',
@@ -30,15 +31,7 @@ export default function DeepfakeReportPage() {
     },
     heatmapImage: '',
     frames: [] // Add this field to store frames
-  })
-
-  const settings = {
-    dots: true,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1
-  };
+  });
 
   // Update isAlreadyInHistory method
   const isAlreadyInHistory = useCallback((result: DetectionResult) => {
@@ -319,16 +312,26 @@ export default function DeepfakeReportPage() {
                     />
                   )}
                   {mediaType === 'video' && (
-                    <Slider {...settings}>
+                    <Carousel 
+                      showArrows={true} 
+                      showThumbs={false} 
+                      infiniteLoop={true} 
+                      useKeyboardArrows={true} 
+                      dynamicHeight={true} 
+                      autoPlay={false} 
+                      centerMode={true}
+                      centerSlidePercentage={33.33}
+                    >
                       {analysisResult.frames?.map((frame, index) => (
-                        <img 
-                          key={index} 
-                          src={frame} 
-                          alt={`Frame ${index + 1}`} 
-                          className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
-                        />
+                        <div key={index} className="hover-enlarge-container">
+                          <img 
+                            src={frame} 
+                            alt={`Frame ${index + 1}`} 
+                            className="max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                          />
+                        </div>
                       ))}
-                    </Slider>
+                    </Carousel>
                   )}
                 </div>
               </motion.div>
@@ -368,16 +371,26 @@ export default function DeepfakeReportPage() {
                     />
                   )}
                   {mediaType === 'video' && (
-                    <Slider {...settings}>
+                    <Carousel 
+                      showArrows={true} 
+                      showThumbs={false} 
+                      infiniteLoop={true} 
+                      useKeyboardArrows={true} 
+                      dynamicHeight={true} 
+                      autoPlay={false} 
+                      centerMode={true}
+                      centerSlidePercentage={33.33}
+                    >
                       {analysisResult.frames?.map((frame, index) => (
-                        <img 
-                          key={index} 
-                          src={frame} 
-                          alt={`Frame ${index + 1}`} 
-                          className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
-                        />
+                        <div key={index} className="hover-enlarge-container">
+                          <img 
+                            src={frame} 
+                            alt={`Frame ${index + 1}`} 
+                            className="max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                          />
+                        </div>
                       ))}
-                    </Slider>
+                    </Carousel>
                   )}
                 </div>
               </motion.div>
