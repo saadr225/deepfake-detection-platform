@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
@@ -7,14 +7,19 @@ import { Download, Share2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { DetectionResult } from '../services/detectionService';
-import "react-responsive-carousel/lib/styles/carousel.min.css"; // Import carousel styles
-import { Carousel } from 'react-responsive-carousel';
+import Slider from 'react-slick';
+import type { Settings } from 'react-slick';
+import "slick-carousel/slick/slick.css";
+import "slick-carousel/slick/slick-theme.css";
 
 export default function DeepfakeReportPage() {
   const router = useRouter();
   const { user } = useUser();
   const { detectionHistory, addDetectionEntry } = useDetectionHistory();
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
+  const sliderRef = useRef<Slider | null>(null);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  
 
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: '',
@@ -32,6 +37,7 @@ export default function DeepfakeReportPage() {
     heatmapImage: '',
     frames: [] // Add this field to store frames
   });
+  const totalSlides = analysisResult.frames?.length || 0;
 
   // Update isAlreadyInHistory method
   const isAlreadyInHistory = useCallback((result: DetectionResult) => {
@@ -86,6 +92,21 @@ export default function DeepfakeReportPage() {
       console.error('Error extracting frames:', error)
     }
   }
+
+  // Add this effect to track current slide
+  useEffect(() => {
+    const handleSlideChange = (current: number) => {
+      setCurrentSlide(current);
+    };
+  
+    // The slider instance is available via sliderRef.current
+    const slider = sliderRef.current;
+    
+    if (slider) {
+      // Use the correct event handling method
+      slider.slickGoTo(currentSlide);
+    }
+  }, [currentSlide]);
 
   // Parse and set detection result from query
   useEffect(() => {
@@ -174,6 +195,29 @@ export default function DeepfakeReportPage() {
       }
     }
   }
+
+  const goToNextSlide = () => {
+    if (sliderRef.current) {
+      sliderRef.current.slickNext();
+    }
+  };
+  
+  const goToPrevSlide = () => {
+    if (sliderRef.current) {
+      sliderRef.current.slickPrev();
+    }
+  };
+  
+  // Update your settings to include the afterChange callback
+  const settings: Settings = {
+    dots: false,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1,
+    arrows: false,
+    afterChange: (current: number) => setCurrentSlide(current)
+  };
 
   return (
     <Layout>
@@ -312,26 +356,42 @@ export default function DeepfakeReportPage() {
                     />
                   )}
                   {mediaType === 'video' && (
-                    <Carousel 
-                      showArrows={true} 
-                      showThumbs={false} 
-                      infiniteLoop={true} 
-                      useKeyboardArrows={true} 
-                      dynamicHeight={true} 
-                      autoPlay={false} 
-                      centerMode={true}
-                      centerSlidePercentage={33.33}
-                    >
-                      {analysisResult.frames?.map((frame, index) => (
-                        <div key={index} className="hover-enlarge-container">
-                          <img 
-                            src={frame} 
-                            alt={`Frame ${index + 1}`} 
-                            className="max-h-[150px] object-contain cursor-pointer hover-enlarge"
-                          />
+                    // Update the slider section in your JSX where the video frames are shown:
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Analysed Frames</h3>
+                    <div className="relative">
+                      <div className="slider-container">
+                        <Slider ref={sliderRef} {...settings}>
+                          {analysisResult.frames?.map((frame, index) => (
+                            <div key={index} className="hover-enlarge-container">
+                              <img 
+                                src={frame} 
+                                alt={`Frame ${index + 1}`} 
+                                className="w-full max-h-[200px] object-contain hover-enlarge"
+                              />
+                            </div>
+                          ))}
+                        </Slider>
+                      </div>
+                      <div className="flex items-center justify-between mt-4">
+                      <button 
+                        onClick={goToPrevSlide}
+                        className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
+                      >
+                        Previous
+                      </button>
+                      <div className="text-sm text-muted-foreground">
+                          Page {currentSlide + 1} of {totalSlides}
                         </div>
-                      ))}
-                    </Carousel>
+                        <button 
+                          onClick={goToNextSlide}
+                          className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   )}
                 </div>
               </motion.div>
@@ -371,26 +431,42 @@ export default function DeepfakeReportPage() {
                     />
                   )}
                   {mediaType === 'video' && (
-                    <Carousel 
-                      showArrows={true} 
-                      showThumbs={false} 
-                      infiniteLoop={true} 
-                      useKeyboardArrows={true} 
-                      dynamicHeight={true} 
-                      autoPlay={false} 
-                      centerMode={true}
-                      centerSlidePercentage={33.33}
-                    >
-                      {analysisResult.frames?.map((frame, index) => (
-                        <div key={index} className="hover-enlarge-container">
-                          <img 
-                            src={frame} 
-                            alt={`Frame ${index + 1}`} 
-                            className="max-h-[150px] object-contain cursor-pointer hover-enlarge"
-                          />
+                    // Update the slider section in your JSX where the video frames are shown:
+                  <div className="space-y-4">
+                    <h3 className="text-lg font-semibold">Analysed Frames</h3>
+                    <div className="relative">
+                      <div className="slider-container">
+                        <Slider ref={sliderRef} {...settings}>
+                          {analysisResult.frames?.map((frame, index) => (
+                            <div key={index} className="hover-enlarge-container">
+                              <img 
+                                src={frame} 
+                                alt={`Frame ${index + 1}`} 
+                                className="w-full max-h-[200px] object-contain hover-enlarge"
+                              />
+                            </div>
+                          ))}
+                        </Slider>
+                      </div>
+                      <div className="flex items-center justify-between mt-4">
+                      <button 
+                        onClick={goToPrevSlide}
+                        className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
+                      >
+                        Previous
+                      </button>
+                      <div className="text-sm text-muted-foreground">
+                          Page {currentSlide + 1} of {totalSlides}
                         </div>
-                      ))}
-                    </Carousel>
+                        <button 
+                          onClick={goToNextSlide}
+                          className="px-4 py-2 bg-secondary rounded-lg hover:bg-secondary/80"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  </div>
                   )}
                 </div>
               </motion.div>

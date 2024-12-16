@@ -113,20 +113,43 @@
     animation: slideUp 0.5s ease-out;
   }
 
-  /* Add this to your global CSS or component CSS */
-  .hover-enlarge-container {
-    overflow: hidden;
-    display: inline-block;
-  }
-
-  .hover-enlarge {
-    transition: transform 0.3s ease-in-out;
-  }
-
-  .hover-enlarge-container:hover .hover-enlarge {
-    transform: scale(1.5);
-    z-index: 10;
+  .slider-container {
     position: relative;
+    overflow: visible !important;
+  }
+  
+  .hover-enlarge-container {
+    position: relative;
+    z-index: 1;
+    padding: 10px;
+  }
+  
+  .hover-enlarge {
+    transition: all 0.3s ease-in-out;
+    transform-origin: center;
+  }
+  
+  .hover-enlarge-container:hover .hover-enlarge {
+    transform: scale(1.75);
+    z-index: 50;
+    position: relative;
+  }
+  
+  /* Override slick slider styles */
+  .slick-list {
+    overflow: visible !important;
+  }
+  
+  .slick-track {
+    display: flex !important;
+  }
+  
+  .slick-slide {
+    height: inherit !important;
+  }
+  
+  .slick-slide > div {
+    height: 100%;
   }
 
   @keyframes fadeIn {
