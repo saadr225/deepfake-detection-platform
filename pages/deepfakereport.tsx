@@ -243,7 +243,6 @@ export default function DeepfakeReportPage() {
     setEnlargedImage(image);
     setCurrentSliderType(type);
     document.body.style.overflow = 'hidden';
-    // Set the correct slide index
     if (type === 'error') {
       setCurrentErrorLevelSlide(index);
     } else {
@@ -311,35 +310,28 @@ const ImageModal = ({
 
   const modalSettings: Settings = {
     dots: false,
-    infinite: true,
+    infinite: false,
     speed: 500,
     slidesToShow: 1,
     slidesToScroll: 1,
     arrows: true,
     initialSlide: currentSlide,
-    beforeChange: (_, next) => onSlideChange(next)
+    beforeChange: (_, next) => onSlideChange(next),
+    afterChange: (current) => {
+      thumbnailSliderRef.current?.slickGoTo(Math.floor(current / 10) * 10);
+    },
   };
 
   const thumbnailSettings: Settings = {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 5,
-    slidesToScroll: 5, // Changed to move 10 slides at a time
+    slidesToShow: 10,
+    slidesToScroll: 10,
     arrows: true,
-    initialSlide: Math.floor(currentSlide / 10) * 10, // Align to the correct page
+    initialSlide: Math.floor(currentSlide / 10) * 10,
     focusOnSelect: true,
-    centerMode: false,
-    swipeToSlide: false, // Prevent single slide movement
-    responsive: [
-      {
-        breakpoint: 768,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3,
-        }
-      }
-    ]
+    beforeChange: (_, next) => modalSliderRef.current?.slickGoTo(next),
   };
 
   return (
@@ -380,38 +372,31 @@ const ImageModal = ({
           </Slider>
         </div>
 
-        
-{/* Navigation bar */}
-<div className="bg-white/10 p-4 rounded-lg">
-  <div className="relative">
-            {/* Thumbnail slider */}
-            <div className="px-12"> {/* Changed from px-8 to px-12 for more space from arrows */}
-              <Slider ref={thumbnailSliderRef} {...thumbnailSettings} className="modal-thumbnail-slider">
+        {/* Navigation bar */}
+        <div className="bg-white/10 p-4 rounded-lg">
+          <div className="px-4">
+            <Slider ref={thumbnailSliderRef} {...thumbnailSettings}>
               {frames.map((frame, index) => (
-  <div key={index} className="px-1">
-    <div 
-      className={`
-        relative cursor-pointer rounded-lg overflow-hidden
-        ${currentSlide === index ? 'ring-2 ring-blue-500' : ''}
-      `}
-      onClick={() => {
-        modalSliderRef.current?.slickGoTo(index, true); // Added true for immediate update
-        onSlideChange(index);
-      }}
-    >
-      <img
-        src={frame}
-        alt={`Thumbnail ${index + 1}`}
-        className="h-16 w-32 object-cover"
-      />
-      {currentSlide === index && (
-        <div className="absolute inset-0 bg-blue-500/20" />
-      )}
-    </div>
-  </div>
-))}
-              </Slider>
-            </div>
+                <div key={index} className="px-1">
+                  <div 
+                    className={`relative cursor-pointer rounded-lg overflow-hidden ${currentSlide === index ? 'ring-2 ring-blue-500' : ''}`}
+                    onClick={() => {
+                      modalSliderRef.current?.slickGoTo(index, true);
+                      onSlideChange(index);
+                    }}
+                  >
+                    <img
+                      src={frame}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="h-16 w-32 object-cover"
+                    />
+                    {currentSlide === index && (
+                      <div className="absolute inset-0 bg-blue-500/20" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </Slider>
           </div>
         </div>
 
