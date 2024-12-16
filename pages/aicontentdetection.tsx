@@ -197,13 +197,13 @@ export default function AIContentDetectionPage() {
             onValueChange={setActiveTab} 
             className="w-full"
           >
-            <TabsList className="grid w-full grid-cols-2 mb-6">
+            <TabsList className="grid w-full grid-cols-2 mb-6 shadow-md">
               <TabsTrigger value="media">Media Detection</TabsTrigger>
               <TabsTrigger value="text">Text Detection</TabsTrigger>
             </TabsList>
 
             <TabsContent value="media" className="w-full">
-              <div className="bg-background border rounded-lg p-6 shadow-sm min-h-[500px]">
+              <div className="bg-background border rounded-lg p-6 shadow-xl min-h-[500px]">
                 <div
                   {...getRootProps()}
                   className={`border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors mb-4 flex flex-col justify-center items-center h-full min-h-[500px] p-6 ${

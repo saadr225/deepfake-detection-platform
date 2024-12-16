@@ -188,7 +188,7 @@ export default function DetectPage() {
           </p>
           
           {/* Detection Area */}
-          <div className="bg-background border rounded-lg p-6 shadow-sm min-h-[500px]">
+          <div className="bg-background border rounded-lg p-6 shadow-xl min-h-[500px]">
             <div
               {...getRootProps()}
               className={`border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors mb-4 flex flex-col justify-center items-center h-full min-h-[500px] p-6 ${

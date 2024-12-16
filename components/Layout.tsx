@@ -118,7 +118,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         )}
       </header>
-      <div className="border-t border-gray-200 dark:border-gray-800"></div>
+      <div className="border-t border-gray-200 dark:border-gray-800 "></div>
 
       <main className="flex-grow dark:bg-black">
         {children}

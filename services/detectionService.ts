@@ -2,20 +2,22 @@
 //export type DetectionResult = DeepfakeDetectionResult | AIContentDetectionResult;
 
 export interface DetectionResult {
-    id: string;
-    imageUrl: string;
+  id: string;
+  imageUrl: string;
+  confidence: number;
+  isDeepfake: boolean;
+  errorLevelAnalysis: {
+    description: string;
     confidence: number;
-    isDeepfake: boolean;
-    errorLevelAnalysis: {
-      description: string;
-      confidence: number;
-    };
-    metadataAnalysis: {
-      source: string;
-      inconsistencies: number;
-    };
-    heatmapImage: string;
-  }
+    image?: string; // Add this field for Error Level Analysis image
+  };
+  metadataAnalysis: {
+    source: string;
+    inconsistencies: number;
+  };
+  heatmapImage: string;
+  frames?: string[]; // Add this field for frames
+}
   
   export class DeepfakeDetectionStub {
     // Simulate deepfake detection

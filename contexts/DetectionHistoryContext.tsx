@@ -9,11 +9,12 @@ export interface DetectionEntry {
   userId: string;
   imageUrl: string;
   confidence: number;
-  isDeepfake: boolean; // Renamed from isAIGenerated to maintain consistency
+  isDeepfake: boolean;
   date: string;
   detectionType: 'deepfake' | 'ai-content';
   detailedReport?: DetectionResult | AIContentDetectionResult;
-  textContent?: string; // Optional field for text-based detections
+  textContent?: string;
+  frames?: string[]; // Add this field
 }
 
 interface DetectionHistoryContextType {

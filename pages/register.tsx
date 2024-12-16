@@ -44,7 +44,7 @@ export default function Register() {
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
         <motion.div 
-          className="max-w-md w-full space-y-8 bg-card p-10 rounded-xl shadow-lg dark:bg-white dark:bg-opacity-5"
+          className="max-w-md w-full space-y-8 bg-card p-10 rounded-xl shadow-xl dark:bg-white dark:bg-opacity-5"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}

@@ -7,6 +7,7 @@ import { Download, Share2 } from 'lucide-react'
 import { useUser } from '../contexts/UserContext'
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
 import { DetectionResult } from '../services/detectionService'
+import Slider from 'react-slick' // Add this import for the slider
 
 export default function DeepfakeReportPage() {
   const router = useRouter()
@@ -27,8 +28,17 @@ export default function DeepfakeReportPage() {
       source: 'No source information',
       inconsistencies: 0
     },
-    heatmapImage: ''
+    heatmapImage: '',
+    frames: [] // Add this field to store frames
   })
+
+  const settings = {
+    dots: true,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 1,
+    slidesToScroll: 1
+  };
 
   // Update isAlreadyInHistory method
   const isAlreadyInHistory = useCallback((result: DetectionResult) => {
@@ -53,6 +63,8 @@ export default function DeepfakeReportPage() {
             setMediaType('image')
           } else if (mimeType.startsWith('video/')) {
             setMediaType('video')
+            // Extract frames if the media is a video
+            extractFramesFromVideo(analysisResult.imageUrl)
           } else {
             setMediaType('unknown')
           }
@@ -65,6 +77,22 @@ export default function DeepfakeReportPage() {
       determineMediaType()
     }
   }, [analysisResult.imageUrl])
+
+  const extractFramesFromVideo = async (videoUrl: string) => {
+    try {
+      // Use a library like videojs or ffmpeg.js to extract frames
+      // Here is a placeholder for frame extraction
+      const frames = [
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D' // These should be the actual frame URLs
+      ]
+
+      setAnalysisResult(prev => ({ ...prev, frames }))
+    } catch (error) {
+      console.error('Error extracting frames:', error)
+    }
+  }
 
   // Parse and set detection result from query
   useEffect(() => {
@@ -282,6 +310,27 @@ export default function DeepfakeReportPage() {
                     {analysisResult.errorLevelAnalysis.confidence}%
                   </div>
                 </div>
+                <div>
+                  {mediaType === 'image' && (
+                    <img 
+                      src={analysisResult.errorLevelAnalysis.image} 
+                      alt="Error Level Analysis" 
+                      className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                    />
+                  )}
+                  {mediaType === 'video' && (
+                    <Slider {...settings}>
+                      {analysisResult.frames?.map((frame, index) => (
+                        <img 
+                          key={index} 
+                          src={frame} 
+                          alt={`Frame ${index + 1}`} 
+                          className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                        />
+                      ))}
+                    </Slider>
+                  )}
+                </div>
               </motion.div>
 
               {/* Metadata Analysis */}
@@ -310,14 +359,27 @@ export default function DeepfakeReportPage() {
                 <h3 className="text-lg font-semibold mb-2">
                   Gradmap Heatmap
                 </h3>
-                <motion.img 
-                  src={analysisResult.heatmapImage} 
-                  alt="Gradmap Heatmap" 
-                  className="w-full rounded-md"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5 }}
-                />
+                <div>
+                  {mediaType === 'image' && (
+                    <img 
+                      src={analysisResult.heatmapImage} 
+                      alt="Gradmap Heatmap" 
+                      className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                    />
+                  )}
+                  {mediaType === 'video' && (
+                    <Slider {...settings}>
+                      {analysisResult.frames?.map((frame, index) => (
+                        <img 
+                          key={index} 
+                          src={frame} 
+                          alt={`Frame ${index + 1}`} 
+                          className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                        />
+                      ))}
+                    </Slider>
+                  )}
+                </div>
               </motion.div>
             </motion.div>
           </motion.div>

@@ -223,13 +223,13 @@ if (!user) {
           </motion.h1>
 
           <Tabs defaultValue="profile">
-            <TabsList className="grid w-full grid-cols-2">
+            <TabsList className="grid w-full grid-cols-2 shadow-md">
               <TabsTrigger value="profile">Profile Settings</TabsTrigger>
               <TabsTrigger value="history">Detection History</TabsTrigger>
             </TabsList>
 
             {/* Profile Settings Tab */}
-            <TabsContent value="profile">
+            <TabsContent value="profile" className= "mt-8 shadow-xl"> 
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}

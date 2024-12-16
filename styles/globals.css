@@ -113,6 +113,15 @@
     animation: slideUp 0.5s ease-out;
   }
 
+  .hover-enlarge {
+    transition: transform 0.3s ease-in-out;
+  }
+  .hover-enlarge:hover {
+    transform: scale(1.5);
+    z-index: 10;
+    position: relative;
+  }
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
