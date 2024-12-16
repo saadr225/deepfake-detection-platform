@@ -17,8 +17,10 @@ export default function DeepfakeReportPage() {
   const { user } = useUser();
   const { detectionHistory, addDetectionEntry } = useDetectionHistory();
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
-  const sliderRef = useRef<Slider | null>(null);
-  const [currentSlide, setCurrentSlide] = useState(0);
+  const errorLevelSliderRef = useRef<Slider | null>(null);
+  const heatmapSliderRef = useRef<Slider | null>(null);
+  const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
+  const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
   const SLIDES_TO_SHOW = 3;
   const SLIDES_TO_SCROLL = 3;
   
@@ -207,22 +209,36 @@ export default function DeepfakeReportPage() {
     }
   }
 
-  const goToNextSlide = () => {
-    const nextSlide = currentSlide + SLIDES_TO_SHOW;
-    if (nextSlide < totalSlides && sliderRef.current) {
-      sliderRef.current.slickGoTo(nextSlide);
+  const goToNextErrorLevelSlide = () => {
+    const nextSlide = currentErrorLevelSlide + SLIDES_TO_SHOW;
+    if (nextSlide < totalSlides && errorLevelSliderRef.current) {
+      errorLevelSliderRef.current.slickGoTo(nextSlide);
     }
   };
   
-  const goToPrevSlide = () => {
-    const prevSlide = currentSlide - SLIDES_TO_SHOW;
-    if (prevSlide >= 0 && sliderRef.current) {
-      sliderRef.current.slickGoTo(prevSlide);
+  const goToPrevErrorLevelSlide = () => {
+    const prevSlide = currentErrorLevelSlide - SLIDES_TO_SHOW;
+    if (prevSlide >= 0 && errorLevelSliderRef.current) {
+      errorLevelSliderRef.current.slickGoTo(prevSlide);
+    }
+  };
+  
+  const goToNextHeatmapSlide = () => {
+    const nextSlide = currentHeatmapSlide + SLIDES_TO_SHOW;
+    if (nextSlide < totalSlides && heatmapSliderRef.current) {
+      heatmapSliderRef.current.slickGoTo(nextSlide);
+    }
+  };
+  
+  const goToPrevHeatmapSlide = () => {
+    const prevSlide = currentHeatmapSlide - SLIDES_TO_SHOW;
+    if (prevSlide >= 0 && heatmapSliderRef.current) {
+      heatmapSliderRef.current.slickGoTo(prevSlide);
     }
   };
   
   // Update your settings to include the afterChange callback
-  const settings: Settings = {
+  const errorLevelSettings: Settings = {
     dots: false,
     infinite: false,
     speed: 500,
@@ -245,7 +261,12 @@ export default function DeepfakeReportPage() {
         }
       }
     ],
-    beforeChange: (current: number, next: number) => setCurrentSlide(next)
+    beforeChange: (current: number, next: number) => setCurrentErrorLevelSlide(next)
+  };
+  
+  const heatmapSettings: Settings = {
+    ...errorLevelSettings,
+    beforeChange: (current: number, next: number) => setCurrentHeatmapSlide(next)
   };
 
   return (
@@ -389,10 +410,11 @@ export default function DeepfakeReportPage() {
                     <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Analysed Frames</h3>
                     <div className="relative">
+                      {/* Error Level Analysis Slider */}
                       <div className="slider-container">
-                        <Slider ref={sliderRef} {...settings}>
+                        <Slider ref={errorLevelSliderRef} {...errorLevelSettings}>
                           {analysisResult.frames?.map((frame, index) => (
-                            <div key={index} className="px-2"> {/* Add padding between slides */}
+                            <div key={index} className="px-2">
                               <div className="hover-enlarge-container">
                                 <img 
                                   src={frame} 
@@ -405,16 +427,16 @@ export default function DeepfakeReportPage() {
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                      <button 
-                        onClick={goToPrevSlide}
-                        disabled={currentSlide === 0}
-                        className={`p-2 rounded-full transition-colors ${
-                          currentSlide === 0 
-                            ? 'bg-secondary/50 cursor-not-allowed' 
-                            : 'bg-secondary hover:bg-primary/20'
-                        }`}
-                        aria-label="Previous slides"
-                      >
+                        <button 
+                          onClick={goToPrevErrorLevelSlide}
+                          disabled={currentErrorLevelSlide === 0}
+                          className={`p-2 rounded-full transition-colors ${
+                            currentErrorLevelSlide === 0 
+                              ? 'bg-secondary/50 cursor-not-allowed' 
+                              : 'bg-secondary hover:bg-primary/20'
+                          }`}
+                          aria-label="Previous slides"
+                        >
                           <svg 
                             xmlns="http://www.w3.org/2000/svg" 
                             width="24" 
@@ -430,18 +452,18 @@ export default function DeepfakeReportPage() {
                           </svg>
                         </button>
                         <div className="text-sm text-muted-foreground">
-                          Page {Math.floor(currentSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
+                          Page {Math.floor(currentErrorLevelSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
                         </div>
                         <button 
-                          onClick={goToNextSlide}
-                          disabled={currentSlide >= totalSlides - SLIDES_TO_SHOW}
-                          className={`p-2 rounded-full transition-colors ${
-                            currentSlide >= totalSlides - SLIDES_TO_SHOW
-                              ? 'bg-secondary/50 cursor-not-allowed' 
-                              : 'bg-secondary hover:bg-primary/20'
-                          }`}
-                          aria-label="Next slides"
-                        >
+                            onClick={goToNextErrorLevelSlide}
+                            disabled={currentErrorLevelSlide >= totalSlides - SLIDES_TO_SHOW}
+                            className={`p-2 rounded-full transition-colors ${
+                              currentErrorLevelSlide >= totalSlides - SLIDES_TO_SHOW
+                                ? 'bg-secondary/50 cursor-not-allowed' 
+                                : 'bg-secondary hover:bg-primary/20'
+                            }`}
+                            aria-label="Next slides"
+                          >
                           <svg 
                             xmlns="http://www.w3.org/2000/svg" 
                             width="24" 
@@ -502,10 +524,11 @@ export default function DeepfakeReportPage() {
                     <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Analysed Frames</h3>
                     <div className="relative">
+                      {/* Heatmap Slider */}
                       <div className="slider-container">
-                        <Slider ref={sliderRef} {...settings}>
+                        <Slider ref={heatmapSliderRef} {...heatmapSettings}>
                           {analysisResult.frames?.map((frame, index) => (
-                            <div key={index} className="px-2"> {/* Add padding between slides */}
+                            <div key={index} className="px-2">
                               <div className="hover-enlarge-container">
                                 <img 
                                   src={frame} 
@@ -518,11 +541,11 @@ export default function DeepfakeReportPage() {
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                        <button 
-                          onClick={goToPrevSlide}
-                          disabled={currentSlide === 0}
+                      <button 
+                          onClick={goToPrevHeatmapSlide}
+                          disabled={currentHeatmapSlide === 0}
                           className={`p-2 rounded-full transition-colors ${
-                            currentSlide === 0 
+                            currentHeatmapSlide === 0 
                               ? 'bg-secondary/50 cursor-not-allowed' 
                               : 'bg-secondary hover:bg-primary/20'
                           }`}
@@ -543,13 +566,13 @@ export default function DeepfakeReportPage() {
                           </svg>
                         </button>
                         <div className="text-sm text-muted-foreground">
-                          Page {Math.floor(currentSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
+                          Page {Math.floor(currentHeatmapSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
                         </div>
                         <button 
-                          onClick={goToNextSlide}
-                          disabled={currentSlide >= totalSlides - SLIDES_TO_SHOW}
+                          onClick={goToNextHeatmapSlide}
+                          disabled={currentHeatmapSlide >= totalSlides - SLIDES_TO_SHOW}
                           className={`p-2 rounded-full transition-colors ${
-                            currentSlide >= totalSlides - SLIDES_TO_SHOW
+                            currentHeatmapSlide >= totalSlides - SLIDES_TO_SHOW
                               ? 'bg-secondary/50 cursor-not-allowed' 
                               : 'bg-secondary hover:bg-primary/20'
                           }`}
