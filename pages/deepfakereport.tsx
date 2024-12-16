@@ -520,7 +520,12 @@ export default function DeepfakeReportPage() {
                       <div className="flex items-center justify-between mt-4">
                         <button 
                           onClick={goToPrevSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
+                          disabled={currentSlide === 0}
+                          className={`p-2 rounded-full transition-colors ${
+                            currentSlide === 0 
+                              ? 'bg-secondary/50 cursor-not-allowed' 
+                              : 'bg-secondary hover:bg-primary/20'
+                          }`}
                           aria-label="Previous slides"
                         >
                           <svg 
@@ -538,11 +543,16 @@ export default function DeepfakeReportPage() {
                           </svg>
                         </button>
                         <div className="text-sm text-muted-foreground">
-                          Page {Math.floor(currentSlide / 4) + 1} of {Math.ceil(totalSlides / 4)}
+                          Page {Math.floor(currentSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
                         </div>
                         <button 
                           onClick={goToNextSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
+                          disabled={currentSlide >= totalSlides - SLIDES_TO_SHOW}
+                          className={`p-2 rounded-full transition-colors ${
+                            currentSlide >= totalSlides - SLIDES_TO_SHOW
+                              ? 'bg-secondary/50 cursor-not-allowed' 
+                              : 'bg-secondary hover:bg-primary/20'
+                          }`}
                           aria-label="Next slides"
                         >
                           <svg 
