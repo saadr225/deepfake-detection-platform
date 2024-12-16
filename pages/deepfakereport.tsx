@@ -413,17 +413,18 @@ export default function DeepfakeReportPage() {
                       {/* Error Level Analysis Slider */}
                       <div className="slider-container">
                         <Slider ref={errorLevelSliderRef} {...errorLevelSettings}>
-                          {analysisResult.frames?.map((frame, index) => (
-                            <div key={index} className="px-2">
-                              <div className="hover-enlarge-container">
-                                <img 
-                                  src={frame} 
-                                  alt={`Frame ${index + 1}`} 
-                                  className="w-full h-[150px] object-cover hover-enlarge rounded-lg"
-                                />
-                              </div>
+                        {analysisResult.frames?.map((frame, index) => (
+                          <div key={index} className="px-2">
+                            <div className="hover-enlarge-container">
+                              <div className="hover-enlarge-overlay"></div>
+                              <img 
+                                src={frame} 
+                                alt={`Frame ${index + 1}`} 
+                                className="hover-enlarge"
+                              />
                             </div>
-                          ))}
+                          </div>
+                        ))}
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
@@ -527,17 +528,18 @@ export default function DeepfakeReportPage() {
                       {/* Heatmap Slider */}
                       <div className="slider-container">
                         <Slider ref={heatmapSliderRef} {...heatmapSettings}>
-                          {analysisResult.frames?.map((frame, index) => (
-                            <div key={index} className="px-2">
-                              <div className="hover-enlarge-container">
-                                <img 
-                                  src={frame} 
-                                  alt={`Frame ${index + 1}`} 
-                                  className="w-full h-[150px] object-cover hover-enlarge rounded-lg"
-                                />
-                              </div>
+                        {analysisResult.frames?.map((frame, index) => (
+                          <div key={index} className="px-2">
+                            <div className="hover-enlarge-container">
+                              <div className="hover-enlarge-overlay"></div>
+                              <img 
+                                src={frame} 
+                                alt={`Frame ${index + 1}`} 
+                                className="hover-enlarge"
+                              />
                             </div>
-                          ))}
+                          </div>
+                        ))}
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
