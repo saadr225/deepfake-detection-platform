@@ -239,10 +239,16 @@ export default function DeepfakeReportPage() {
     }
   };
   
-  const handleImageClick = (image: string, type: 'error' | 'heatmap') => {
+  const handleImageClick = (image: string, type: 'error' | 'heatmap', index: number) => {
     setEnlargedImage(image);
     setCurrentSliderType(type);
     document.body.style.overflow = 'hidden';
+    // Set the correct slide index
+    if (type === 'error') {
+      setCurrentErrorLevelSlide(index);
+    } else {
+      setCurrentHeatmapSlide(index);
+    }
   };
   
   const handleCloseModal = () => {
@@ -318,17 +324,19 @@ const ImageModal = ({
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 10, // Reduced from 5 to 4 for better spacing
-    slidesToScroll: 1,
-    arrows: false,
-    initialSlide: currentSlide,
+    slidesToShow: 5,
+    slidesToScroll: 5, // Changed to move 10 slides at a time
+    arrows: true,
+    initialSlide: Math.floor(currentSlide / 10) * 10, // Align to the correct page
     focusOnSelect: true,
     centerMode: false,
+    swipeToSlide: false, // Prevent single slide movement
     responsive: [
       {
         breakpoint: 768,
         settings: {
           slidesToShow: 3,
+          slidesToScroll: 3,
         }
       }
     ]
@@ -376,74 +384,34 @@ const ImageModal = ({
 {/* Navigation bar */}
 <div className="bg-white/10 p-4 rounded-lg">
   <div className="relative">
-    {/* Previous button */}
-    <button 
-      onClick={() => thumbnailSliderRef.current?.slickPrev()}
-      className="absolute left-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
-    >
-      <svg
-        xmlns="http://www.w3.org/2000/svg"
-        width="20"
-        height="20"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <path d="m14 18-6-6 6-6"/>
-      </svg>
-    </button>
-
             {/* Thumbnail slider */}
             <div className="px-12"> {/* Changed from px-8 to px-12 for more space from arrows */}
               <Slider ref={thumbnailSliderRef} {...thumbnailSettings} className="modal-thumbnail-slider">
-                {frames.map((frame, index) => (
-                  <div key={index} className="px-1">
-                    <div 
-                      className={`
-                        relative cursor-pointer rounded-lg overflow-hidden
-                        ${currentSlide === index ? 'ring-2 ring-blue-500' : ''}
-                      `}
-                      onClick={() => {
-                        modalSliderRef.current?.slickGoTo(index);
-                        onSlideChange(index);
-                      }}
-                    >
-                      <img
-                        src={frame}
-                        alt={`Thumbnail ${index + 1}`}
-                        className="h-16 w-full object-cover" /* Changed from h-20 to h-16 for smaller thumbnails */
-                      />
-                      {currentSlide === index && (
-                        <div className="absolute inset-0 bg-blue-500/20" />
-                      )}
-                    </div>
-                  </div>
-                ))}
+              {frames.map((frame, index) => (
+  <div key={index} className="px-1">
+    <div 
+      className={`
+        relative cursor-pointer rounded-lg overflow-hidden
+        ${currentSlide === index ? 'ring-2 ring-blue-500' : ''}
+      `}
+      onClick={() => {
+        modalSliderRef.current?.slickGoTo(index, true); // Added true for immediate update
+        onSlideChange(index);
+      }}
+    >
+      <img
+        src={frame}
+        alt={`Thumbnail ${index + 1}`}
+        className="h-16 w-32 object-cover"
+      />
+      {currentSlide === index && (
+        <div className="absolute inset-0 bg-blue-500/20" />
+      )}
+    </div>
+  </div>
+))}
               </Slider>
             </div>
-
-            {/* Next button */}
-            <button 
-              onClick={() => thumbnailSliderRef.current?.slickNext()}
-              className="absolute right-2 top-1/2 -translate-y-1/2 z-10 bg-black/50 p-2 rounded-full text-white hover:bg-black/70"
-            >
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <path d="m10 18 6-6-6-6"/>
-              </svg>
-            </button>
           </div>
         </div>
 
@@ -602,7 +570,7 @@ const ImageModal = ({
                         <Slider ref={errorLevelSliderRef} {...errorLevelSettings}>
                         {analysisResult.frames?.map((frame, index) => (
   <div key={index} className="px-2">
-    <div className="image-container" onClick={() => handleImageClick(frame, 'error')}>
+    <div className="image-container" onClick={() => handleImageClick(frame, 'error', index)}>
       <img 
         src={frame} 
         alt={`Frame ${index + 1}`} 
@@ -717,7 +685,7 @@ const ImageModal = ({
                         <Slider ref={heatmapSliderRef} {...heatmapSettings}>
                         {analysisResult.frames?.map((frame, index) => (
   <div key={index} className="px-2">
-    <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap')}>
+    <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap', index)}>
       <img 
         src={frame} 
         alt={`Frame ${index + 1}`} 
