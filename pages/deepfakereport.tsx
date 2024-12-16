@@ -318,7 +318,8 @@ const ImageModal = ({
     initialSlide: currentSlide,
     beforeChange: (_, next) => onSlideChange(next),
     afterChange: (current) => {
-      thumbnailSliderRef.current?.slickGoTo(Math.floor(current / 10) * 10);
+      const pageIndex = Math.floor(current / 10);
+      thumbnailSliderRef.current?.slickGoTo(pageIndex * 10);
     },
   };
 

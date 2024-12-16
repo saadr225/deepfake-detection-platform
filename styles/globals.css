@@ -114,90 +114,86 @@
   }
 
   /* Replace the hover-enlarge related styles in your globals.css with these */
-
-/* Replace the hover-enlarge related styles with these */
-/* Replace the hover-enlarge related styles with these */
-/* Essential styles */
-.image-container {
-  position: relative;
-  height: 150px;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-
-.image-container:hover {
-  transform: scale(1.05);
-}
-
-.slider-container {
-  position: relative;
-  margin: 0 -8px;
-}
-
-.slick-list {
-  overflow: visible !important;
-}
-
-.slick-track {
-  display: flex !important;
-  gap: 16px;
-}
-
-.slick-slide {
-  height: auto !important;
-  position: relative;
-}
-
-.slick-slide > div {
-  height: 100%;
-  padding: 0 8px;
-}
-
-.modal-thumbnail-slider {
-  margin: 0 auto;
-  width: calc(100% - 4rem);
-}
-
-.modal-thumbnail-slider .slick-track {
-  display: flex !important;
-  gap: 0.5rem;
-}
-
-.modal-thumbnail-slider .slick-slide {
-  display: flex !important;
-  justify-content: center;
-  align-items: center;
-  opacity: 0.7;
-  transition: all 0.3s ease;
-}
-
-.modal-thumbnail-slider .slick-current {
-  opacity: 1;
-}
-
-.modal-thumbnail-slider .slick-slide.slick-active {
-  opacity: 0.6;
-}
-
-.modal-thumbnail-slider .slick-slide:hover {
-  opacity: 1;
-}
-
-.modal-thumbnail-slider .slick-slide > div {
-  width: 100%;
-}
-
-.slick-dots {
-  bottom: -25px;
-}
-
-.slick-dots li button:before {
-  color: white;
-}
-
-.slick-dots li.slick-active button:before {
-  color: white;
-}
+  .image-container {
+    position: relative;
+    height: 150px;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+  }
+  
+  .image-container:hover {
+    transform: scale(1.05);
+  }
+  
+  .slider-container {
+    position: relative;
+    margin: 0 -8px;
+  }
+  
+  .slick-list {
+    overflow: visible !important;
+  }
+  
+  .slick-track {
+    display: flex !important;
+    gap: 16px;
+  }
+  
+  .slick-slide {
+    height: auto !important;
+    position: relative;
+  }
+  
+  .slick-slide > div {
+    height: 100%;
+    padding: 0 8px;
+  }
+  
+  .modal-thumbnail-slider {
+    margin: 0 auto;
+    width: calc(100% - 4rem);
+  }
+  
+  .modal-thumbnail-slider .slick-track {
+    display: flex !important;
+    gap: 0.5rem;
+  }
+  
+  .modal-thumbnail-slider .slick-slide {
+    display: flex !important;
+    justify-content: center;
+    align-items: center;
+    opacity: 0.7;
+    transition: all 0.3s ease;
+  }
+  
+  .modal-thumbnail-slider .slick-current {
+    opacity: 1;
+  }
+  
+  .modal-thumbnail-slider .slick-slide.slick-active {
+    opacity: 0.6;
+  }
+  
+  .modal-thumbnail-slider .slick-slide:hover {
+    opacity: 1;
+  }
+  
+  .modal-thumbnail-slider .slick-slide > div {
+    width: 100%;
+  }
+  
+  .slick-dots {
+    bottom: -25px;
+  }
+  
+  .slick-dots li button:before {
+    color: white;
+  }
+  
+  .slick-dots li.slick-active button:before {
+    color: white;
+  }
 
   @keyframes fadeIn {
     from { opacity: 0; }
