@@ -396,7 +396,7 @@ const ImageModal = ({
       `}
       onClick={() => {
         modalSliderRef.current?.slickGoTo(index, true); // Added true for immediate update
-        //onSlideChange(index);
+        onSlideChange(index);
       }}
     >
       <img
