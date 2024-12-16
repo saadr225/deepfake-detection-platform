@@ -19,6 +19,8 @@ export default function DeepfakeReportPage() {
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const sliderRef = useRef<Slider | null>(null);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const SLIDES_TO_SHOW = 3;
+  const SLIDES_TO_SCROLL = 3;
   
 
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
@@ -103,19 +105,19 @@ export default function DeepfakeReportPage() {
   }
 
   // Add this effect to track current slide
-  useEffect(() => {
-    const handleSlideChange = (current: number) => {
-      setCurrentSlide(current);
-    };
+  // useEffect(() => {
+  //   const handleSlideChange = (current: number) => {
+  //     setCurrentSlide(current);
+  //   };
   
-    // The slider instance is available via sliderRef.current
-    const slider = sliderRef.current;
+  //   // The slider instance is available via sliderRef.current
+  //   const slider = sliderRef.current;
     
-    if (slider) {
-      // Use the correct event handling method
-      slider.slickGoTo(currentSlide);
-    }
-  }, [currentSlide]);
+  //   if (slider) {
+  //     // Use the correct event handling method
+  //     slider.slickGoTo(currentSlide);
+  //   }
+  // }, [currentSlide]);
 
   // Parse and set detection result from query
   useEffect(() => {
@@ -206,14 +208,16 @@ export default function DeepfakeReportPage() {
   }
 
   const goToNextSlide = () => {
-    if (sliderRef.current) {
-      sliderRef.current.slickNext();
+    const nextSlide = currentSlide + SLIDES_TO_SHOW;
+    if (nextSlide < totalSlides && sliderRef.current) {
+      sliderRef.current.slickGoTo(nextSlide);
     }
   };
   
   const goToPrevSlide = () => {
-    if (sliderRef.current) {
-      sliderRef.current.slickPrev();
+    const prevSlide = currentSlide - SLIDES_TO_SHOW;
+    if (prevSlide >= 0 && sliderRef.current) {
+      sliderRef.current.slickGoTo(prevSlide);
     }
   };
   
@@ -222,8 +226,8 @@ export default function DeepfakeReportPage() {
     dots: false,
     infinite: false,
     speed: 500,
-    slidesToShow: 3, // Show 4 images at once
-    slidesToScroll: 3, // Scroll 4 images at a time
+    slidesToShow: SLIDES_TO_SHOW,
+    slidesToScroll: SLIDES_TO_SCROLL,
     arrows: false,
     responsive: [
       {
@@ -241,7 +245,7 @@ export default function DeepfakeReportPage() {
         }
       }
     ],
-    afterChange: (current: number) => setCurrentSlide(current)
+    beforeChange: (current: number, next: number) => setCurrentSlide(next)
   };
 
   return (
@@ -401,11 +405,16 @@ export default function DeepfakeReportPage() {
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
-                        <button
-                          onClick={goToPrevSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
-                          aria-label="Previous slides"
-                        >
+                      <button 
+                        onClick={goToPrevSlide}
+                        disabled={currentSlide === 0}
+                        className={`p-2 rounded-full transition-colors ${
+                          currentSlide === 0 
+                            ? 'bg-secondary/50 cursor-not-allowed' 
+                            : 'bg-secondary hover:bg-primary/20'
+                        }`}
+                        aria-label="Previous slides"
+                      >
                           <svg 
                             xmlns="http://www.w3.org/2000/svg" 
                             width="24" 
@@ -421,11 +430,16 @@ export default function DeepfakeReportPage() {
                           </svg>
                         </button>
                         <div className="text-sm text-muted-foreground">
-                          Page {Math.floor(currentSlide / 4) + 1} of {Math.ceil(totalSlides / 4)}
+                          Page {Math.floor(currentSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
                         </div>
                         <button 
                           onClick={goToNextSlide}
-                          className="p-2 rounded-full bg-secondary hover:bg-primary/20 transition-colors"
+                          disabled={currentSlide >= totalSlides - SLIDES_TO_SHOW}
+                          className={`p-2 rounded-full transition-colors ${
+                            currentSlide >= totalSlides - SLIDES_TO_SHOW
+                              ? 'bg-secondary/50 cursor-not-allowed' 
+                              : 'bg-secondary hover:bg-primary/20'
+                          }`}
                           aria-label="Next slides"
                         >
                           <svg 
