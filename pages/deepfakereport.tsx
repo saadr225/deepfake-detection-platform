@@ -21,9 +21,11 @@ export default function DeepfakeReportPage() {
   const heatmapSliderRef = useRef<Slider | null>(null);
   const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
   const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
+  // Add these new state variables
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | null>(null);
   const SLIDES_TO_SHOW = 3;
   const SLIDES_TO_SCROLL = 3;
-  
 
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: '',
@@ -237,6 +239,18 @@ export default function DeepfakeReportPage() {
     }
   };
   
+  const handleImageClick = (image: string, type: 'error' | 'heatmap') => {
+    setEnlargedImage(image);
+    setCurrentSliderType(type);
+    document.body.style.overflow = 'hidden';
+  };
+  
+  const handleCloseModal = () => {
+    setEnlargedImage(null);
+    setCurrentSliderType(null);
+    document.body.style.overflow = 'auto';
+  };
+
   // Update your settings to include the afterChange callback
   const errorLevelSettings: Settings = {
     dots: false,
@@ -268,6 +282,105 @@ export default function DeepfakeReportPage() {
     ...errorLevelSettings,
     beforeChange: (current: number, next: number) => setCurrentHeatmapSlide(next)
   };
+
+  
+// Add this component at the bottom of your file, before the export
+const ImageModal = ({ 
+  image, 
+  onClose, 
+  sliderType,
+  frames,
+  currentSlide,
+  onSlideChange,
+}: { 
+  image: string;
+  onClose: () => void;
+  sliderType: 'error' | 'heatmap';
+  frames: string[];
+  currentSlide: number;
+  onSlideChange: (index: number) => void;
+}) => {
+  const modalSliderRef = useRef<Slider | null>(null);
+
+  const modalSettings: Settings = {
+    dots: false,
+    infinite: false,
+    speed: 500,
+    slidesToShow: 5,
+    slidesToScroll: 1,
+    arrows: false,
+    initialSlide: currentSlide,
+    responsive: [
+      {
+        breakpoint: 1024,
+        settings: {
+          slidesToShow: 4,
+        }
+      },
+      {
+        breakpoint: 600,
+        settings: {
+          slidesToShow: 3,
+        }
+      }
+    ],
+    beforeChange: (_, next) => onSlideChange(next)
+  };
+  
+  return (
+    <div className="fixed inset-0 bg-black/75 z-50 flex flex-col items-center justify-center p-4">
+      <div className="relative w-full max-w-6xl mx-auto">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute -top-2 right-0 text-white hover:text-gray-300 z-50"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+        {/* Enlarged image */}
+        <div className="w-full mb-4">
+          <img
+            src={image}
+            alt="Enlarged view"
+            className="w-full h-[70vh] object-contain mx-auto"
+          />
+        </div>
+
+        {/* Thumbnail slider */}
+        <div className="w-full bg-white/10 p-4 rounded-lg">
+          <div className="slider-container">
+            <Slider ref={modalSliderRef} {...modalSettings}>
+              {frames.map((frame, index) => (
+                <div key={index} className="px-2">
+                  <img
+                    src={frame}
+                    alt={`Thumbnail ${index + 1}`}
+                    className={`h-20 w-full object-cover rounded cursor-pointer transition-all ${
+                      frame === image ? 'ring-2 ring-primary' : ''
+                    }`}
+                    onClick={() => onSlideChange(index)}
+                  />
+                </div>
+              ))}
+            </Slider>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   return (
     <Layout>
@@ -414,18 +527,17 @@ export default function DeepfakeReportPage() {
                       <div className="slider-container">
                         <Slider ref={errorLevelSliderRef} {...errorLevelSettings}>
                         {analysisResult.frames?.map((frame, index) => (
-                          <div key={index} className="px-2">
-                            <div className="hover-enlarge-container">
-                              <div className="hover-enlarge-overlay"></div>
-                              <img 
-                                src={frame} 
-                                alt={`Frame ${index + 1}`} 
-                                className="hover-enlarge"
-                                loading="lazy" // Add lazy loading for better performance
-                              />
-                            </div>
-                          </div>
-                        ))}
+  <div key={index} className="px-2">
+    <div className="image-container" onClick={() => handleImageClick(frame, 'error')}>
+      <img 
+        src={frame} 
+        alt={`Frame ${index + 1}`} 
+        className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
+        loading="lazy"
+      />
+    </div>
+  </div>
+))}
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
@@ -530,18 +642,17 @@ export default function DeepfakeReportPage() {
                       <div className="slider-container">
                         <Slider ref={heatmapSliderRef} {...heatmapSettings}>
                         {analysisResult.frames?.map((frame, index) => (
-                          <div key={index} className="px-2">
-                            <div className="hover-enlarge-container">
-                              <div className="hover-enlarge-overlay"></div>
-                              <img 
-                                src={frame} 
-                                alt={`Frame ${index + 1}`} 
-                                className="hover-enlarge"
-                                loading="lazy" // Add lazy loading for better performance
-                              />
-                            </div>
-                          </div>
-                        ))}
+  <div key={index} className="px-2">
+    <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap')}>
+      <img 
+        src={frame} 
+        alt={`Frame ${index + 1}`} 
+        className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
+        loading="lazy"
+      />
+    </div>
+  </div>
+))}
                         </Slider>
                       </div>
                       <div className="flex items-center justify-between mt-4">
@@ -606,6 +717,26 @@ export default function DeepfakeReportPage() {
           </motion.div>
         </motion.div>
       </div>
+      {/* Modal */}
+{enlargedImage && currentSliderType && (
+  <ImageModal
+    image={enlargedImage}
+    onClose={handleCloseModal}
+    sliderType={currentSliderType}
+    frames={analysisResult.frames || []}
+    currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentHeatmapSlide}
+    onSlideChange={(index) => {
+      if (currentSliderType === 'error') {
+        setCurrentErrorLevelSlide(index);
+        errorLevelSliderRef.current?.slickGoTo(index);
+      } else {
+        setCurrentHeatmapSlide(index);
+        heatmapSliderRef.current?.slickGoTo(index);
+      }
+      setEnlargedImage(analysisResult.frames?.[index] || null);
+    }}
+  />
+)}
     </Layout>
   )
 }
