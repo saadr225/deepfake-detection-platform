@@ -421,6 +421,7 @@ export default function DeepfakeReportPage() {
                                 src={frame} 
                                 alt={`Frame ${index + 1}`} 
                                 className="hover-enlarge"
+                                loading="lazy" // Add lazy loading for better performance
                               />
                             </div>
                           </div>
@@ -536,6 +537,7 @@ export default function DeepfakeReportPage() {
                                 src={frame} 
                                 alt={`Frame ${index + 1}`} 
                                 className="hover-enlarge"
+                                loading="lazy" // Add lazy loading for better performance
                               />
                             </div>
                           </div>

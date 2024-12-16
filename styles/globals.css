@@ -113,18 +113,12 @@
     animation: slideUp 0.5s ease-out;
   }
 
-  .slider-container {
-    position: relative;
-    overflow: visible !important;
-    margin: 0 -8px; /* Compensate for slide padding */
-  }
-  
-  /* Update these styles in your globals.css */
+  /* Replace the hover-enlarge related styles in your globals.css with these */
 
 .hover-enlarge-container {
   position: relative;
   height: 150px;
-  z-index: 1;
+  cursor: pointer;
 }
 
 .hover-enlarge {
@@ -135,41 +129,38 @@
   border-radius: 0.5rem;
 }
 
-.hover-enlarge-container:hover {
-  z-index: 100; /* Higher z-index to appear above other elements */
-}
-
-.hover-enlarge-container:hover .hover-enlarge {
-  position: fixed; /* Change to fixed positioning */
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) scale(2); /* Center the image and scale it */
-  width: auto;
-  height: auto;
-  max-height: 80vh; /* Limit maximum height to 80% of viewport height */
-  max-width: 80vw; /* Limit maximum width to 80% of viewport width */
-  object-fit: contain;
-  box-shadow: 0 0 0 2000px rgba(0, 0, 0, 0.7); /* Add overlay background */
-  z-index: 1000;
-}
-
-/* Add a container for the background overlay */
 .hover-enlarge-overlay {
-  display: none;
   position: fixed;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.7);
-  z-index: 99;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: none;
+  z-index: 99999;
 }
 
 .hover-enlarge-container:hover .hover-enlarge-overlay {
   display: block;
 }
 
-/* Ensure slider doesn't interfere with the hover effect */
+.hover-enlarge-container:hover .hover-enlarge {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(1);
+  width: auto;
+  height: auto;
+  max-height: 80vh;
+  max-width: 80vw;
+  object-fit: contain;
+  z-index: 100000;
+  cursor: pointer;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Additional styles to ensure proper stacking and positioning */
 .slick-list {
   overflow: visible !important;
 }
@@ -181,11 +172,23 @@
 
 .slick-slide {
   height: auto !important;
+  position: relative;
 }
 
 .slick-slide > div {
   height: 100%;
   padding: 0 8px;
+}
+
+/* Add styles to handle scrolling when image is enlarged */
+body:has(.hover-enlarge-container:hover) {
+  overflow: hidden;
+}
+
+/* Ensure the slider container doesn't affect the enlarged image */
+.slider-container {
+  position: relative;
+  margin: 0 -8px;
 }
 
   @keyframes fadeIn {
