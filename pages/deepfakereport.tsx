@@ -317,7 +317,7 @@ const ImageModal = ({
     slidesToScroll: 1,
     arrows: true,
     initialSlide: currentSlide,
-    //beforeChange: (_, next) => onSlideChange(next)
+    beforeChange: (_, next) => onSlideChange(next)
   };
 
   const thumbnailSettings: Settings = {
