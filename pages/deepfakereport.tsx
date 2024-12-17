@@ -7,20 +7,14 @@ import { Download, Share2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { DetectionResult } from '../services/detectionService';
-import Carousel from 'react-multi-carousel';
-import type { ResponsiveType, CarouselInternalState } from 'react-multi-carousel';
-import 'react-multi-carousel/lib/styles.css';
 
 export default function DeepfakeReportPage() {
   const router = useRouter();
   const { user } = useUser();
   const { detectionHistory, addDetectionEntry } = useDetectionHistory();
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
-  // const errorLevelSliderRef = useRef<Slider | null>(null);
-  // const heatmapSliderRef = useRef<Slider | null>(null);
   const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
   const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
-  // Add these new state variables
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | null>(null);
 
@@ -115,21 +109,6 @@ export default function DeepfakeReportPage() {
       console.error('Error extracting frames:', error)
     }
   }
-
-  // Add this effect to track current slide
-  // useEffect(() => {
-  //   const handleSlideChange = (current: number) => {
-  //     setCurrentSlide(current);
-  //   };
-  
-  //   // The slider instance is available via sliderRef.current
-  //   const slider = sliderRef.current;
-    
-  //   if (slider) {
-  //     // Use the correct event handling method
-  //     slider.slickGoTo(currentSlide);
-  //   }
-  // }, [currentSlide]);
 
   // Parse and set detection result from query
   useEffect(() => {
@@ -236,52 +215,83 @@ export default function DeepfakeReportPage() {
     document.body.style.overflow = 'auto';
   };
 
-  const responsive: ResponsiveType = {
-    desktop: {
-      breakpoint: { max: 3000, min: 1024 },
-      items: 3,
-      slidesToSlide: 3
-    },
-    tablet: {
-      breakpoint: { max: 1024, min: 600 },
-      items: 3,
-      slidesToSlide: 3
-    },
-    mobile: {
-      breakpoint: { max: 600, min: 0 },
-      items: 2,
-      slidesToSlide: 2
-    }
-  };
+  const SmallCarousel = ({
+    frames,
+    onImageClick,
+    type,
+    currentIndex,
+  }: {
+    frames: string[];
+    onImageClick: (image: string, type: 'error' | 'heatmap', index: number) => void;
+    type: 'error' | 'heatmap';
+    currentIndex: number;
+  }) => {
+    const [currentPage, setCurrentPage] = useState(0);
+    const imagesPerPage = 3;
+    const totalPages = Math.ceil(frames.length / imagesPerPage);
   
-  const modalResponsive: ResponsiveType = {
-    desktop: {
-      breakpoint: { max: 3000, min: 1024 },
-      items: 1
-    },
-    tablet: {
-      breakpoint: { max: 1024, min: 600 },
-      items: 1
-    },
-    mobile: {
-      breakpoint: { max: 600, min: 0 },
-      items: 1
-    }
-  };
+    const handlePrevPage = () => {
+      setCurrentPage((prev) => Math.max(0, prev - 1));
+    };
   
-  const thumbnailResponsive: ResponsiveType = {
-    desktop: {
-      breakpoint: { max: 3000, min: 1024 },
-      items: 10
-    },
-    tablet: {
-      breakpoint: { max: 1024, min: 600 },
-      items: 8
-    },
-    mobile: {
-      breakpoint: { max: 600, min: 0 },
-      items: 6
-    }
+    const handleNextPage = () => {
+      setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
+    };
+  
+    const startIndex = currentPage * imagesPerPage;
+    const visibleFrames = frames.slice(startIndex, startIndex + imagesPerPage);
+  
+    return (
+      <div className="space-y-4">
+        {/* Image Container */}
+        <div className="grid grid-cols-3 gap-2">
+          {visibleFrames.map((frame, index) => (
+            <div 
+              key={startIndex + index} 
+              className="relative aspect-video"
+              onClick={() => onImageClick(frame, type, startIndex + index)}
+            >
+              <img
+                src={frame}
+                alt={`Frame ${startIndex + index + 1}`}
+                className={`w-full h-full object-cover rounded-lg cursor-pointer transition-transform hover:scale-105
+                  ${currentIndex === startIndex + index ? 'ring-2 ring-blue-500' : ''}`}
+                loading="lazy"
+              />
+            </div>
+          ))}
+        </div>
+  
+        {/* Navigation */}
+        <div className="flex items-center justify-between px-2">
+          <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 0}
+            className={`p-2 rounded-full transition-colors
+              ${currentPage === 0 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+          >
+            ←
+          </button>
+  
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Page {currentPage + 1} of {totalPages}
+          </span>
+  
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages - 1}
+            className={`p-2 rounded-full transition-colors
+              ${currentPage === totalPages - 1
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+          >
+            →
+          </button>
+        </div>
+      </div>
+    );
   };
   
 // Add this component at the bottom of your file, before the export
@@ -555,40 +565,14 @@ const ImageModal = ({
                     // Update the slider section in your JSX where the video frames are shown:
                     <div className="space-y-4">
                     <h3 className="text-lg font-semibold">Analysed Frames</h3>
-                    <div className="relative">
-                      {/* Error Level Analysis Slider */}
-                      <div className="slider-container">
-  <Carousel
-    responsive={responsive}
-    infinite={false}
-    arrows
-    beforeChange={(nextSlide, { currentSlide }) => setCurrentErrorLevelSlide(nextSlide)}
-    additionalTransfrom={0}
-    customLeftArrow={<button>Left</button>}
-    customRightArrow={<button>Right</button>}
-  >
-    {analysisResult.frames?.map((frame, index) => (
-    <div key={index} className="px-2">
-      <div className="image-container" onClick={() => handleImageClick(frame, 'error', index)}>
-        <img 
-          src={frame} 
-          alt={`Frame ${index + 1}`} 
-          className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
-          loading="lazy"
-        />
-      </div>
-    </div>
-  ))}
-  </Carousel>
-</div>
-
-                      
-                      
-                        
-                      </div>
-                    </div>
-                  
-                  )}
+                    <SmallCarousel
+      frames={analysisResult.frames || []}
+      onImageClick={handleImageClick}
+      type="error"
+      currentIndex={currentErrorLevelSlide}
+    />
+  </div>
+)}                                
                 </div>
               </motion.div>
 
@@ -627,38 +611,16 @@ const ImageModal = ({
                     />
                   )}
                   {mediaType === 'video' && (
-                    // Update the slider section in your JSX where the video frames are shown:
-                    <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Analysed Frames</h3>
-                    <div className="relative">
-                      {/* Heatmap Slider */}
-                      <div className="slider-container">
-  <Carousel
-    responsive={responsive}
-    infinite={false}
-    arrows
-    beforeChange={(nextSlide, { currentSlide }) => setCurrentHeatmapSlide(nextSlide)}
-    additionalTransfrom={0}
-    customLeftArrow={<button>Left</button>}
-    customRightArrow={<button>Right</button>}
-  >
-    {analysisResult.frames?.map((frame, index) => (
-    <div key={index} className="px-2">
-      <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap', index)}>
-        <img 
-          src={frame} 
-          alt={`Frame ${index + 1}`} 
-          className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
-          loading="lazy"
-        />
-      </div>
-    </div>
-  ))}
-  </Carousel>
-</div>
-                    </div>
-                  </div>
-                  )}
+  <div className="space-y-4">
+    <h3 className="text-lg font-semibold">Analysed Frames</h3>
+    <SmallCarousel
+      frames={analysisResult.frames || []}
+      onImageClick={handleImageClick}
+      type="error"
+      currentIndex={currentErrorLevelSlide}
+    />
+  </div>
+)}
                 </div>
               </motion.div>
             </motion.div>
