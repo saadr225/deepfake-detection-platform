@@ -283,7 +283,6 @@ export default function DeepfakeReportPage() {
       items: 6
     }
   };
-
   
 // Add this component at the bottom of your file, before the export
 const ImageModal = ({ 
@@ -329,12 +328,15 @@ const ImageModal = ({
           <Carousel
             responsive={modalResponsive}
             infinite={false}
-            beforeChange={(nextSlide: number, state: CarouselInternalState) => {
+            beforeChange={(nextSlide, { currentSlide }) => {
               onSlideChange(nextSlide);
             }}
-            initialSlide={currentSlide}
-            arrows={true}
+            arrows
             className="modal-carousel"
+            additionalTransfrom={0}
+            // This prop ensures the current slide is controlled by state
+            customLeftArrow={<button>Left</button>}
+            customRightArrow={<button>Right</button>}
           >
             {frames.map((frame, index) => (
               <div key={index} className="focus:outline-none px-2">
@@ -354,10 +356,16 @@ const ImageModal = ({
             <Carousel
               responsive={thumbnailResponsive}
               infinite={false}
-              arrows={true}
+              arrows
               className="thumbnail-carousel"
               centerMode={false}
-              initialSlide={Math.floor(currentSlide / 10) * 10}
+              beforeChange={(nextSlide, { currentSlide }) => {
+                onSlideChange(nextSlide);
+              }}
+              additionalTransfrom={0}
+              // This prop ensures the current slide is controlled by state
+              customLeftArrow={<button>Left</button>}
+              customRightArrow={<button>Right</button>}
             >
               {frames.map((frame, index) => (
                 <div key={index} className="px-1">
@@ -537,9 +545,11 @@ const ImageModal = ({
   <Carousel
     responsive={responsive}
     infinite={false}
-    arrows={true}
-    beforeChange={(nextSlide: number, state: CarouselInternalState) => setCurrentErrorLevelSlide(nextSlide)}
-    initialSlide={currentErrorLevelSlide}
+    arrows
+    beforeChange={(nextSlide, { currentSlide }) => setCurrentErrorLevelSlide(nextSlide)}
+    additionalTransfrom={0}
+    customLeftArrow={<button>Left</button>}
+    customRightArrow={<button>Right</button>}
   >
     {analysisResult.frames?.map((frame, index) => (
     <div key={index} className="px-2">
@@ -610,9 +620,11 @@ const ImageModal = ({
   <Carousel
     responsive={responsive}
     infinite={false}
-    arrows={true}
-    beforeChange={(nextSlide: number, state: CarouselInternalState) => setCurrentHeatmapSlide(nextSlide)}
-    initialSlide={currentHeatmapSlide}
+    arrows
+    beforeChange={(nextSlide, { currentSlide }) => setCurrentHeatmapSlide(nextSlide)}
+    additionalTransfrom={0}
+    customLeftArrow={<button>Left</button>}
+    customRightArrow={<button>Right</button>}
   >
     {analysisResult.frames?.map((frame, index) => (
     <div key={index} className="px-2">
