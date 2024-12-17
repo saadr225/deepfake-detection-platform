@@ -8,7 +8,7 @@ import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { DetectionResult } from '../services/detectionService';
 import Carousel from 'react-multi-carousel';
-import type { ResponsiveType } from 'react-multi-carousel';
+import type { ResponsiveType, CarouselInternalState } from 'react-multi-carousel';
 import 'react-multi-carousel/lib/styles.css';
 
 export default function DeepfakeReportPage() {
@@ -329,10 +329,9 @@ const ImageModal = ({
           <Carousel
             responsive={modalResponsive}
             infinite={false}
-            beforeChange={(previousSlide: number, nextSlide: number) => {
+            beforeChange={(nextSlide: number, state: CarouselInternalState) => {
               onSlideChange(nextSlide);
             }}
-            // Replace selectedItem with initialSlide
             initialSlide={currentSlide}
             arrows={true}
             className="modal-carousel"
@@ -539,21 +538,21 @@ const ImageModal = ({
     responsive={responsive}
     infinite={false}
     arrows={true}
-    beforeChange={(previousSlide: number, nextSlide: number) => setCurrentErrorLevelSlide(nextSlide)}
+    beforeChange={(nextSlide: number, state: CarouselInternalState) => setCurrentErrorLevelSlide(nextSlide)}
     initialSlide={currentErrorLevelSlide}
   >
     {analysisResult.frames?.map((frame, index) => (
-      <div key={index} className="px-2">
-        <div className="image-container" onClick={() => handleImageClick(frame, 'error', index)}>
-          <img 
-            src={frame} 
-            alt={`Frame ${index + 1}`} 
-            className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
-            loading="lazy"
-          />
-        </div>
+    <div key={index} className="px-2">
+      <div className="image-container" onClick={() => handleImageClick(frame, 'error', index)}>
+        <img 
+          src={frame} 
+          alt={`Frame ${index + 1}`} 
+          className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
+          loading="lazy"
+        />
       </div>
-    ))}
+    </div>
+  ))}
   </Carousel>
 </div>
 
@@ -612,21 +611,21 @@ const ImageModal = ({
     responsive={responsive}
     infinite={false}
     arrows={true}
-    beforeChange={(previousSlide: number, nextSlide: number) => setCurrentHeatmapSlide(nextSlide)}
+    beforeChange={(nextSlide: number, state: CarouselInternalState) => setCurrentHeatmapSlide(nextSlide)}
     initialSlide={currentHeatmapSlide}
   >
     {analysisResult.frames?.map((frame, index) => (
-      <div key={index} className="px-2">
-        <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap', index)}>
-          <img 
-            src={frame} 
-            alt={`Frame ${index + 1}`} 
-            className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
-            loading="lazy"
-          />
-        </div>
+    <div key={index} className="px-2">
+      <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap', index)}>
+        <img 
+          src={frame} 
+          alt={`Frame ${index + 1}`} 
+          className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
+          loading="lazy"
+        />
       </div>
-    ))}
+    </div>
+  ))}
   </Carousel>
 </div>
                     </div>
