@@ -99,6 +99,18 @@ export default function DeepfakeReportPage() {
         'https://next-images.123rf.com/index/_next/image/?url=https://assets-cdn.123rf.com/index/static/assets/top-section-bg.jpeg&w=3840&q=75',
         'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg',
         'https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg',
+        'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg',
+        'https://plus.unsplash.com/premium_photo-1664474619075-644dd191935f?fm=jpg&q=60&w=3000&ixlib=rb-4.0.3&ixid=M3wxMjA3fDB8MHxzZWFyY2h8MXx8aW1hZ2V8ZW58MHx8MHx8fDA%3D',
+        'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg',
+        'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg', // These should be the actual frame URLs
+        'https://next-images.123rf.com/index/_next/image/?url=https://assets-cdn.123rf.com/index/static/assets/top-section-bg.jpeg&w=3840&q=75',
+        'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg',
+        'https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg', // These should be the actual frame URLs
+        'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg',
+        'https://cdn.pixabay.com/photo/2015/04/23/22/00/tree-736885_1280.jpg', // These should be the actual frame URLs
+        'https://next-images.123rf.com/index/_next/image/?url=https://assets-cdn.123rf.com/index/static/assets/top-section-bg.jpeg&w=3840&q=75',
+        'https://dfstudio-d420.kxcdn.com/wordpress/wp-content/uploads/2019/06/digital_camera_photo-1080x675.jpg',
+        'https://gratisography.com/wp-content/uploads/2024/11/gratisography-augmented-reality-800x525.jpg',
         'https://gratisography.com/wp-content/uploads/2024/10/gratisography-cool-cat-800x525.jpg'
       ]
 
@@ -318,8 +330,11 @@ const ImageModal = ({
     initialSlide: currentSlide,
     beforeChange: (_, next) => onSlideChange(next),
     afterChange: (current) => {
-      const pageIndex = Math.floor(current / 10);
-      thumbnailSliderRef.current?.slickGoTo(pageIndex * 10);
+      // Introduce a small delay to ensure the main slider completes its transition
+      setTimeout(() => {
+        const pageIndex = Math.floor(current / 10);
+        thumbnailSliderRef.current?.slickGoTo(pageIndex * 10);
+      }, 50);
     },
   };
 
@@ -332,7 +347,12 @@ const ImageModal = ({
     arrows: true,
     initialSlide: Math.floor(currentSlide / 10) * 10,
     focusOnSelect: true,
-    beforeChange: (_, next) => modalSliderRef.current?.slickGoTo(next),
+    beforeChange: (_, next) => {
+      // Delay updating the main slider to ensure smooth transition
+      setTimeout(() => {
+        modalSliderRef.current?.slickGoTo(next);
+      }, 50);
+    },
   };
 
   return (
