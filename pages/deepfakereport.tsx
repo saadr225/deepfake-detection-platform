@@ -311,32 +311,44 @@ const ImageModal = ({
   onSlideChange: (index: number) => void;
 }) => {
   const THUMBNAIL_LIMIT = 10;
-  const [thumbnailStart, setThumbnailStart] = useState(0);
+  
+  // Calculate the initial thumbnail start position based on the current slide
+  const initialThumbnailStart = Math.floor(currentSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+  const [thumbnailStart, setThumbnailStart] = useState(initialThumbnailStart);
 
-  // Add this useEffect to handle automatic thumbnail page navigation
+  // Update thumbnail position when current slide changes
   useEffect(() => {
-    // Calculate which page the current slide should be on
     const targetPage = Math.floor(currentSlide / THUMBNAIL_LIMIT);
     const targetStart = targetPage * THUMBNAIL_LIMIT;
-    
-    // Update thumbnail start if it's different
-    if (targetStart !== thumbnailStart) {
-      setThumbnailStart(targetStart);
-    }
+    setThumbnailStart(targetStart);
   }, [currentSlide, THUMBNAIL_LIMIT]);
 
   const handleMainNext = () => {
-    onSlideChange((currentSlide + 1) % frames.length);
+    const nextSlide = (currentSlide + 1) % frames.length;
+    // Calculate the next page start if we're at the end of current page
+    const nextPageStart = Math.floor(nextSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+    if (nextPageStart !== thumbnailStart) {
+      setThumbnailStart(nextPageStart);
+    }
+    onSlideChange(nextSlide);
   };
 
   const handleMainPrev = () => {
-    onSlideChange((currentSlide - 1 + frames.length) % frames.length);
+    const prevSlide = (currentSlide - 1 + frames.length) % frames.length;
+    // Calculate the prev page start if we're at the start of current page
+    const prevPageStart = Math.floor(prevSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+    if (prevPageStart !== thumbnailStart) {
+      setThumbnailStart(prevPageStart);
+    }
+    onSlideChange(prevSlide);
   };
 
   const handleThumbnailNext = () => {
     const nextStart = thumbnailStart + THUMBNAIL_LIMIT;
     if (nextStart < frames.length) {
       setThumbnailStart(nextStart);
+      // Optionally move to first image of next page
+      onSlideChange(nextStart);
     }
   };
 
@@ -344,11 +356,15 @@ const ImageModal = ({
     const prevStart = thumbnailStart - THUMBNAIL_LIMIT;
     if (prevStart >= 0) {
       setThumbnailStart(prevStart);
+      // Optionally move to first image of previous page
+      onSlideChange(prevStart);
     }
   };
 
   const totalPages = Math.ceil(frames.length / THUMBNAIL_LIMIT);
   const currentPage = Math.floor(thumbnailStart / THUMBNAIL_LIMIT) + 1;
+  
+  // Only show thumbnails for the current page
   const visibleThumbnails = frames.slice(
     thumbnailStart,
     thumbnailStart + THUMBNAIL_LIMIT
