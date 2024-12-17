@@ -310,8 +310,20 @@ const ImageModal = ({
   currentSlide: number;
   onSlideChange: (index: number) => void;
 }) => {
-  const [thumbnailStart, setThumbnailStart] = useState(0);
   const THUMBNAIL_LIMIT = 10;
+  const [thumbnailStart, setThumbnailStart] = useState(0);
+
+  // Add this useEffect to handle automatic thumbnail page navigation
+  useEffect(() => {
+    // Calculate which page the current slide should be on
+    const targetPage = Math.floor(currentSlide / THUMBNAIL_LIMIT);
+    const targetStart = targetPage * THUMBNAIL_LIMIT;
+    
+    // Update thumbnail start if it's different
+    if (targetStart !== thumbnailStart) {
+      setThumbnailStart(targetStart);
+    }
+  }, [currentSlide, THUMBNAIL_LIMIT]);
 
   const handleMainNext = () => {
     onSlideChange((currentSlide + 1) % frames.length);
@@ -322,19 +334,21 @@ const ImageModal = ({
   };
 
   const handleThumbnailNext = () => {
-    setThumbnailStart((prev) =>
-      prev + THUMBNAIL_LIMIT < frames.length
-        ? prev + THUMBNAIL_LIMIT
-        : prev
-    );
+    const nextStart = thumbnailStart + THUMBNAIL_LIMIT;
+    if (nextStart < frames.length) {
+      setThumbnailStart(nextStart);
+    }
   };
 
   const handleThumbnailPrev = () => {
-    setThumbnailStart((prev) =>
-      prev - THUMBNAIL_LIMIT >= 0 ? prev - THUMBNAIL_LIMIT : 0
-    );
+    const prevStart = thumbnailStart - THUMBNAIL_LIMIT;
+    if (prevStart >= 0) {
+      setThumbnailStart(prevStart);
+    }
   };
 
+  const totalPages = Math.ceil(frames.length / THUMBNAIL_LIMIT);
+  const currentPage = Math.floor(thumbnailStart / THUMBNAIL_LIMIT) + 1;
   const visibleThumbnails = frames.slice(
     thumbnailStart,
     thumbnailStart + THUMBNAIL_LIMIT
@@ -416,9 +430,12 @@ const ImageModal = ({
           </button>
         </div>
 
-        {/* Image counter */}
-        <div className="text-center text-white mt-2">
-          {currentSlide + 1} of {frames.length}
+        {/* Image counter and page information */}
+        <div className="text-center text-white mt-2 space-y-1">
+          <div>Image {currentSlide + 1} of {frames.length}</div>
+          <div className="text-sm text-gray-400">
+            Page {currentPage} of {totalPages}
+          </div>
         </div>
       </div>
     </div>
