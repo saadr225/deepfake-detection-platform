@@ -300,9 +300,39 @@ const ImageModal = ({
   currentSlide: number;
   onSlideChange: (index: number) => void;
 }) => {
+  const [thumbnailStart, setThumbnailStart] = useState(0);
+  const THUMBNAIL_LIMIT = 10;
+
+  const handleMainNext = () => {
+    onSlideChange((currentSlide + 1) % frames.length);
+  };
+
+  const handleMainPrev = () => {
+    onSlideChange((currentSlide - 1 + frames.length) % frames.length);
+  };
+
+  const handleThumbnailNext = () => {
+    setThumbnailStart((prev) =>
+      prev + THUMBNAIL_LIMIT < frames.length
+        ? prev + THUMBNAIL_LIMIT
+        : prev
+    );
+  };
+
+  const handleThumbnailPrev = () => {
+    setThumbnailStart((prev) =>
+      prev - THUMBNAIL_LIMIT >= 0 ? prev - THUMBNAIL_LIMIT : 0
+    );
+  };
+
+  const visibleThumbnails = frames.slice(
+    thumbnailStart,
+    thumbnailStart + THUMBNAIL_LIMIT
+  );
+
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4">
-      <div className="relative w-full max-w-6xl mx-auto">
+      <div className="relative w-full max-w-6xl mx-auto carousel-container">
         {/* Close button */}
         <button
           onClick={onClose}
@@ -323,71 +353,57 @@ const ImageModal = ({
           </svg>
         </button>
 
-        {/* Main image carousel */}
-        <div className="mb-4">
-          <Carousel
-            responsive={modalResponsive}
-            infinite={false}
-            beforeChange={(nextSlide, { currentSlide }) => {
-              onSlideChange(nextSlide);
-            }}
-            arrows
-            className="modal-carousel"
-            additionalTransfrom={0}
-            // This prop ensures the current slide is controlled by state
-            customLeftArrow={<button>Left</button>}
-            customRightArrow={<button>Right</button>}
+        {/* Main Carousel */}
+        <div className="main-carousel">
+          <button 
+            onClick={handleMainPrev}
+            className="main-arrow left-arrow"
           >
-            {frames.map((frame, index) => (
-              <div key={index} className="focus:outline-none px-2">
-                <img
-                  src={frame}
-                  alt={`View ${index + 1}`}
-                  className="w-full h-[70vh] object-contain mx-auto"
-                />
-              </div>
-            ))}
-          </Carousel>
+            ←
+          </button>
+          <img
+            src={frames[currentSlide]}
+            alt={`View ${currentSlide + 1}`}
+            className="main-image"
+          />
+          <button 
+            onClick={handleMainNext}
+            className="main-arrow right-arrow"
+          >
+            →
+          </button>
         </div>
 
-        {/* Navigation bar */}
-        <div className="bg-white/10 p-4 rounded-lg">
-          <div className="px-4">
-            <Carousel
-              responsive={thumbnailResponsive}
-              infinite={false}
-              arrows
-              className="thumbnail-carousel"
-              centerMode={false}
-              beforeChange={(nextSlide, { currentSlide }) => {
-                onSlideChange(nextSlide);
-              }}
-              additionalTransfrom={0}
-              // This prop ensures the current slide is controlled by state
-              customLeftArrow={<button>Left</button>}
-              customRightArrow={<button>Right</button>}
-            >
-              {frames.map((frame, index) => (
-                <div key={index} className="px-1">
-                  <div 
-                    className={`relative cursor-pointer rounded-lg overflow-hidden ${
-                      currentSlide === index ? 'ring-2 ring-blue-500' : ''
-                    }`}
-                    onClick={() => onSlideChange(index)}
-                  >
-                    <img
-                      src={frame}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="h-16 w-32 object-cover"
-                    />
-                    {currentSlide === index && (
-                      <div className="absolute inset-0 bg-blue-500/20" />
-                    )}
-                  </div>
-                </div>
-              ))}
-            </Carousel>
+        {/* Thumbnail Navigation */}
+        <div className="thumbnail-carousel">
+          <button
+            onClick={handleThumbnailPrev}
+            className="thumbnail-arrow left-arrow"
+            disabled={thumbnailStart === 0}
+          >
+            ←
+          </button>
+          <div className="thumbnails">
+            {visibleThumbnails.map((frame, index) => {
+              const realIndex = thumbnailStart + index;
+              return (
+                <img
+                  key={realIndex}
+                  src={frame}
+                  alt={`Thumbnail ${realIndex + 1}`}
+                  className={`thumbnail ${realIndex === currentSlide ? 'active' : ''}`}
+                  onClick={() => onSlideChange(realIndex)}
+                />
+              );
+            })}
           </div>
+          <button
+            onClick={handleThumbnailNext}
+            className="thumbnail-arrow right-arrow"
+            disabled={thumbnailStart + THUMBNAIL_LIMIT >= frames.length}
+          >
+            →
+          </button>
         </div>
 
         {/* Image counter */}
