@@ -234,30 +234,15 @@ export default function DeepfakeReportPage() {
   }) => {
     const imagesPerPage = 3;
     const totalPages = Math.ceil(frames.length / imagesPerPage);
-    const [isNavigating, setIsNavigating] = useState(false);
-  
-    // Only sync page when modal navigation occurs
-    useEffect(() => {
-      if (!isNavigating && currentIndex >= 0) {
-        const targetPage = Math.floor(currentIndex / imagesPerPage);
-        if (targetPage !== currentPage) {
-          onPageChange(targetPage);
-        }
-      }
-    }, [currentIndex, imagesPerPage, currentPage, onPageChange, isNavigating]);
   
     const handlePrevPage = () => {
-      setIsNavigating(true);
       const newPage = Math.max(0, currentPage - 1);
       onPageChange(newPage);
-      setTimeout(() => setIsNavigating(false), 100);
     };
   
     const handleNextPage = () => {
-      setIsNavigating(true);
       const newPage = Math.min(totalPages - 1, currentPage + 1);
       onPageChange(newPage);
-      setTimeout(() => setIsNavigating(false), 100);
     };
   
     const startIndex = currentPage * imagesPerPage;
