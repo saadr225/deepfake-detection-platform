@@ -234,20 +234,30 @@ export default function DeepfakeReportPage() {
   }) => {
     const imagesPerPage = 3;
     const totalPages = Math.ceil(frames.length / imagesPerPage);
+    const [isNavigating, setIsNavigating] = useState(false);
   
+    // Only sync page when modal navigation occurs
     useEffect(() => {
-      const targetPage = Math.floor(currentIndex / imagesPerPage);
-      if (targetPage !== currentPage) {
-        onPageChange(targetPage);
+      if (!isNavigating && currentIndex >= 0) {
+        const targetPage = Math.floor(currentIndex / imagesPerPage);
+        if (targetPage !== currentPage) {
+          onPageChange(targetPage);
+        }
       }
-    }, [currentIndex, imagesPerPage]);
+    }, [currentIndex, imagesPerPage, currentPage, onPageChange, isNavigating]);
   
     const handlePrevPage = () => {
-      onPageChange(Math.max(0, currentPage - 1));
+      setIsNavigating(true);
+      const newPage = Math.max(0, currentPage - 1);
+      onPageChange(newPage);
+      setTimeout(() => setIsNavigating(false), 100);
     };
   
     const handleNextPage = () => {
-      onPageChange(Math.min(totalPages - 1, currentPage + 1));
+      setIsNavigating(true);
+      const newPage = Math.min(totalPages - 1, currentPage + 1);
+      onPageChange(newPage);
+      setTimeout(() => setIsNavigating(false), 100);
     };
   
     const startIndex = currentPage * imagesPerPage;
@@ -267,8 +277,7 @@ export default function DeepfakeReportPage() {
                 <img
                   src={frame}
                   alt={`Frame ${actualIndex + 1}`}
-                  className={`w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105
-                    ${currentIndex === actualIndex ? 'ring-2 ring-blue-500' : ''}`}
+                  className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
                   onClick={() => onImageClick(frame, type, actualIndex)}
                   loading="lazy"
                 />
