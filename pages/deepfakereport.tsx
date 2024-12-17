@@ -17,6 +17,8 @@ export default function DeepfakeReportPage() {
   const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | null>(null);
+  const [errorLevelPage, setErrorLevelPage] = useState(0);
+  const [heatmapPage, setHeatmapPage] = useState(0);
 
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: '',
@@ -220,22 +222,32 @@ export default function DeepfakeReportPage() {
     onImageClick,
     type,
     currentIndex,
+    currentPage,
+    onPageChange,
   }: {
     frames: string[];
     onImageClick: (image: string, type: 'error' | 'heatmap', index: number) => void;
     type: 'error' | 'heatmap';
     currentIndex: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
   }) => {
-    const [currentPage, setCurrentPage] = useState(0);
     const imagesPerPage = 3;
     const totalPages = Math.ceil(frames.length / imagesPerPage);
   
+    useEffect(() => {
+      const targetPage = Math.floor(currentIndex / imagesPerPage);
+      if (targetPage !== currentPage) {
+        onPageChange(targetPage);
+      }
+    }, [currentIndex, imagesPerPage]);
+  
     const handlePrevPage = () => {
-      setCurrentPage((prev) => Math.max(0, prev - 1));
+      onPageChange(Math.max(0, currentPage - 1));
     };
   
     const handleNextPage = () => {
-      setCurrentPage((prev) => Math.min(totalPages - 1, prev + 1));
+      onPageChange(Math.min(totalPages - 1, currentPage + 1));
     };
   
     const startIndex = currentPage * imagesPerPage;
@@ -245,21 +257,24 @@ export default function DeepfakeReportPage() {
       <div className="space-y-4">
         {/* Image Container */}
         <div className="grid grid-cols-3 gap-2">
-          {visibleFrames.map((frame, index) => (
-            <div 
-              key={startIndex + index} 
-              className="relative aspect-video"
-              onClick={() => onImageClick(frame, type, startIndex + index)}
-            >
-              <img
-                src={frame}
-                alt={`Frame ${startIndex + index + 1}`}
-                className={`w-full h-full object-cover rounded-lg cursor-pointer transition-transform hover:scale-105
-                  ${currentIndex === startIndex + index ? 'ring-2 ring-blue-500' : ''}`}
-                loading="lazy"
-              />
-            </div>
-          ))}
+          {visibleFrames.map((frame, index) => {
+            const actualIndex = startIndex + index;
+            return (
+              <div 
+                key={actualIndex} 
+                className="relative aspect-video"
+              >
+                <img
+                  src={frame}
+                  alt={`Frame ${actualIndex + 1}`}
+                  className={`w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105
+                    ${currentIndex === actualIndex ? 'ring-2 ring-blue-500' : ''}`}
+                  onClick={() => onImageClick(frame, type, actualIndex)}
+                  loading="lazy"
+                />
+              </div>
+            );
+          })}
         </div>
   
         {/* Navigation */}
@@ -595,17 +610,18 @@ const ImageModal = ({
                     />
                   )}
                   {mediaType === 'video' && (
-                    // Update the slider section in your JSX where the video frames are shown:
-                    <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Analysed Frames</h3>
-                    <SmallCarousel
+  <div className="space-y-4">
+    <h3 className="text-lg font-semibold">Analysed Frames</h3>
+    <SmallCarousel
       frames={analysisResult.frames || []}
       onImageClick={handleImageClick}
       type="error"
       currentIndex={currentErrorLevelSlide}
+      currentPage={errorLevelPage}
+      onPageChange={setErrorLevelPage}
     />
   </div>
-)}                                
+)}                              
                 </div>
               </motion.div>
 
@@ -649,8 +665,10 @@ const ImageModal = ({
     <SmallCarousel
       frames={analysisResult.frames || []}
       onImageClick={handleImageClick}
-      type="error"
-      currentIndex={currentErrorLevelSlide}
+      type="heatmap"
+      currentIndex={currentHeatmapSlide}
+      currentPage={heatmapPage}
+      onPageChange={setHeatmapPage}
     />
   </div>
 )}
