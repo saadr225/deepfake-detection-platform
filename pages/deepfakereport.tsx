@@ -328,14 +328,14 @@ const ImageModal = ({
     slidesToScroll: 1,
     arrows: true,
     initialSlide: currentSlide,
-    beforeChange: (_, next) => onSlideChange(next),
-    afterChange: (current) => {
-      // Introduce a small delay to ensure the main slider completes its transition
-      setTimeout(() => {
-        const pageIndex = Math.floor(current / 10);
-        thumbnailSliderRef.current?.slickGoTo(pageIndex * 10);
-      }, 50);
-    },
+    beforeChange: (_, next) => {
+      onSlideChange(next);
+      // Calculate the correct thumbnail page
+      const thumbnailPage = Math.floor(next / 10) * 10;
+      if (thumbnailSliderRef.current) {
+        thumbnailSliderRef.current.slickGoTo(thumbnailPage, true);
+      }
+    }
   };
 
   const thumbnailSettings: Settings = {
@@ -348,11 +348,11 @@ const ImageModal = ({
     initialSlide: Math.floor(currentSlide / 10) * 10,
     focusOnSelect: true,
     beforeChange: (_, next) => {
-      // Delay updating the main slider to ensure smooth transition
-      setTimeout(() => {
-        modalSliderRef.current?.slickGoTo(next);
-      }, 50);
-    },
+      if (modalSliderRef.current) {
+        modalSliderRef.current.slickGoTo(next, true);
+        onSlideChange(next);
+      }
+    }
   };
 
   return (
@@ -397,26 +397,30 @@ const ImageModal = ({
         <div className="bg-white/10 p-4 rounded-lg">
           <div className="px-4">
             <Slider ref={thumbnailSliderRef} {...thumbnailSettings}>
-              {frames.map((frame, index) => (
-                <div key={index} className="px-1">
-                  <div 
-                    className={`relative cursor-pointer rounded-lg overflow-hidden ${currentSlide === index ? 'ring-2 ring-blue-500' : ''}`}
-                    onClick={() => {
-                      modalSliderRef.current?.slickGoTo(index, true);
-                      onSlideChange(index);
-                    }}
-                  >
-                    <img
-                      src={frame}
-                      alt={`Thumbnail ${index + 1}`}
-                      className="h-16 w-32 object-cover"
-                    />
-                    {currentSlide === index && (
-                      <div className="absolute inset-0 bg-blue-500/20" />
-                    )}
-                  </div>
-                </div>
-              ))}
+            {frames.map((frame, index) => (
+  <div key={index} className="px-1">
+    <div 
+      className={`relative cursor-pointer rounded-lg overflow-hidden ${
+        currentSlide === index ? 'ring-2 ring-blue-500' : ''
+      }`}
+      onClick={() => {
+        if (modalSliderRef.current) {
+          modalSliderRef.current.slickGoTo(index, true);
+          onSlideChange(index);
+        }
+      }}
+    >
+      <img
+        src={frame}
+        alt={`Thumbnail ${index + 1}`}
+        className="h-16 w-32 object-cover"
+      />
+      {currentSlide === index && (
+        <div className="absolute inset-0 bg-blue-500/20" />
+      )}
+    </div>
+  </div>
+))}
             </Slider>
           </div>
         </div>
@@ -776,10 +780,14 @@ const ImageModal = ({
     onSlideChange={(index) => {
       if (currentSliderType === 'error') {
         setCurrentErrorLevelSlide(index);
-        errorLevelSliderRef.current?.slickGoTo(index);
+        if (errorLevelSliderRef.current) {
+          errorLevelSliderRef.current.slickGoTo(index, true);
+        }
       } else {
         setCurrentHeatmapSlide(index);
-        heatmapSliderRef.current?.slickGoTo(index);
+        if (heatmapSliderRef.current) {
+          heatmapSliderRef.current.slickGoTo(index, true);
+        }
       }
       setEnlargedImage(analysisResult.frames?.[index] || null);
     }}
