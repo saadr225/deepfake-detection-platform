@@ -7,25 +7,22 @@ import { Download, Share2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { DetectionResult } from '../services/detectionService';
-import Slider from 'react-slick';
-import type { Settings } from 'react-slick';
-import "slick-carousel/slick/slick.css";
-import "slick-carousel/slick/slick-theme.css";
+import Carousel from 'react-multi-carousel';
+import type { ResponsiveType } from 'react-multi-carousel';
+import 'react-multi-carousel/lib/styles.css';
 
 export default function DeepfakeReportPage() {
   const router = useRouter();
   const { user } = useUser();
   const { detectionHistory, addDetectionEntry } = useDetectionHistory();
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
-  const errorLevelSliderRef = useRef<Slider | null>(null);
-  const heatmapSliderRef = useRef<Slider | null>(null);
+  // const errorLevelSliderRef = useRef<Slider | null>(null);
+  // const heatmapSliderRef = useRef<Slider | null>(null);
   const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
   const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
   // Add these new state variables
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
   const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | null>(null);
-  const SLIDES_TO_SHOW = 3;
-  const SLIDES_TO_SCROLL = 3;
 
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: '',
@@ -43,7 +40,6 @@ export default function DeepfakeReportPage() {
     heatmapImage: '',
     frames: [] // Add this field to store frames
   });
-  const totalSlides = analysisResult.frames?.length || 0;
 
   // Update isAlreadyInHistory method
   const isAlreadyInHistory = useCallback((result: DetectionResult) => {
@@ -222,34 +218,6 @@ export default function DeepfakeReportPage() {
       }
     }
   }
-
-  const goToNextErrorLevelSlide = () => {
-    const nextSlide = currentErrorLevelSlide + SLIDES_TO_SHOW;
-    if (nextSlide < totalSlides && errorLevelSliderRef.current) {
-      errorLevelSliderRef.current.slickGoTo(nextSlide);
-    }
-  };
-  
-  const goToPrevErrorLevelSlide = () => {
-    const prevSlide = currentErrorLevelSlide - SLIDES_TO_SHOW;
-    if (prevSlide >= 0 && errorLevelSliderRef.current) {
-      errorLevelSliderRef.current.slickGoTo(prevSlide);
-    }
-  };
-  
-  const goToNextHeatmapSlide = () => {
-    const nextSlide = currentHeatmapSlide + SLIDES_TO_SHOW;
-    if (nextSlide < totalSlides && heatmapSliderRef.current) {
-      heatmapSliderRef.current.slickGoTo(nextSlide);
-    }
-  };
-  
-  const goToPrevHeatmapSlide = () => {
-    const prevSlide = currentHeatmapSlide - SLIDES_TO_SHOW;
-    if (prevSlide >= 0 && heatmapSliderRef.current) {
-      heatmapSliderRef.current.slickGoTo(prevSlide);
-    }
-  };
   
   const handleImageClick = (image: string, type: 'error' | 'heatmap', index: number) => {
     setEnlargedImage(image);
@@ -268,36 +236,52 @@ export default function DeepfakeReportPage() {
     document.body.style.overflow = 'auto';
   };
 
-  // Update your settings to include the afterChange callback
-  const errorLevelSettings: Settings = {
-    dots: false,
-    infinite: false,
-    speed: 500,
-    slidesToShow: SLIDES_TO_SHOW,
-    slidesToScroll: SLIDES_TO_SCROLL,
-    arrows: false,
-    responsive: [
-      {
-        breakpoint: 1024,
-        settings: {
-          slidesToShow: 3,
-          slidesToScroll: 3,
-        }
-      },
-      {
-        breakpoint: 600,
-        settings: {
-          slidesToShow: 2,
-          slidesToScroll: 2,
-        }
-      }
-    ],
-    beforeChange: (current: number, next: number) => setCurrentErrorLevelSlide(next)
+  const responsive: ResponsiveType = {
+    desktop: {
+      breakpoint: { max: 3000, min: 1024 },
+      items: 3,
+      slidesToSlide: 3
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 600 },
+      items: 3,
+      slidesToSlide: 3
+    },
+    mobile: {
+      breakpoint: { max: 600, min: 0 },
+      items: 2,
+      slidesToSlide: 2
+    }
   };
   
-  const heatmapSettings: Settings = {
-    ...errorLevelSettings,
-    beforeChange: (current: number, next: number) => setCurrentHeatmapSlide(next)
+  const modalResponsive: ResponsiveType = {
+    desktop: {
+      breakpoint: { max: 3000, min: 1024 },
+      items: 1
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 600 },
+      items: 1
+    },
+    mobile: {
+      breakpoint: { max: 600, min: 0 },
+      items: 1
+    }
+  };
+  
+  const thumbnailResponsive: ResponsiveType = {
+    desktop: {
+      breakpoint: { max: 3000, min: 1024 },
+      items: 10
+    },
+    tablet: {
+      breakpoint: { max: 1024, min: 600 },
+      items: 8
+    },
+    mobile: {
+      breakpoint: { max: 600, min: 0 },
+      items: 6
+    }
   };
 
   
@@ -317,44 +301,6 @@ const ImageModal = ({
   currentSlide: number;
   onSlideChange: (index: number) => void;
 }) => {
-  const modalSliderRef = useRef<Slider | null>(null);
-  const thumbnailSliderRef = useRef<Slider | null>(null);
-
-  const modalSettings: Settings = {
-    dots: false,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 1,
-    slidesToScroll: 1,
-    arrows: true,
-    initialSlide: currentSlide,
-    beforeChange: (_, next) => {
-      onSlideChange(next);
-      // Calculate the correct thumbnail page
-      const thumbnailPage = Math.floor(next / 10) * 10;
-      if (thumbnailSliderRef.current) {
-        thumbnailSliderRef.current.slickGoTo(thumbnailPage, true);
-      }
-    }
-  };
-
-  const thumbnailSettings: Settings = {
-    dots: false,
-    infinite: false,
-    speed: 500,
-    slidesToShow: 10,
-    slidesToScroll: 10,
-    arrows: true,
-    initialSlide: Math.floor(currentSlide / 10) * 10,
-    focusOnSelect: true,
-    beforeChange: (_, next) => {
-      if (modalSliderRef.current) {
-        modalSliderRef.current.slickGoTo(next, true);
-        onSlideChange(next);
-      }
-    }
-  };
-
   return (
     <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4">
       <div className="relative w-full max-w-6xl mx-auto">
@@ -378,11 +324,21 @@ const ImageModal = ({
           </svg>
         </button>
 
-        {/* Main image slider */}
+        {/* Main image carousel */}
         <div className="mb-4">
-          <Slider ref={modalSliderRef} {...modalSettings}>
+          <Carousel
+            responsive={modalResponsive}
+            infinite={false}
+            beforeChange={(previousSlide: number, nextSlide: number) => {
+              onSlideChange(nextSlide);
+            }}
+            // Replace selectedItem with initialSlide
+            initialSlide={currentSlide}
+            arrows={true}
+            className="modal-carousel"
+          >
             {frames.map((frame, index) => (
-              <div key={index} className="focus:outline-none">
+              <div key={index} className="focus:outline-none px-2">
                 <img
                   src={frame}
                   alt={`View ${index + 1}`}
@@ -390,38 +346,40 @@ const ImageModal = ({
                 />
               </div>
             ))}
-          </Slider>
+          </Carousel>
         </div>
 
         {/* Navigation bar */}
         <div className="bg-white/10 p-4 rounded-lg">
           <div className="px-4">
-            <Slider ref={thumbnailSliderRef} {...thumbnailSettings}>
-            {frames.map((frame, index) => (
-  <div key={index} className="px-1">
-    <div 
-      className={`relative cursor-pointer rounded-lg overflow-hidden ${
-        currentSlide === index ? 'ring-2 ring-blue-500' : ''
-      }`}
-      onClick={() => {
-        if (modalSliderRef.current) {
-          modalSliderRef.current.slickGoTo(index, true);
-          onSlideChange(index);
-        }
-      }}
-    >
-      <img
-        src={frame}
-        alt={`Thumbnail ${index + 1}`}
-        className="h-16 w-32 object-cover"
-      />
-      {currentSlide === index && (
-        <div className="absolute inset-0 bg-blue-500/20" />
-      )}
-    </div>
-  </div>
-))}
-            </Slider>
+            <Carousel
+              responsive={thumbnailResponsive}
+              infinite={false}
+              arrows={true}
+              className="thumbnail-carousel"
+              centerMode={false}
+              initialSlide={Math.floor(currentSlide / 10) * 10}
+            >
+              {frames.map((frame, index) => (
+                <div key={index} className="px-1">
+                  <div 
+                    className={`relative cursor-pointer rounded-lg overflow-hidden ${
+                      currentSlide === index ? 'ring-2 ring-blue-500' : ''
+                    }`}
+                    onClick={() => onSlideChange(index)}
+                  >
+                    <img
+                      src={frame}
+                      alt={`Thumbnail ${index + 1}`}
+                      className="h-16 w-32 object-cover"
+                    />
+                    {currentSlide === index && (
+                      <div className="absolute inset-0 bg-blue-500/20" />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </Carousel>
           </div>
         </div>
 
@@ -577,76 +535,34 @@ const ImageModal = ({
                     <div className="relative">
                       {/* Error Level Analysis Slider */}
                       <div className="slider-container">
-                        <Slider ref={errorLevelSliderRef} {...errorLevelSettings}>
-                        {analysisResult.frames?.map((frame, index) => (
-  <div key={index} className="px-2">
-    <div className="image-container" onClick={() => handleImageClick(frame, 'error', index)}>
-      <img 
-        src={frame} 
-        alt={`Frame ${index + 1}`} 
-        className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
-        loading="lazy"
-      />
-    </div>
-  </div>
-))}
-                        </Slider>
-                      </div>
-                      <div className="flex items-center justify-between mt-4">
-                        <button 
-                          onClick={goToPrevErrorLevelSlide}
-                          disabled={currentErrorLevelSlide === 0}
-                          className={`p-2 rounded-full transition-colors ${
-                            currentErrorLevelSlide === 0 
-                              ? 'bg-secondary/50 cursor-not-allowed' 
-                              : 'bg-secondary hover:bg-primary/20'
-                          }`}
-                          aria-label="Previous slides"
-                        >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                          >
-                            <path d="m15 18-6-6 6-6"/>
-                          </svg>
-                        </button>
-                        <div className="text-sm text-muted-foreground">
-                          Page {Math.floor(currentErrorLevelSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
-                        </div>
-                        <button 
-                            onClick={goToNextErrorLevelSlide}
-                            disabled={currentErrorLevelSlide >= totalSlides - SLIDES_TO_SHOW}
-                            className={`p-2 rounded-full transition-colors ${
-                              currentErrorLevelSlide >= totalSlides - SLIDES_TO_SHOW
-                                ? 'bg-secondary/50 cursor-not-allowed' 
-                                : 'bg-secondary hover:bg-primary/20'
-                            }`}
-                            aria-label="Next slides"
-                          >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                          >
-                            <path d="m9 18 6-6-6-6"/>
-                          </svg>
-                        </button>
+  <Carousel
+    responsive={responsive}
+    infinite={false}
+    arrows={true}
+    beforeChange={(previousSlide: number, nextSlide: number) => setCurrentErrorLevelSlide(nextSlide)}
+    initialSlide={currentErrorLevelSlide}
+  >
+    {analysisResult.frames?.map((frame, index) => (
+      <div key={index} className="px-2">
+        <div className="image-container" onClick={() => handleImageClick(frame, 'error', index)}>
+          <img 
+            src={frame} 
+            alt={`Frame ${index + 1}`} 
+            className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    ))}
+  </Carousel>
+</div>
+
+                      
+                      
+                        
                       </div>
                     </div>
-                  </div>
+                  
                   )}
                 </div>
               </motion.div>
@@ -692,74 +608,27 @@ const ImageModal = ({
                     <div className="relative">
                       {/* Heatmap Slider */}
                       <div className="slider-container">
-                        <Slider ref={heatmapSliderRef} {...heatmapSettings}>
-                        {analysisResult.frames?.map((frame, index) => (
-  <div key={index} className="px-2">
-    <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap', index)}>
-      <img 
-        src={frame} 
-        alt={`Frame ${index + 1}`} 
-        className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
-        loading="lazy"
-      />
-    </div>
-  </div>
-))}
-                        </Slider>
-                      </div>
-                      <div className="flex items-center justify-between mt-4">
-                      <button 
-                          onClick={goToPrevHeatmapSlide}
-                          disabled={currentHeatmapSlide === 0}
-                          className={`p-2 rounded-full transition-colors ${
-                            currentHeatmapSlide === 0 
-                              ? 'bg-secondary/50 cursor-not-allowed' 
-                              : 'bg-secondary hover:bg-primary/20'
-                          }`}
-                          aria-label="Previous slides"
-                        >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                          >
-                            <path d="m15 18-6-6 6-6"/>
-                          </svg>
-                        </button>
-                        <div className="text-sm text-muted-foreground">
-                          Page {Math.floor(currentHeatmapSlide / SLIDES_TO_SHOW) + 1} of {Math.ceil(totalSlides / SLIDES_TO_SHOW)}
-                        </div>
-                        <button 
-                          onClick={goToNextHeatmapSlide}
-                          disabled={currentHeatmapSlide >= totalSlides - SLIDES_TO_SHOW}
-                          className={`p-2 rounded-full transition-colors ${
-                            currentHeatmapSlide >= totalSlides - SLIDES_TO_SHOW
-                              ? 'bg-secondary/50 cursor-not-allowed' 
-                              : 'bg-secondary hover:bg-primary/20'
-                          }`}
-                          aria-label="Next slides"
-                        >
-                          <svg 
-                            xmlns="http://www.w3.org/2000/svg" 
-                            width="24" 
-                            height="24" 
-                            viewBox="0 0 24 24" 
-                            fill="none" 
-                            stroke="currentColor" 
-                            strokeWidth="2" 
-                            strokeLinecap="round" 
-                            strokeLinejoin="round"
-                          >
-                            <path d="m9 18 6-6-6-6"/>
-                          </svg>
-                        </button>
-                      </div>
+  <Carousel
+    responsive={responsive}
+    infinite={false}
+    arrows={true}
+    beforeChange={(previousSlide: number, nextSlide: number) => setCurrentHeatmapSlide(nextSlide)}
+    initialSlide={currentHeatmapSlide}
+  >
+    {analysisResult.frames?.map((frame, index) => (
+      <div key={index} className="px-2">
+        <div className="image-container" onClick={() => handleImageClick(frame, 'heatmap', index)}>
+          <img 
+            src={frame} 
+            alt={`Frame ${index + 1}`} 
+            className="w-full h-[150px] object-cover rounded-lg cursor-pointer"
+            loading="lazy"
+          />
+        </div>
+      </div>
+    ))}
+  </Carousel>
+</div>
                     </div>
                   </div>
                   )}
@@ -770,7 +639,7 @@ const ImageModal = ({
         </motion.div>
       </div>
       {/* Modal */}
-{enlargedImage && currentSliderType && (
+      {enlargedImage && currentSliderType && (
   <ImageModal
     image={enlargedImage}
     onClose={handleCloseModal}
@@ -780,14 +649,12 @@ const ImageModal = ({
     onSlideChange={(index) => {
       if (currentSliderType === 'error') {
         setCurrentErrorLevelSlide(index);
-        if (errorLevelSliderRef.current) {
-          errorLevelSliderRef.current.slickGoTo(index, true);
-        }
+        // Remove the slickGoTo reference since we're no longer using Slick Slider
+        // Instead, the Carousel component will handle the slide change internally
       } else {
         setCurrentHeatmapSlide(index);
-        if (heatmapSliderRef.current) {
-          heatmapSliderRef.current.slickGoTo(index, true);
-        }
+        // Remove the slickGoTo reference since we're no longer using Slick Slider
+        // Instead, the Carousel component will handle the slide change internally
       }
       setEnlargedImage(analysisResult.frames?.[index] || null);
     }}

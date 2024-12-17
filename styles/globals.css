@@ -114,102 +114,44 @@
   }
 
   /* Replace the hover-enlarge related styles in your globals.css with these */
-  .image-container {
-    position: relative;
-    height: 150px;
-    cursor: pointer;
-    transition: transform 0.2s ease;
-  }
-  
-  .image-container:hover {
-    transform: scale(1.05);
-  }
-  
-  .slider-container {
-    position: relative;
-    margin: 0 -8px;
-  }
+  /* Remove all the slick-related styles and replace with these */
+.image-container {
+  position: relative;
+  height: 150px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
 
-  .slick-slider {
-    -webkit-user-select: none;
-    -moz-user-select: none;
-    -ms-user-select: none;
-    user-select: none;
-    -webkit-touch-callout: none;
-    -khtml-user-select: none;
-    -ms-touch-action: pan-y;
-    touch-action: pan-y;
-    -webkit-tap-highlight-color: transparent;
-  }
-  
-  .slick-list {
-    position: relative;
-    display: block;
-    overflow: hidden;
-    margin: 0;
-    padding: 0;
-  }
-  
-  .slick-track {
-    display: flex !important;
-    gap: 16px;
-  }
-  
-  .slick-slide {
-    height: auto !important;
-    position: relative;
-  }
-  
-  .slick-slide > div {
-    height: 100%;
-    padding: 0 8px;
-  }
-  
-  .modal-thumbnail-slider {
-    margin: 0 auto;
-    width: calc(100% - 4rem);
-  }
-  
-  .modal-thumbnail-slider .slick-track {
-    display: flex !important;
-    gap: 0.5rem;
-  }
-  
-  .modal-thumbnail-slider .slick-slide {
-    display: flex !important;
-    justify-content: center;
-    align-items: center;
-    opacity: 0.7;
-    transition: all 0.3s ease;
-  }
-  
-  .modal-thumbnail-slider .slick-current {
-    opacity: 1;
-  }
-  
-  .modal-thumbnail-slider .slick-slide.slick-active {
-    opacity: 0.6;
-  }
-  
-  .modal-thumbnail-slider .slick-slide:hover {
-    opacity: 1;
-  }
-  
-  .modal-thumbnail-slider .slick-slide > div {
-    width: 100%;
-  }
-  
-  .slick-dots {
-    bottom: -25px;
-  }
-  
-  .slick-dots li button:before {
-    color: white;
-  }
-  
-  .slick-dots li.slick-active button:before {
-    color: white;
-  }
+.image-container:hover {
+  transform: scale(1.05);
+}
+
+.slider-container {
+  position: relative;
+  margin: 0 -8px;
+}
+
+.react-multi-carousel-item {
+  padding: 0 8px;
+}
+
+.modal-carousel .react-multi-carousel-item {
+  display: flex;
+  justify-content: center;
+}
+
+.thumbnail-carousel .react-multi-carousel-item {
+  opacity: 0.7;
+  transition: opacity 0.3s ease;
+}
+
+.thumbnail-carousel .react-multi-carousel-item:hover {
+  opacity: 1;
+}
+
+.thumbnail-carousel .react-multi-carousel-item.selected {
+  opacity: 1;
+}
 
   @keyframes fadeIn {
     from { opacity: 0; }
