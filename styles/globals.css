@@ -248,14 +248,41 @@
 }
 
 .carousel-button {
-  padding: 0.5rem;
-  border-radius: 9999px;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-color: rgba(0, 0, 0, 0.8);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.2s ease;
+  border: none;
+  cursor: pointer;
+}
+
+.carousel-button:hover {
+  background-color: rgba(0, 0, 0, 0.6);
+  transform: scale(1.05);
 }
 
 .carousel-button:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+  background-color: rgba(0, 0, 0, 0.4);
+}
+
+/* Add navigation button content */
+.carousel-button.prev::before {
+  content: "‹";
+  font-size: 24px;
+  line-height: 1;
+}
+
+.carousel-button.next::before {
+  content: "›";
+  font-size: 24px;
+  line-height: 1;
 }
 
 .carousel-button:not(:disabled):hover {
@@ -265,6 +292,31 @@
 .dark .carousel-button:not(:disabled):hover {
   background-color: theme('colors.gray.700');
 }
+
+/* Dark mode support */
+.dark .carousel-button {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+.dark .carousel-button:hover {
+  background-color: rgba(255, 255, 255, 0.3);
+}
+
+.grid-cols-3 {
+  gap: 1rem; /* Increase gap between images */
+  transition: transform 0.3s ease;
+}
+
+/* Update image height to be square */
+.grid-cols-3 img {
+  height: 120px; /* Reduced from 150px */
+  width: 120px;
+  object-fit: cover;
+  border-radius: 8px;
+  transition: transform 0.25s ease;
+}
+
+
 
   @keyframes fadeIn {
     from { opacity: 0; }

@@ -21,6 +21,12 @@
       "name": "jane morgan",
       "email": "jane1@example.com",
       "password": "jane12345"
+    },
+    {
+      "id": "e8c5",
+      "name": "saadr223",
+      "email": "saadrehan1000@gmail.com",
+      "password": "12345678"
     }
   ]
 }

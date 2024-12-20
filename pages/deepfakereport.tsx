@@ -276,28 +276,21 @@ export default function DeepfakeReportPage() {
           <button
             onClick={handlePrevPage}
             disabled={currentPage === 0}
-            className={`p-2 rounded-full transition-colors
-              ${currentPage === 0 
-                ? 'text-gray-400 cursor-not-allowed' 
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
-          >
-            ←
-          </button>
+            className="carousel-button prev"
+            aria-label="Previous page"
+            />
+          
   
           <span className="text-sm text-gray-600 dark:text-gray-400">
             Page {currentPage + 1} of {totalPages}
           </span>
   
           <button
-            onClick={handleNextPage}
-            disabled={currentPage === totalPages - 1}
-            className={`p-2 rounded-full transition-colors
-              ${currentPage === totalPages - 1
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
-          >
-            →
-          </button>
+  onClick={handleNextPage}
+  disabled={currentPage === totalPages - 1}
+  className="carousel-button next"
+  aria-label="Next page"
+/>
         </div>
       </div>
     );
@@ -319,7 +312,7 @@ const ImageModal = ({
   currentSlide: number;
   onSlideChange: (index: number) => void;
 }) => {
-  const THUMBNAIL_LIMIT = 10;
+  const THUMBNAIL_LIMIT = 11;
   
   // Calculate the initial thumbnail start position based on the current slide
   const initialThumbnailStart = Math.floor(currentSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
@@ -406,9 +399,7 @@ const ImageModal = ({
         <div className="main-carousel">
           <button 
             onClick={handleMainPrev}
-            className="main-arrow left-arrow"
-          >
-            ←
+            className="carousel-button prev">
           </button>
           <img
             src={frames[currentSlide]}
@@ -417,9 +408,7 @@ const ImageModal = ({
           />
           <button 
             onClick={handleMainNext}
-            className="main-arrow right-arrow"
-          >
-            →
+            className="carousel-button next">
           </button>
         </div>
 
@@ -427,10 +416,9 @@ const ImageModal = ({
         <div className="thumbnail-carousel">
           <button
             onClick={handleThumbnailPrev}
-            className="thumbnail-arrow left-arrow"
+            className="carousel-button prev"
             disabled={thumbnailStart === 0}
           >
-            ←
           </button>
           <div className="thumbnails">
             {visibleThumbnails.map((frame, index) => {
@@ -448,10 +436,9 @@ const ImageModal = ({
           </div>
           <button
             onClick={handleThumbnailNext}
-            className="thumbnail-arrow right-arrow"
+            className="carousel-button next"
             disabled={thumbnailStart + THUMBNAIL_LIMIT >= frames.length}
           >
-            →
           </button>
         </div>
 
