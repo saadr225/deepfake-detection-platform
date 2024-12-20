@@ -1,9 +1,11 @@
 // contexts/UserContext.tsx
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 
 // Constants
-const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const API_URL_MAIN = "http://localhost:8000";
+const API_URL_JSON = "https://localhost:3001";
 
 // User interface
 interface User {
@@ -28,7 +30,8 @@ interface UserContextType {
   registerError: string | null;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;}
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
+}
 
 // Create context
 const UserContext = createContext<UserContextType | undefined>(undefined);
@@ -45,50 +48,30 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
-    // Reset previous errors
     setLoginError(null);
 
     try {
-      // Check if user exists with matching credentials
-      const response = await fetch(`${API_URL}/users?email=${email}`);
-      const users = await response.json();
+      const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password });
 
-      // Find user with matching email and password
-      const foundUser = users.find((u: UserData) => 
-        u.email === email && u.password === password
-      );
-
-      if (foundUser) {
-        // Successful login
-        const { password: _, ...userWithoutPassword } = foundUser;
-        setUser(userWithoutPassword);
-        
-        // Redirect to dashboard
+      if (response.status === 200) {
+        setUser(response.data.user);
         router.push('/dashboard');
-
         return true;
       } else {
-        // Failed login
-        setLoginError('Invalid email or password');
+        setLoginError(response.data.message || 'Invalid email or password');
         return false;
       }
     } catch (error) {
       console.error('Login error:', error);
-      setLoginError('An error occurred during login');
+      setLoginError((error as any).response?.data?.message || 'An error occurred during login');
       return false;
     }
   };
 
   // Registration method
-  const register = async (
-    username: string, 
-    email: string, 
-    password: string
-  ): Promise<boolean> => {
-    // Reset previous errors
+  const register = async (username: string, email: string, password: string): Promise<boolean> => {
     setRegisterError(null);
 
-    // Input validations
     if (username.length < 3) {
       setRegisterError('Username must be at least 3 characters long');
       return false;
@@ -100,60 +83,27 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      // Check if email already exists
-      const checkResponse = await fetch(`${API_URL}/users?email=${email}`);
-      const existingUsers = await checkResponse.json();
+      const response = await axios.post(`${API_URL_MAIN}/api/signup/`, { username, email, password });
 
-      if (existingUsers.length > 0) {
-        setRegisterError('Email already in use');
+      if (response.status === 201) {
+        setUser(response.data.user);
+        router.push('/dashboard');
+        return true;
+      } else {
+        setRegisterError(response.data.message || 'Registration failed');
         return false;
       }
-
-      // Create new user
-      const response = await fetch(`${API_URL}/users`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: username,
-          email: email,
-          password: password // In a real app, this would be hashed
-        })
-      });
-
-      if (!response.ok) {
-        throw new Error('Registration failed');
-      }
-
-      const newUser = await response.json();
-
-      // Set user in context (omit password)
-      const { password: _, ...userWithoutPassword } = newUser;
-      setUser(userWithoutPassword);
-      
-      // Redirect to dashboard
-      router.push('/dashboard');
-
-      return true;
     } catch (error) {
       console.error('Registration error:', error);
-      setRegisterError('Registration failed');
+      setRegisterError((error as any).response?.data?.message || 'An error occurred during registration');
       return false;
     }
   };
 
-  // In UserContext.tsx, update the logout method
-const logout = async () => {
-  try {
-    // First set user to null
+  const logout = async () => {
     setUser(null);
-    // Then redirect after a small delay to ensure state is updated
     await router.push('/login');
-  } catch (error) {
-    console.error('Logout error:', error);
-  }
-};
+  };
 
   // Add the changePassword method in the UserProvider:
   const changePassword = async (
@@ -162,7 +112,7 @@ const logout = async () => {
   ): Promise<{ success: boolean; message: string }> => {
     try {
       // Verify current password
-      const response = await fetch(`${API_URL}/users?email=${user?.email}`);
+      const response = await fetch(`${API_URL_JSON}/users?email=${user?.email}`);
       const users = await response.json();
       const currentUser = users[0];
   
@@ -174,7 +124,7 @@ const logout = async () => {
       }
   
       // Update password
-      const updateResponse = await fetch(`${API_URL}/users/${currentUser.id}`, {
+      const updateResponse = await fetch(`${API_URL_JSON}/users/${currentUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -206,7 +156,7 @@ const logout = async () => {
   const updateProfile = async (username: string, email: string): Promise<boolean> => {
     try {
       // Find the current user in the database
-      const response = await fetch(`${API_URL}/users?email=${user?.email}`);
+      const response = await fetch(`${API_URL_JSON}/users?email=${user?.email}`);
       const users = await response.json();
 
       if (users.length === 0) {
@@ -217,7 +167,7 @@ const logout = async () => {
       const currentUser = users[0];
 
       // Update the user's profile
-      const updateResponse = await fetch(`${API_URL}/users/${currentUser.id}`, {
+      const updateResponse = await fetch(`${API_URL_JSON}/users/${currentUser.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -252,7 +202,7 @@ const logout = async () => {
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
     try {
       // Check if user exists
-      const response = await fetch(`${API_URL}/users?email=${email}`);
+      const response = await fetch(`${API_URL_JSON}/users?email=${email}`);
       const users = await response.json();
   
       if (users.length === 0) {
@@ -273,7 +223,7 @@ const logout = async () => {
       const expirationDate = new Date(Date.now() + 3600000).toISOString();
   
       // Update user with reset token
-      const updateResponse = await fetch(`${API_URL}/users/${user.id}`, {
+      const updateResponse = await fetch(`${API_URL_JSON}/users/${user.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -328,7 +278,7 @@ const logout = async () => {
       }
   
       // Get all users and find the one with matching token
-      const response = await fetch(`${API_URL}/users`);
+      const response = await fetch(`${API_URL_JSON}/users`);
       const users = await response.json();
       
       // Find user with the exact matching token
@@ -350,7 +300,7 @@ const logout = async () => {
       }
   
       // Update user's password and remove reset token
-      const updateResponse = await fetch(`${API_URL}/users/${user.id}`, {
+      const updateResponse = await fetch(`${API_URL_JSON}/users/${user.id}`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
