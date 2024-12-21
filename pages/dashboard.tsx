@@ -1,49 +1,47 @@
-import { useState, useEffect, useCallback, useMemo } from 'react'
-import Layout from '../components/Layout'
-import { motion } from 'framer-motion'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { useUser } from '../contexts/UserContext'
-import { DetectionEntry, useDetectionHistory } from '../contexts/DetectionHistoryContext'
-import { useRouter } from 'next/router'
-import { Eye, Trash2, Trash } from 'lucide-react'
-import Image from 'next/image'
-import { 
-  AlertDialog, 
-  AlertDialogAction, 
-  AlertDialogCancel, 
-  AlertDialogContent, 
-  AlertDialogDescription, 
-  AlertDialogFooter, 
-  AlertDialogHeader, 
-  AlertDialogTitle, 
-  AlertDialogTrigger 
-} from "@/components/ui/alert-dialog"
+import { useState, useEffect, useCallback } from 'react';
+import Layout from '../components/Layout';
+import { motion } from 'framer-motion';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useUser } from '../contexts/UserContext';
+import { DetectionEntry, useDetectionHistory } from '../contexts/DetectionHistoryContext';
+import { useRouter } from 'next/router';
+import { Eye, Trash2, Trash } from 'lucide-react';
+import Image from 'next/image';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger
+} from "@/components/ui/alert-dialog";
 
 export default function Dashboard() {
-  const router = useRouter(); 
-  const { user, updateProfile, changePassword } = useUser()
-  const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory()
-  
-  // State for profile
-   // All useState hooks MUST come before any conditional logic
-   const [username, setUsername] = useState(user?.name || '');
-   const [email, setEmail] = useState(user?.email || '');
-   const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null);
-   const [isUpdating, setIsUpdating] = useState(false);
-   const [showPasswordForm, setShowPasswordForm] = useState(false);
-   const [currentPassword, setCurrentPassword] = useState('');
-   const [newPassword, setNewPassword] = useState('');
-   const [confirmNewPassword, setConfirmNewPassword] = useState('');
-   const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
-   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
-   const [isChangingPassword, setIsChangingPassword] = useState(false);
-   const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({});
+  const router = useRouter();
+  const { user, updateProfile, changePassword } = useUser();
+  const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory();
 
-  // All useEffect hooks must also come before any conditional logic
+  // State for profile
+  const [username, setUsername] = useState(user?.name || '');
+  const [email, setEmail] = useState(user?.email || '');
+  const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
+  const [showPasswordForm, setShowPasswordForm] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmNewPassword, setConfirmNewPassword] = useState('');
+  const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
+  const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
+  const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [mediaTypes, setMediaTypes] = useState<{ [key: string]: 'image' | 'video' | 'unknown' }>({});
+
   useEffect(() => {
     if (!user) {
       router.push('/login');
@@ -52,168 +50,145 @@ export default function Dashboard() {
 
   useEffect(() => {
     const detectMediaTypes = async () => {
-      const typeMap: {[key: string]: 'image' | 'video' | 'unknown'} = {}
-      
+      const typeMap: { [key: string]: 'image' | 'video' | 'unknown' } = {};
+
       for (const detection of detectionHistory) {
-        const mediaType = await determineMediaType(detection.imageUrl)
-        typeMap[detection.id] = mediaType
+        const mediaType = await determineMediaType(detection.imageUrl);
+        typeMap[detection.id] = mediaType;
+        
       }
 
-      setMediaTypes(typeMap)
-    }
+      setMediaTypes(typeMap);
+    };
 
     if (detectionHistory.length > 0) {
-      detectMediaTypes()
+      detectMediaTypes();
     }
   }, [detectionHistory]);
 
-  // // If no user, render a loading state instead of returning null
-  // if (!user) {
-  //   return (
-  //     <Layout>
-  //       <div className="min-h-screen flex items-center justify-center">
-  //         <p>Loading...</p>
-  //       </div>
-  //     </Layout>
-  //   );
-  // }
-
   // Utility function to determine media type
-async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
-  try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const mimeType = blob.type
+  async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
+    try {
+      const response = await fetch(url);
+      const blob = await response.blob();
+      const mimeType = blob.type;
 
-    if (mimeType.startsWith('image/')) return 'image'
-    if (mimeType.startsWith('video/')) return 'video'
-    return 'unknown'
-  } catch (error) {
-    console.error('Error determining media type:', error)
-    return 'unknown'
+      if (mimeType.startsWith('image/')) return 'image';
+      if (mimeType.startsWith('video/')) return 'video';
+      return 'unknown';
+    } catch (error) {
+      console.error('Error determining media type:', error);
+      return 'unknown';
+    }
   }
-}
 
   // Handle view detection details
   const handleViewDetectionDetails = useCallback((entry: DetectionEntry) => {
-    if(entry.detectionType === 'deepfake') {
+    if (entry.detectionType === 'deepfake') {
       router.push({
         pathname: '/deepfakereport',
         query: {
           detectionResult: JSON.stringify(entry.detailedReport),
           fromHistory: true
         }
-      })
-    }
-    else if(entry.detectionType === 'ai-content') {
+      });
+    } else if (entry.detectionType === 'ai-content') {
       router.push({
         pathname: '/aicontentreport',
         query: {
           detectionResult: JSON.stringify(entry.detailedReport),
           fromHistory: true
         }
-      })
+      });
     }
-  }, [router])
+  }, [router]);
 
   // Handle delete single entry
   const handleDeleteEntry = useCallback((entryId: string) => {
-    const confirmed = window.confirm('Are you sure you want to delete this detection entry?')
+    const confirmed = window.confirm('Are you sure you want to delete this detection entry?');
     if (confirmed) {
-      deleteDetectionEntry(entryId)
+      deleteDetectionEntry(entryId);
     }
-  }, [deleteDetectionEntry])
+  }, [deleteDetectionEntry]);
 
   // Handle profile update
   const handleProfileUpdate = useCallback(async (e: React.FormEvent) => {
-    e.preventDefault()
-    setProfileUpdateError(null)
-    setIsUpdating(true)
+    e.preventDefault();
+    setProfileUpdateError(null);
+    setIsUpdating(true);
 
     try {
       // Validate inputs
       if (!username.trim()) {
-        setProfileUpdateError('Username cannot be empty')
-        setIsUpdating(false)
-        return
+        setProfileUpdateError('Username cannot be empty');
+        setIsUpdating(false);
+        return;
       }
 
       // Call updateProfile method from context
-      const success = await updateProfile(username, email)
+      const success = await updateProfile(username, email);
 
       if (success) {
         // Show success message
-        alert('Profile updated successfully!')
+        alert('Profile updated successfully!');
       } else {
-        setProfileUpdateError('Failed to update profile')
+        setProfileUpdateError('Failed to update profile');
       }
     } catch (error) {
-      console.error('Profile update error:', error)
-      setProfileUpdateError('An unexpected error occurred')
+      console.error('Profile update error:', error);
+      setProfileUpdateError('An unexpected error occurred');
     } finally {
-      setIsUpdating(false)
+      setIsUpdating(false);
     }
-  }, [updateProfile, username, email])
+  }, [updateProfile, username, email]);
 
-  // Add this handler function with your other handlers
-const handlePasswordChange = async (e: React.FormEvent) => {
-  e.preventDefault()
-  setPasswordUpdateError(null)
-  setPasswordUpdateSuccess(null)
-  setIsChangingPassword(true)
+  // Handle password change
+  const handlePasswordChange = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setPasswordUpdateError(null);
+    setPasswordUpdateSuccess(null);
+    setIsChangingPassword(true);
 
-  try {
-    if (newPassword !== confirmNewPassword) {
-      setPasswordUpdateError('New passwords do not match')
-      return
+    try {
+      if (newPassword !== confirmNewPassword) {
+        setPasswordUpdateError('New passwords do not match');
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        setPasswordUpdateError('New password must be at least 8 characters long');
+        return;
+      }
+
+      const { success, message } = await changePassword(currentPassword, newPassword);
+
+      if (success) {
+        setPasswordUpdateSuccess(message);
+        // Clear form
+        setCurrentPassword('');
+        setNewPassword('');
+        setConfirmNewPassword('');
+      } else {
+        setPasswordUpdateError(message);
+      }
+    } catch (error) {
+      console.error('Password change error:', error);
+      setPasswordUpdateError('An unexpected error occurred');
+    } finally {
+      setIsChangingPassword(false);
     }
-
-    if (newPassword.length < 8) {
-      setPasswordUpdateError('New password must be at least 8 characters long')
-      return
-    }
-
-    const { success, message } = await changePassword(currentPassword, newPassword)
-
-    if (success) {
-      setPasswordUpdateSuccess(message)
-      //setShowPasswordForm(false)
-      // Clear form
-      setCurrentPassword('')
-      setNewPassword('')
-      setConfirmNewPassword('')
-    } else {
-      setPasswordUpdateError(message)
-    }
-  } catch (error) {
-    console.error('Password change error:', error)
-    setPasswordUpdateError('An unexpected error occurred')
-  } finally {
-    setIsChangingPassword(false)
-  }
-}
-
-// // Render loading state if no user
-// if (!user) {
-//   return (
-//     <Layout>
-//       <div className="min-h-screen flex items-center justify-center">
-//         <p>Loading...</p>
-//       </div>
-//     </Layout>
-//   );
-// }
+  };
 
   return (
     <Layout>
-      <motion.div 
+      <motion.div
         className="bg-background min-h-screen"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
         <div className="max-w-5xl mx-auto py-12 sm:px-6 lg:px-8">
-          <motion.h1 
+          <motion.h1
             className="text-3xl font-bold text-gray-900 dark:text-white mb-10"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
@@ -230,7 +205,7 @@ const handlePasswordChange = async (e: React.FormEvent) => {
             </TabsList>
 
             {/* Profile Settings Tab */}
-            <TabsContent value="profile" className= "mt-8 shadow-xl"> 
+            <TabsContent value="profile" className="mt-8 shadow-xl">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -265,9 +240,9 @@ const handlePasswordChange = async (e: React.FormEvent) => {
                           />
                         </div>
                       </div>
-                      <Button 
-                        type="submit" 
-                        className="mt-4" 
+                      <Button
+                        type="submit"
+                        className="mt-4"
                         disabled={isUpdating}
                       >
                         {isUpdating ? 'Updating...' : 'Update Profile'}
@@ -295,7 +270,7 @@ const handlePasswordChange = async (e: React.FormEvent) => {
                           {passwordUpdateSuccess && (
                             <div className="text-green-500 text-sm">{passwordUpdateSuccess}</div>
                           )}
-                          
+
                           <div className="space-y-2">
                             <Label htmlFor="current-password">Current Password</Label>
                             <Input
@@ -329,8 +304,8 @@ const handlePasswordChange = async (e: React.FormEvent) => {
                             />
                           </div>
 
-                          <Button 
-                            type="submit" 
+                          <Button
+                            type="submit"
                             disabled={isChangingPassword}
                           >
                             {isChangingPassword ? 'Updating Password...' : 'Update Password'}
@@ -388,7 +363,7 @@ const handlePasswordChange = async (e: React.FormEvent) => {
                     ) : (
                       <div className="space-y-4">
                         {detectionHistory.map((detection) => (
-                          <motion.div 
+                          <motion.div
                             key={detection.id}
                             className="flex items-center justify-between border-b dark:border-gray-700 pb-4"
                             initial={{ opacity: 0, x: -20 }}
@@ -399,15 +374,15 @@ const handlePasswordChange = async (e: React.FormEvent) => {
                             <div className="flex items-center space-x-4">
                               <div className="w-20 h-20 relative">
                                 {mediaTypes[detection.id] === 'image' && (
-                                  <Image 
-                                    src={detection.imageUrl} 
-                                    alt="Detected Image" 
+                                  <Image
+                                    src={detection.imageUrl}
+                                    alt="Detected Image"
                                     fill
                                     className="object-cover rounded-md"
                                   />
                                 )}
                                 {mediaTypes[detection.id] === 'video' && (
-                                  <video 
+                                  <video
                                     src={detection.imageUrl}
                                     className="w-full h-full object-cover rounded-md"
                                     style={{ pointerEvents: 'none' }}
@@ -426,33 +401,33 @@ const handlePasswordChange = async (e: React.FormEvent) => {
                               <div>
                                 <h3 className="text-lg font-semibold">
                                   Detection Result
-                                  <span 
+                                  <span
                                     className={`ml-2 px-2 py-1 rounded text-xs ${
-                                      detection.isDeepfake 
-                                      ? 'bg-red-500 text-white' 
-                                      : 'bg-green-500 text-white'
+                                      detection.isDeepfake
+                                        ? 'bg-red-500 text-white'
+                                        : 'bg-green-500 text-white'
                                     }`}
                                   >
-                                    {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake' 
-                                    : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
+                                    {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
+                                      : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
 
                                   </span>
                                 </h3>
                                 <p className="text-sm text-muted-foreground"> Date: {new Date(detection.date).toLocaleDateString()}</p>
                                 <p className="text-sm text-muted-foreground">
-                                  Confidence: {detection.confidence}%
+                                  Confidence: {(detection.confidence * 100).toFixed(2)}%
                                 </p>
                               </div>
                             </div>
                             <div className="flex space-x-2">
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 onClick={() => handleViewDetectionDetails(detection)}
                               >
                                 <Eye className="mr-2 h-4 w-4" /> View
                               </Button>
-                              <Button 
-                                variant="outline" 
+                              <Button
+                                variant="outline"
                                 onClick={() => handleDeleteEntry(detection.id)}
                               >
                                 <Trash2 className="mr-2 h-4 w-4" /> Delete
@@ -470,5 +445,5 @@ const handlePasswordChange = async (e: React.FormEvent) => {
         </div>
       </motion.div>
     </Layout>
-  )
+  );
 }
