@@ -1,49 +1,49 @@
-import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { useRouter } from 'next/router'
-import Layout from '../components/Layout'
-import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Progress } from "@/components/ui/progress"
-import { Upload, Link, X } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { useUser } from '../contexts/UserContext'
-import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
-import { DeepfakeDetectionStub } from '../services/detectionService'
+// Import necessary modules
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useRouter } from 'next/router';
+import Layout from '../components/Layout';
+import { Button } from "@/components/ui/button";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Progress } from "@/components/ui/progress";
+import { Upload, Link, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useUser } from '../contexts/UserContext';
+import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import Cookies from 'js-cookie';
 import axios from 'axios';
 
 export default function DetectPage() {
-  const router = useRouter()
-  const { user } = useUser()
-  const { addDetectionEntry } = useDetectionHistory()
+  const router = useRouter();
+  const { user } = useUser();
+  const { addDetectionEntry } = useDetectionHistory();
   
-  const [file, setFile] = useState<File | null>(null)
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisProgress, setAnalysisProgress] = useState(0)
-  const [socialMediaUrl, setSocialMediaUrl] = useState<string>('')
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
+  const [file, setFile] = useState<File | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [socialMediaUrl, setSocialMediaUrl] = useState<string>('');
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
 
   // Dropzone configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
     // Validate file size (5MB for images, 10MB for videos)
-    const file = acceptedFiles[0]
-    const maxImageSize = 5 * 1024 * 1024 // 5MB
-    const maxVideoSize = 10 * 1024 * 1024 // 10MB
+    const file = acceptedFiles[0];
+    const maxImageSize = 5 * 1024 * 1024; // 5MB
+    const maxVideoSize = 10 * 1024 * 1024; // 10MB
 
     if (file) {
       if (file.type.startsWith('image/') && file.size > maxImageSize) {
-        alert('Image size exceeds 5MB limit')
-        return
+        alert('Image size exceeds 5MB limit');
+        return;
       }
       if (file.type.startsWith('video/') && file.size > maxVideoSize) {
-        alert('Video size exceeds 10MB limit')
-        return
+        alert('Video size exceeds 10MB limit');
+        return;
       }
-      setFile(file)
+      setFile(file);
     }
-  }, [])
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
@@ -52,7 +52,7 @@ export default function DetectPage() {
       'video/*': ['.mp4', '.avi', '.mov']
     },
     multiple: false
-  })
+  });
 
   // Analysis handler
   const handleAnalyze = async () => {
@@ -142,9 +142,9 @@ export default function DetectPage() {
   
       // Prepare entry for detection history
       const detectionEntry = {
-        imageUrl: detectionResult.imageUrl,
-        confidence: detectionResult.confidence,
-        isDeepfake: detectionResult.isDeepfake,
+        imageUrl: detectionResult.analysis_report.media_path,
+        confidence: detectionResult.confidence_score,
+        isDeepfake: detectionResult.is_deepfake,
         detailedReport: detectionResult,
         detectionType: 'deepfake' as const // Explicitly set detection type
       };
@@ -170,37 +170,37 @@ export default function DetectPage() {
 
   // File upload handler
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0]
+    const selectedFile = event.target.files?.[0];
     if (selectedFile) {
-      onDrop([selectedFile])
+      onDrop([selectedFile]);
     }
-  }
+  };
 
   // Remove file handler
   const handleRemoveFile = () => {
-    setFile(null)
+    setFile(null);
     // Reset file input
     if (document.getElementById('fileUpload')) {
-      (document.getElementById('fileUpload') as HTMLInputElement).value = ''
+      (document.getElementById('fileUpload') as HTMLInputElement).value = '';
     }
-  }
+  };
 
   // Social media import handler
   const handleSocialMediaImport = async () => {
-    setImportError(null)
+    setImportError(null);
 
     try {
       // Basic URL validation
       if (!socialMediaUrl.trim()) {
-        setImportError('Please enter a valid social media URL')
-        return
+        setImportError('Please enter a valid social media URL');
+        return;
       }
 
       // URL format validation (basic example)
-      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
+      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
       if (!urlPattern.test(socialMediaUrl)) {
-        setImportError('Invalid URL format')
-        return
+        setImportError('Invalid URL format');
+        return;
       }
 
       // Simulate social media import
@@ -210,26 +210,26 @@ export default function DetectPage() {
           'Content-Type': 'application/json'
         },
         body: JSON.stringify({ url: socialMediaUrl })
-      })
+      });
 
       if (response.ok) {
-        const mediaFile = await response.blob()
+        const mediaFile = await response.blob();
         const importedFile = new File([mediaFile], 'social-media-import', { 
           type: mediaFile.type 
-        })
+        });
         
         // Use onDrop to handle file validation and setting
-        onDrop([importedFile])
-        setIsImportModalOpen(false)
+        onDrop([importedFile]);
+        setIsImportModalOpen(false);
       } else {
-        const errorData = await response.json()
-        setImportError(errorData.message || 'Failed to import media')
+        const errorData = await response.json();
+        setImportError(errorData.message || 'Failed to import media');
       }
     } catch (error) {
-      console.error('Social media import error:', error)
-      setImportError('An error occurred while importing media')
+      console.error('Social media import error:', error);
+      setImportError('An error occurred while importing media');
     }
-  }
+  };
 
   return (
     <Layout>
@@ -380,5 +380,5 @@ export default function DetectPage() {
         </motion.div>
       </div>
     </Layout>
-  )
+  );
 }
