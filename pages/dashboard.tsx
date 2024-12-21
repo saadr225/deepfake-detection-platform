@@ -43,12 +43,12 @@ export default function Dashboard() {
    const [isChangingPassword, setIsChangingPassword] = useState(false);
    const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({});
 
-  // All useEffect hooks must also come before any conditional logic
-  useEffect(() => {
-    if (!user) {
-      router.push('/login');
-    }
-  }, [user, router]);
+  // // All useEffect hooks must also come before any conditional logic
+  // useEffect(() => {
+  //   if (!user) {
+  //     router.push('/login');
+  //   }
+  // }, [user, router]);
 
   useEffect(() => {
     const detectMediaTypes = async () => {
@@ -193,16 +193,16 @@ const handlePasswordChange = async (e: React.FormEvent) => {
   }
 }
 
-// Render loading state if no user
-if (!user) {
-  return (
-    <Layout>
-      <div className="min-h-screen flex items-center justify-center">
-        <p>Loading...</p>
-      </div>
-    </Layout>
-  );
-}
+// // Render loading state if no user
+// if (!user) {
+//   return (
+//     <Layout>
+//       <div className="min-h-screen flex items-center justify-center">
+//         <p>Loading...</p>
+//       </div>
+//     </Layout>
+//   );
+// }
 
   return (
     <Layout>
@@ -219,7 +219,8 @@ if (!user) {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Welcome, {user.name}
+            Welcome,
+            {/* {user.name} */}
           </motion.h1>
 
           <Tabs defaultValue="profile">

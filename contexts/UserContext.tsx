@@ -51,10 +51,33 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoginError(null);
 
     try {
-      const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password });
+      const is_email = true;
+      const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password, is_email });
+
+      // // Perform login request
+      // const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password });
+
+      // if (response.status === 200) {
+      //   // Extract tokens from the response
+      //   const { accessToken, refreshToken } = response.data;
+        
+      //   // Store tokens (you might want to use cookies or local storage for this)
+      //   localStorage.setItem('accessToken', accessToken);
+      //   localStorage.setItem('refreshToken', refreshToken);
+
+      //   // Fetch user details using the access token
+      //   const userResponse = await axios.get(`${API_URL_MAIN}/api/me/`, {
+      //     headers: { Authorization: `Bearer ${accessToken}` }
+      //   });
 
       if (response.status === 200) {
-        setUser(response.data.user);
+        // Extract tokens from the response
+        const { accessToken, refreshToken } = response.data;
+        
+        // Store tokens (you might want to use cookies or local storage for this)
+        localStorage.setItem('accessToken', accessToken);
+        localStorage.setItem('refreshToken', refreshToken);
+        //setUser(response.data.user);
         router.push('/dashboard');
         return true;
       } else {
@@ -87,7 +110,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (response.status === 201) {
         setUser(response.data.user);
-        router.push('/dashboard');
+        router.push('/login');
         return true;
       } else {
         setRegisterError(response.data.message || 'Registration failed');
@@ -102,6 +125,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     setUser(null);
+    localStorage.removeItem('accessToken');
+    localStorage.removeItem('refreshToken');
     await router.push('/login');
   };
 
