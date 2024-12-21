@@ -51,7 +51,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
                     <User className="h-5 w-5 mr-1" />
-                    {user?.name || 'User'}
+                    {user?.username || 'User'}
                   </div>
                 </>
               ) : (
@@ -105,7 +105,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   <div className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-white">
                     <User className="h-5 w-5 inline mr-1" />
-                    {user?.name || 'User'}
+                    {user?.username || 'User'}
                   </div>
                 </>
               ) : (

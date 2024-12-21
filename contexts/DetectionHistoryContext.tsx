@@ -60,7 +60,7 @@ interface AIContentDetectionResult {
 
 export interface DetectionEntry {
   id: string;
-  userId: string;
+  userId: number;
   imageUrl: string;
   mediaType: 'Image' | 'Video' | 'unknown'; // Add mediaType field
   confidence: number;

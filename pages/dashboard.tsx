@@ -29,7 +29,7 @@ export default function Dashboard() {
   const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory();
 
   // State for profile
-  const [username, setUsername] = useState(user?.name || '');
+  const [username, setUsername] = useState(user?.username || '');
   const [email, setEmail] = useState(user?.email || '');
   const [profileUpdateError, setProfileUpdateError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
@@ -159,7 +159,7 @@ export default function Dashboard() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Welcome, {user?.name}
+            Welcome, {user?.username}
           </motion.h1>
 
           <Tabs defaultValue="profile">

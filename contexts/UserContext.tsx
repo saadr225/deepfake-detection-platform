@@ -10,14 +10,10 @@ const API_URL_JSON = "https://localhost:3001";
 
 // User interface
 interface User {
-  id: string;
-  name: string;
+  id: number;
+  username: string;
   email: string;
-}
-
-// Interface for full user data (including password)
-interface UserData extends User {
-  password: string;
+  isVerified: boolean;
 }
 
 // Context type
@@ -47,12 +43,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Use router for navigation
   const router = useRouter();
 
-    // Check if refresh token is in cookies and set user accordingly
+  // Check if refresh token is in cookies and set user accordingly
   useEffect(() => {
     const refreshToken = Cookies.get('refreshToken');
     if (refreshToken) {
       // Mock user data
-      setUser({ id: '1', name: 'User', email: 'user@example.com' });
+      setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: true });
     }
   }, []);
 
@@ -64,31 +60,22 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const is_email = true;
       const response = await axios.post(`${API_URL_MAIN}/api/user/login/`, { email, password, is_email });
 
-      // // Perform login request
-      // const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password });
-
-      // if (response.status === 200) {
-      //   // Extract tokens from the response
-      //   const { accessToken, refreshToken } = response.data;
-        
-      //   // Store tokens (you might want to use cookies or local storage for this)
-      //   localStorage.setItem('accessToken', accessToken);
-      //   localStorage.setItem('refreshToken', refreshToken);
-
-      //   // Fetch user details using the access token
-      //   const userResponse = await axios.get(`${API_URL_MAIN}/api/me/`, {
-      //     headers: { Authorization: `Bearer ${accessToken}` }
-      //   });
-
       if (response.status === 200) {
-        // Extract tokens from the response
-        const { access, refresh } = response.data;
-        
-        // Store tokens (you might want to use cookies or local storage for this)
+        const { access, refresh, authenticated_user } = response.data;
+
+        // Store tokens in cookies
         Cookies.set('accessToken', access);
         Cookies.set('refreshToken', refresh);
-        // Mock user data
-        setUser({ id: '1', name: 'User', email: 'user@example.com' });
+
+        // Set user details
+        const { user, user_data } = authenticated_user;
+        setUser({
+          id: user.id,
+          username: user.username,
+          email: user.email,
+          isVerified: user_data.is_verified
+        });
+
         router.push('/dashboard');
         return true;
       } else {
@@ -120,7 +107,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await axios.post(`${API_URL_MAIN}/api/user/signup/`, { username, email, password });
 
       if (response.status === 201) {
-        //setUser(response.data.user);
         router.push('/login');
         return true;
       } else {
@@ -135,6 +121,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   const logout = async () => {
+    const refreshToken = Cookies.get('refreshToken');
+    if (refreshToken) {
+      try {
+        await axios.post(`${API_URL_MAIN}/user/logout/`, { refresh: refreshToken });
+      } catch (error) {
+        console.error('Logout error:', error);
+      }
+    }
+
     setUser(null);
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
@@ -222,8 +217,9 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const updatedUser = await updateResponse.json();
       setUser({
         id: updatedUser.id,
-        name: updatedUser.name,
-        email: updatedUser.email
+        username: updatedUser.name,
+        email: updatedUser.email,
+        isVerified: updatedUser.is_verified
       });
 
       return true;
@@ -234,7 +230,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // New forgot password method
-  // In UserContext.tsx, modify the forgotPassword method:
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
     try {
       // Check if user exists
@@ -300,7 +295,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // New reset password method
-  // In UserContext.tsx, modify the resetPassword method:
   const resetPassword = async (
     token: string,
     newPassword: string
@@ -395,7 +389,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 };
 
 // Custom hook to use the UserContext
-// Keep the existing useUser hook
 export const useUser = () => {
   const context = useContext(UserContext);
   if (context === undefined) {
