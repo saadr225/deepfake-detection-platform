@@ -62,7 +62,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     try {
       const is_email = true;
-      const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password, is_email });
+      const response = await axios.post(`${API_URL_MAIN}/api/user/login/`, { email, password, is_email });
 
       // // Perform login request
       // const response = await axios.post(`${API_URL_MAIN}/api/login/`, { email, password });
@@ -118,7 +118,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      const response = await axios.post(`${API_URL_MAIN}/api/signup/`, { username, email, password });
+      const response = await axios.post(`${API_URL_MAIN}/api/user/signup/`, { username, email, password });
 
       if (response.status === 201) {
         //setUser(response.data.user);

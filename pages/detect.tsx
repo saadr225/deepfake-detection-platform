@@ -110,7 +110,7 @@ export default function DetectPage() {
           if (refreshToken) {
             // Get a new access token using the refresh token
             const refreshResponse = await axios.post(
-              'http://127.0.0.1:8000/api/refresh_token/',
+              'http://127.0.0.1:8000/api/auth/refresh_token/',
               { refresh: refreshToken }
             );
   
