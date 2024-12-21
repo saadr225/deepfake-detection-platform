@@ -43,12 +43,12 @@ export default function Dashboard() {
    const [isChangingPassword, setIsChangingPassword] = useState(false);
    const [mediaTypes, setMediaTypes] = useState<{[key: string]: 'image' | 'video' | 'unknown'}>({});
 
-  // // All useEffect hooks must also come before any conditional logic
-  // useEffect(() => {
-  //   if (!user) {
-  //     router.push('/login');
-  //   }
-  // }, [user, router]);
+  // All useEffect hooks must also come before any conditional logic
+  useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
 
   useEffect(() => {
     const detectMediaTypes = async () => {

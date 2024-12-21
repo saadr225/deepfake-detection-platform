@@ -1,7 +1,8 @@
 // contexts/UserContext.tsx
-import React, { createContext, useState, useContext, ReactNode } from 'react';
+import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 
 // Constants
 const API_URL_MAIN = "http://localhost:8000";
@@ -46,6 +47,15 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Use router for navigation
   const router = useRouter();
 
+    // Check if refresh token is in cookies and set user accordingly
+  useEffect(() => {
+    const refreshToken = Cookies.get('refreshToken');
+    if (refreshToken) {
+      // Mock user data
+      setUser({ id: '1', name: 'User', email: 'user@example.com' });
+    }
+  }, []);
+
   // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
     setLoginError(null);
@@ -72,12 +82,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       if (response.status === 200) {
         // Extract tokens from the response
-        const { accessToken, refreshToken } = response.data;
+        const { access, refresh } = response.data;
         
         // Store tokens (you might want to use cookies or local storage for this)
-        localStorage.setItem('accessToken', accessToken);
-        localStorage.setItem('refreshToken', refreshToken);
+        Cookies.set('accessToken', access);
+        Cookies.set('refreshToken', refresh);
         //setUser(response.data.user);
+        // Mock user data
+        setUser({ id: '1', name: 'User', email: 'user@example.com' });
         router.push('/dashboard');
         return true;
       } else {
@@ -109,7 +121,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const response = await axios.post(`${API_URL_MAIN}/api/signup/`, { username, email, password });
 
       if (response.status === 201) {
-        setUser(response.data.user);
+        //setUser(response.data.user);
         router.push('/login');
         return true;
       } else {
@@ -125,8 +137,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
   const logout = async () => {
     setUser(null);
-    localStorage.removeItem('accessToken');
-    localStorage.removeItem('refreshToken');
+    Cookies.remove('accessToken');
+    Cookies.remove('refreshToken');
     await router.push('/login');
   };
 

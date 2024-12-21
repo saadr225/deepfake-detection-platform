@@ -1,13 +1,20 @@
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Menu, X, User } from 'lucide-react'
 import { useUser } from '../contexts/UserContext'
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from './ThemeToggle'
+import Cookies from 'js-cookie'
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const { user, logout } = useUser()
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const refreshToken = Cookies.get('refreshToken');
+    setIsLoggedIn(!!refreshToken);
+  }, []);
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-black">
@@ -31,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" asChild>
                 <Link href="/forum">Forum</Link>
               </Button>
-              {user ? (
+              {isLoggedIn ? (
                 <>
                   <Button variant="ghost" asChild>
                     <Link href="/dashboard">Dashboard</Link>
@@ -44,7 +51,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
                     <User className="h-5 w-5 mr-1" />
-                    {user.name}
+                    {user?.name || 'User'}
                   </div>
                 </>
               ) : (
@@ -84,7 +91,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" className="w-full" asChild>
                 <Link href="/forum">Forum</Link>
               </Button>
-              {user ? (
+              {isLoggedIn ? (
                 <>
                   <Button variant="ghost" className="w-full" asChild>
                     <Link href="/dashboard">Dashboard</Link>
@@ -98,7 +105,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   <div className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-white">
                     <User className="h-5 w-5 inline mr-1" />
-                    {user.name}
+                    {user?.name || 'User'}
                   </div>
                 </>
               ) : (

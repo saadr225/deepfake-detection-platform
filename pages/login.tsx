@@ -35,12 +35,12 @@ export default function Login() {
     }
   }
 
-  // // Add this useEffect to handle redirects
-  // useEffect(() => {
-  //   if (user) {
-  //     router.push('/dashboard');
-  //   }
-  // }, [user, router]);
+  // Add this useEffect to handle redirects
+  useEffect(() => {
+    if (user) {
+      router.push('/dashboard');
+    }
+  }, [user, router]);
 
   return (
     <Layout>
