@@ -10,6 +10,8 @@ import { motion } from 'framer-motion'
 import { useUser } from '../contexts/UserContext'
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
 import { DeepfakeDetectionStub } from '../services/detectionService'
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 export default function DetectPage() {
   const router = useRouter()
@@ -54,31 +56,90 @@ export default function DetectPage() {
 
   // Analysis handler
   const handleAnalyze = async () => {
-    if (!file) return
+    if (!file) return;
     
-    setIsAnalyzing(true)
-    setAnalysisProgress(0)
-
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+  
     try {
       // Simulate analysis progress
       const progressInterval = setInterval(() => {
         setAnalysisProgress((prevProgress) => {
           if (prevProgress >= 90) {
-            clearInterval(progressInterval)
-            return 90
+            clearInterval(progressInterval);
+            return 90;
           }
-          return prevProgress + 10
-        })
-      }, 500)
-
-      // Use detection stub to analyze the file
-      const detectionResult = await DeepfakeDetectionStub.detectDeepfake(file);
-
+          return prevProgress + 10;
+        });
+      }, 500);
+  
+      // Function to upload the media file
+      const uploadFile = async (token: string) => {
+        const formData = new FormData();
+        formData.append('file', file);
+  
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/process/df/',
+          formData,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              'Content-Type': 'multipart/form-data'
+            }
+          }
+        );
+  
+        return response;
+      };
+  
+      // Get the access token from cookies
+      let accessToken = Cookies.get('accessToken');
+      let response;
+  
+      try {
+        // Try to upload the file with the current access token
+        if (!accessToken) {
+          throw new Error('Access token is missing');
+        }
+        response = await uploadFile(accessToken);
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+          // Access token is expired, refresh the token
+          const refreshToken = Cookies.get('refreshToken');
+  
+          if (refreshToken) {
+            // Get a new access token using the refresh token
+            const refreshResponse = await axios.post(
+              'http://127.0.0.1:8000/api/refresh_token/',
+              { refresh: refreshToken }
+            );
+  
+            accessToken = refreshResponse.data.access;
+            // Store the new access token in cookies
+            if (accessToken) {
+              Cookies.set('accessToken', accessToken);
+            }
+            if (!accessToken) {
+              throw new Error('Access token is missing');
+            }
+            // Retry the file upload with the new access token
+            response = await uploadFile(accessToken);
+          } else {
+            throw new Error('Refresh token is missing');
+          }
+        } else {
+          throw error;
+        }
+      }
+  
       // Clear progress interval
       clearInterval(progressInterval);
       setAnalysisProgress(100);
       setIsAnalyzing(false);
-
+  
+      // Extract detection results from the response
+      const detectionResult = response.data;
+  
       // Prepare entry for detection history
       const detectionEntry = {
         imageUrl: detectionResult.imageUrl,
@@ -87,7 +148,7 @@ export default function DetectPage() {
         detailedReport: detectionResult,
         detectionType: 'deepfake' as const // Explicitly set detection type
       };
-
+  
       // If user is logged in, save to detection history
       if (user) {
         addDetectionEntry(detectionEntry);
@@ -99,13 +160,13 @@ export default function DetectPage() {
         query: {
           detectionResult: JSON.stringify(detectionResult)
         }
-      })
+      });
     } catch (error) {
-      console.error('Detection analysis error:', error)
-      setIsAnalyzing(false)
-      alert('An error occurred during analysis. Please try again.')
+      console.error('Detection analysis error:', error);
+      setIsAnalyzing(false);
+      alert('An error occurred during analysis. Please try again.');
     }
-  }
+  };
 
   // File upload handler
   const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
