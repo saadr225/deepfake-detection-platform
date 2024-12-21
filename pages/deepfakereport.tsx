@@ -93,6 +93,7 @@ export default function DeepfakeReportPage() {
         // Prepare detection entry
         const detectionEntry = {
           imageUrl: parsedResult.analysis_report.media_path,
+          mediaType: parsedResult.analysis_report.media_type,
           confidence: parsedResult.confidence_score,
           isDeepfake: parsedResult.is_deepfake,
           detailedReport: parsedResult,

@@ -22,7 +22,7 @@ interface FrameResult {
 
 interface AnalysisReport {
   media_path: string;
-  media_type: string;
+  media_type: 'Image' | 'Video' | 'unknown'; // Add media_type field
   file_id: string;
   frame_results: FrameResult[]; // Use FrameResult[]
   statistics: {
@@ -49,12 +49,20 @@ interface DetectionResult {
 
 interface AIContentDetectionResult {
   // Define the structure for AI content detection results if needed
+  id: number;
+  media_upload: number;
+  is_deepfake: boolean;
+  confidence_score: number;
+  frames_analyzed: number;
+  fake_frames: number;
+  analysis_report: AnalysisReport; // Use AnalysisReport
 }
 
 export interface DetectionEntry {
   id: string;
   userId: string;
   imageUrl: string;
+  mediaType: 'Image' | 'Video' | 'unknown'; // Add mediaType field
   confidence: number;
   isDeepfake: boolean;
   date: string;

@@ -40,47 +40,12 @@ export default function Dashboard() {
   const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
-  const [mediaTypes, setMediaTypes] = useState<{ [key: string]: 'image' | 'video' | 'unknown' }>({});
 
   useEffect(() => {
     if (!user) {
       router.push('/login');
     }
   }, [user, router]);
-
-  useEffect(() => {
-    const detectMediaTypes = async () => {
-      const typeMap: { [key: string]: 'image' | 'video' | 'unknown' } = {};
-
-      for (const detection of detectionHistory) {
-        const mediaType = await determineMediaType(detection.imageUrl);
-        typeMap[detection.id] = mediaType;
-        
-      }
-
-      setMediaTypes(typeMap);
-    };
-
-    if (detectionHistory.length > 0) {
-      detectMediaTypes();
-    }
-  }, [detectionHistory]);
-
-  // Utility function to determine media type
-  async function determineMediaType(url: string): Promise<'image' | 'video' | 'unknown'> {
-    try {
-      const response = await fetch(url);
-      const blob = await response.blob();
-      const mimeType = blob.type;
-
-      if (mimeType.startsWith('image/')) return 'image';
-      if (mimeType.startsWith('video/')) return 'video';
-      return 'unknown';
-    } catch (error) {
-      console.error('Error determining media type:', error);
-      return 'unknown';
-    }
-  }
 
   // Handle view detection details
   const handleViewDetectionDetails = useCallback((entry: DetectionEntry) => {
@@ -194,8 +159,7 @@ export default function Dashboard() {
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
           >
-            Welcome,
-            {/* {user.name} */}
+            Welcome, {user?.name}
           </motion.h1>
 
           <Tabs defaultValue="profile">
@@ -319,7 +283,7 @@ export default function Dashboard() {
             </TabsContent>
 
             {/* Detection History Tab */}
-            <TabsContent value="history">
+            <TabsContent value="history" className= "mt-8">
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -361,80 +325,84 @@ export default function Dashboard() {
                     {detectionHistory.length === 0 ? (
                       <div className="text-center py-4">No detection history found.</div>
                     ) : (
-                      <div className="space-y-4">
-                        {detectionHistory.map((detection) => (
-                          <motion.div
-                            key={detection.id}
-                            className="flex items-center justify-between border-b dark:border-gray-700 pb-4"
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ duration: 0.3 }}
-                          >
-                            {/* Detected Media Thumbnail */}
-                            <div className="flex items-center space-x-4">
-                              <div className="w-20 h-20 relative">
-                                {mediaTypes[detection.id] === 'image' && (
-                                  <Image
-                                    src={detection.imageUrl}
-                                    alt="Detected Image"
-                                    fill
-                                    className="object-cover rounded-md"
-                                  />
-                                )}
-                                {mediaTypes[detection.id] === 'video' && (
-                                  <video
-                                    src={detection.imageUrl}
-                                    className="w-full h-full object-cover rounded-md"
-                                    style={{ pointerEvents: 'none' }}
-                                  >
-                                    Your browser does not support the video tag.
-                                  </video>
-                                )}
-                                {mediaTypes[detection.id] === 'unknown' && (
-                                  <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
-                                    Unsupported Media
-                                  </div>
-                                )}
-                              </div>
+                      <div className="space-y-4">                        
+                        {detectionHistory.map((detection) => {
+                          
 
-                              {/* Detection Details */}
-                              <div>
-                                <h3 className="text-lg font-semibold">
-                                  Detection Result
-                                  <span
-                                    className={`ml-2 px-2 py-1 rounded text-xs ${
-                                      detection.isDeepfake
-                                        ? 'bg-red-500 text-white'
-                                        : 'bg-green-500 text-white'
-                                    }`}
-                                  >
-                                    {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
-                                      : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
+                          return (
+                            <motion.div
+                              key={detection.id}
+                              className="flex items-center justify-between border-b dark:border-gray-700 pb-4"
+                              initial={{ opacity: 0, x: -20 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ duration: 0.3 }}
+                            >
+                              {/* Detected Media Thumbnail */}
+                              <div className="flex items-center space-x-4">
+                                <div className="w-20 h-30 relative">
+                                  {detection.detailedReport?.analysis_report.media_type === 'Image' && (
+                                    <img
+                                      src={detection.detailedReport?.analysis_report.media_path}
+                                      alt="Detected Image"
+                                      className="object-cover rounded-md"
+                                    />
+                                  )}
+                                  {detection.detailedReport?.analysis_report.media_type === 'Video' && (
+                                    <video
+                                    src={detection.detailedReport?.analysis_report.media_path}
+                                      className="w-full h-full object-cover rounded-md"
+                                      style={{ pointerEvents: 'none' }}
+                                    >
+                                      Your browser does not support the video tag.
+                                    </video>
+                                  )}
+                                  {detection.detailedReport?.analysis_report.media_type === 'unknown' && (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
+                                      Unsupported Media
+                                    </div>
+                                  )}
+                                </div>
 
-                                  </span>
-                                </h3>
-                                <p className="text-sm text-muted-foreground"> Date: {new Date(detection.date).toLocaleDateString()}</p>
-                                <p className="text-sm text-muted-foreground">
-                                  Confidence: {(detection.confidence * 100).toFixed(2)}%
-                                </p>
+                                {/* Detection Details */}
+                                <div>
+                                  <h3 className="text-lg font-semibold">
+                                    Detection Result
+                                    <span
+                                      className={`ml-2 px-2 py-1 rounded text-xs ${
+                                        detection.isDeepfake
+                                          ? 'bg-red-500 text-white'
+                                          : 'bg-green-500 text-white'
+                                      }`}
+                                    >
+                                      {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
+                                        : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
+                                    </span>
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    Date: {new Date(detection.date).toLocaleDateString()}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Confidence: {(detection.confidence * 100).toFixed(2)}%
+                                  </p>
+                                </div>
                               </div>
-                            </div>
-                            <div className="flex space-x-2">
-                              <Button
-                                variant="outline"
-                                onClick={() => handleViewDetectionDetails(detection)}
-                              >
-                                <Eye className="mr-2 h-4 w-4" /> View
-                              </Button>
-                              <Button
-                                variant="outline"
-                                onClick={() => handleDeleteEntry(detection.id)}
-                              >
-                                <Trash2 className="mr-2 h-4 w-4" /> Delete
-                              </Button>
-                            </div>
-                          </motion.div>
-                        ))}
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleViewDetectionDetails(detection)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" /> View
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleDeleteEntry(detection.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </Button>
+                              </div>
+                            </motion.div>
+                          );
+                        })}
                       </div>
                     )}
                   </CardContent>
