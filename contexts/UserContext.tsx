@@ -1,8 +1,7 @@
-// contexts/UserContext.tsx
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/router';
 import Cookies from 'js-cookie';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
 
 // Constants
 const API_URL_MAIN = "http://localhost:8000";
@@ -43,14 +42,51 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Use router for navigation
   const router = useRouter();
 
-  // Check if refresh token is in cookies and set user accordingly
-  useEffect(() => {
-    const refreshToken = Cookies.get('refreshToken');
-    if (refreshToken) {
-      // Mock user data
-      setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: true });
-    }
-  }, []);
+  // Check if refresh token is in cookies, refresh access token, and set user accordingly
+  // useEffect(() => {
+  //   const refreshToken = Cookies.get('refreshToken');
+  //   if (refreshToken) {
+  //     axios.post(`${API_URL_MAIN}/api/auth/refresh_token/`, { refresh: refreshToken })
+  //       .then(response => {
+  //         const { access } = response.data;
+  //         Cookies.set('accessToken', access);
+
+  //         axios.get(`${API_URL_MAIN}/api/user/me/`, {
+  //           headers: {
+  //             Authorization: `Bearer ${access}`
+  //           }
+  //         })
+  //         .then(userResponse => {
+  //           const { id, username, email, is_verified } = userResponse.data;
+  //           setUser({
+  //             id,
+  //             username,
+  //             email,
+  //             isVerified: is_verified
+  //           });
+  //         })
+  //         .catch(userError => {
+  //           console.error('Failed to fetch user details:', userError);
+  //           logout();
+  //         });
+  //       })
+  //       .catch(refreshError => {
+  //         console.error('Failed to refresh access token:', refreshError);
+  //         logout();
+  //       });
+  //   } else {
+  //     logout();
+  //   }
+  // }, []);
+
+    // Check if refresh token is in cookies and set user accordingly
+    useEffect(() => {
+      const refreshToken = Cookies.get('refreshToken');
+      if (refreshToken) {
+        // Mock user data
+        setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
+      }
+    }, []);
 
   // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -135,11 +171,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
-    await router.push('/login');
+    router.push('/login');
   };
 
   // Add the changePassword method in the UserProvider:
-
   const changePassword = async (
     oldPassword: string, 
     newPassword: string, 
