@@ -1,4 +1,3 @@
-// Import necessary modules
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/router';
@@ -138,11 +137,12 @@ export default function DetectPage() {
       setIsAnalyzing(false);
   
       // Extract detection results from the response
-      const detectionResult = response.data;
+      const detectionResult = response.data.data;
   
       // Prepare entry for detection history
       const detectionEntry = {
         imageUrl: detectionResult.analysis_report.media_path,
+        mediaType: detectionResult.analysis_report.media_type,
         confidence: detectionResult.confidence_score,
         isDeepfake: detectionResult.is_deepfake,
         detailedReport: detectionResult,
@@ -264,7 +264,7 @@ export default function DetectPage() {
                   {file.type.startsWith('image/') ? (
                     <img 
                       src={URL.createObjectURL(file)} 
-                       alt="Uploaded file" 
+                      alt="Uploaded file" 
                       className="max-h-[350px] max-w-full object-contain mb-4"
                     />
                   ) : (

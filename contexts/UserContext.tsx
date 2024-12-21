@@ -87,7 +87,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         // Store tokens (you might want to use cookies or local storage for this)
         Cookies.set('accessToken', access);
         Cookies.set('refreshToken', refresh);
-        //setUser(response.data.user);
         // Mock user data
         setUser({ id: '1', name: 'User', email: 'user@example.com' });
         router.push('/dashboard');
