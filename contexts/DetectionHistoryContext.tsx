@@ -1,8 +1,55 @@
-// contexts/DetectionHistoryContext.tsx
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useUser } from './UserContext';
-import { DetectionResult } from '../services/detectionService'; // Deepfake Detection Result
-import { AIContentDetectionResult } from '../services/detectionService'; // AI Content Detection Result
+
+// Define the types for the detection results
+interface FrameResult {
+  frame_id: string;
+  frame_analysis: {
+    prediction: string;
+    confidence: number;
+  };
+  crop_analyses: Array<{
+    face_index: number;
+    prediction: string;
+    confidence: number;
+  }>;
+  final_verdict: string;
+  frame_path: string;
+  crop_paths: string[];
+  ela_path: string; // Define ela_path
+  gradcam_path: string; // Define gradcam_path
+}
+
+interface AnalysisReport {
+  media_path: string;
+  media_type: string;
+  file_id: string;
+  frame_results: FrameResult[]; // Use FrameResult[]
+  statistics: {
+    confidence: number;
+    is_deepfake: boolean;
+    total_frames: number;
+    fake_frames: number;
+    fake_frames_percentage: number;
+    total_crops: number;
+    fake_crops: number;
+    fake_crops_percentage: number;
+  };
+}
+
+interface DetectionResult {
+  id: number;
+  media_upload: number;
+  is_deepfake: boolean;
+  confidence_score: number;
+  frames_analyzed: number;
+  fake_frames: number;
+  analysis_report: AnalysisReport; // Use AnalysisReport
+}
+
+interface AIContentDetectionResult {
+  // Define the structure for AI content detection results if needed
+}
 
 export interface DetectionEntry {
   id: string;
@@ -55,11 +102,25 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
     }
   }, [detectionHistory, user]);
 
+  // Function to check for duplicate entries
+  const isDuplicateEntry = (entry: Omit<DetectionEntry, 'id' | 'userId' | 'date'>): boolean => {
+    return detectionHistory.some(existingEntry => 
+      existingEntry.imageUrl === entry.imageUrl &&
+      existingEntry.confidence === entry.confidence &&
+      existingEntry.isDeepfake === entry.isDeepfake
+    );
+  };
+
   // Add Detection Entry
   const addDetectionEntry = (
     entry: Omit<DetectionEntry, 'id' | 'userId' | 'date'>
   ) => {
     if (!user) return;
+
+    if (isDuplicateEntry(entry)) {
+      console.log('Duplicate entry detected, not adding to history.');
+      return;
+    }
 
     const newEntry: DetectionEntry = {
       ...entry,
@@ -67,7 +128,7 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
       userId: user.id,
       date: new Date().toISOString(),
       // Determine detection type based on the detailed report
-      detectionType: 'errorLevelAnalysis' in (entry.detailedReport || {}) 
+      detectionType: 'analysis_report' in (entry.detailedReport || {}) 
         ? 'deepfake' 
         : 'ai-content'
     };
