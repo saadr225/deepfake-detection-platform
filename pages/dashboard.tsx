@@ -1,3 +1,4 @@
+// Import necessary modules
 import { useState, useEffect, useCallback } from 'react';
 import Layout from '../components/Layout';
 import { motion } from 'framer-motion';
@@ -117,15 +118,17 @@ export default function Dashboard() {
     try {
       if (newPassword !== confirmNewPassword) {
         setPasswordUpdateError('New passwords do not match');
+        setIsChangingPassword(false);
         return;
       }
 
       if (newPassword.length < 8) {
         setPasswordUpdateError('New password must be at least 8 characters long');
+        setIsChangingPassword(false);
         return;
       }
 
-      const { success, message } = await changePassword(currentPassword, newPassword);
+      const { success, message } = await changePassword(currentPassword, newPassword, confirmNewPassword);
 
       if (success) {
         setPasswordUpdateSuccess(message);

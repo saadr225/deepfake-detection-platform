@@ -1,8 +1,8 @@
 // contexts/UserContext.tsx
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useRouter } from 'next/router';
-import axios from 'axios';
 import Cookies from 'js-cookie';
+import axios, { AxiosError } from 'axios';
 
 // Constants
 const API_URL_MAIN = "http://localhost:8000";
@@ -27,7 +27,7 @@ interface UserContextType {
   registerError: string | null;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
-  changePassword: (currentPassword: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
+  changePassword: (oldPassword: string, newPassword: string, newPasswordRepeat: string) => Promise<{ success: boolean; message: string }>;
 }
 
 // Create context
@@ -110,12 +110,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         router.push('/login');
         return true;
       } else {
-        setRegisterError(response.data.message || 'Registration failed');
+        //setRegisterError(response.data.message || 'Registration failed');
+        setRegisterError(response.data.error.username || 'Registration failed');
         return false;
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setRegisterError((error as any).response?.data?.message || 'An error occurred during registration');
+      //setRegisterError((error as any).response?.data?.message || 'An error occurred during registration');
+      setRegisterError((error as any).response?.data?.error.username || 'An error occurred during registration');
       return false;
     }
   };
@@ -124,7 +126,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     const refreshToken = Cookies.get('refreshToken');
     if (refreshToken) {
       try {
-        await axios.post(`${API_URL_MAIN}/user/logout/`, { refresh: refreshToken });
+        await axios.post(`${API_URL_MAIN}/api/user/logout/`, { refresh: refreshToken });
       } catch (error) {
         console.error('Logout error:', error);
       }
@@ -137,49 +139,78 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   };
 
   // Add the changePassword method in the UserProvider:
+
   const changePassword = async (
-    currentPassword: string, 
-    newPassword: string
+    oldPassword: string, 
+    newPassword: string, 
+    newPasswordRepeat: string
   ): Promise<{ success: boolean; message: string }> => {
-    try {
-      // Verify current password
-      const response = await fetch(`${API_URL_JSON}/users?email=${user?.email}`);
-      const users = await response.json();
-      const currentUser = users[0];
+    const changePasswordUrl = `${API_URL_MAIN}/api/user/change_password/`;
+    const refreshTokenUrl = `${API_URL_MAIN}/api/auth/refresh_token/`;
   
-      if (!currentUser || currentUser.password !== currentPassword) {
-        return {
-          success: false,
-          message: 'Current password is incorrect'
-        };
-      }
+    const accessToken = Cookies.get('accessToken');
+    const refreshToken = Cookies.get('refreshToken');
   
-      // Update password
-      const updateResponse = await fetch(`${API_URL_JSON}/users/${currentUser.id}`, {
-        method: 'PATCH',
+    // Function to make the change password request
+    const makeChangePasswordRequest = async (token: string) => {
+      return axios.put(changePasswordUrl, {
+        old_password: oldPassword,
+        new_password: newPassword,
+        new_password_repeat: newPasswordRepeat
+      }, {
         headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...currentUser,
-          password: newPassword
-        })
+          Authorization: `Bearer ${token}`
+        }
       });
+    };
   
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update password');
-      }
+    try {
+      // Try to change the password with the current access token
+      await makeChangePasswordRequest(accessToken!);
   
       return {
         success: true,
-        message: 'Password updated successfully'
+        message: 'Password changed successfully.'
       };
     } catch (error) {
-      console.error('Change password error:', error);
-      return {
-        success: false,
-        message: 'An error occurred while changing the password'
-      };
+      // If access token is invalid (e.g., 401 Unauthorized), try to refresh it
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        try {
+          const refreshResponse = await axios.post(refreshTokenUrl, { refresh: refreshToken });
+  
+          const newAccessToken = refreshResponse.data.access;
+          Cookies.set('accessToken', newAccessToken);
+  
+          // Retry the change password request with the new access token
+          await makeChangePasswordRequest(newAccessToken);
+  
+          return {
+            success: true,
+            message: 'Password changed successfully.'
+          };
+        } catch (refreshError) {
+          if (axios.isAxiosError(refreshError)) {
+            return {
+              success: false,
+              message: refreshError.response?.data?.message || 'Failed to refresh access token. Please log in again.'
+            };
+          }
+          return {
+            success: false,
+            message: 'Failed to refresh access token. Please log in again.'
+          };
+        }
+      } else if (axios.isAxiosError(error)) {
+        return {
+          success: false,
+          message: error.response?.data?.message || 'An error occurred while changing the password.'
+        };
+      } else {
+        return {
+          success: false,
+          message: 'An error occurred while changing the password.'
+        };
+      }
     }
   };
   
