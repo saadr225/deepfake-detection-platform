@@ -82,7 +82,7 @@ export default function Dashboard() {
     e.preventDefault();
     setProfileUpdateError(null);
     setIsUpdating(true);
-
+  
     try {
       // Validate inputs
       if (!email.trim()) {
@@ -90,15 +90,15 @@ export default function Dashboard() {
         setIsUpdating(false);
         return;
       }
-
+  
       // Call updateProfile method from context
-      const success = await updateProfile(username, email);
-
+      const { success, message } = await updateProfile(username, email);
+  
       if (success) {
         // Show success message
         alert('Profile updated successfully!');
       } else {
-        setProfileUpdateError('Failed to update profile');
+        setProfileUpdateError(message);
       }
     } catch (error) {
       console.error('Profile update error:', error);

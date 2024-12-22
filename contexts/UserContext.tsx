@@ -21,7 +21,7 @@ interface UserContextType {
   login: (email: string, password: string) => Promise<boolean>;
   register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
-  updateProfile: (username: string, email: string) => Promise<boolean>;
+  updateProfile: (username: string, email: string) => Promise<{ success: boolean; message: string }>;
   loginError: string | null;
   registerError: string | null;
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
@@ -297,14 +297,17 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
 };
   
   // Add updateProfile method
-  const updateProfile = async (username: string, email: string): Promise<boolean> => {
+  const updateProfile = async (username: string, email: string): Promise<{ success: boolean; message: string }> => {
     // We will remove the ability to update the username and only allow the email to be updated.
     try {
-      const success = await changeEmail(email);
-      return success.success;
+      const { success, message } = await changeEmail(email);
+      return { success, message };
     } catch (error) {
       console.error('Profile update error:', error);
-      return false;
+      if (axios.isAxiosError(error)) {
+        return { success: false, message: error.response?.data?.message || 'An unexpected error occurred' };
+      }
+      return { success: false, message: 'An unexpected error occurred' };
     }
   };
 
