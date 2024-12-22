@@ -17,7 +17,8 @@ export default function ResetPassword() {
   const [error, setError] = useState('')
   const router = useRouter()
   const { token } = router.query
-  const { resetPassword } = useUser()
+  const { resetPassword, resetToken } = useUser() // Add resetToken from context
+
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,8 +32,17 @@ export default function ResetPassword() {
       return
     }
 
+    // Use either the stored token or the token from URL
+    const tokenToUse = resetToken || token
+
+    if (!tokenToUse) {
+      setError('Reset token not found. Please try the password reset process again.')
+      setIsLoading(false)
+      return
+    }
+
     try {
-      const { success, message } = await resetPassword(token as string, password)
+      const { success, message } = await resetPassword(tokenToUse as string, password)
       
       if (success) {
         setMessage(message)
@@ -50,7 +60,7 @@ export default function ResetPassword() {
       setIsLoading(false)
     }
   }
-
+  
   return (
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">

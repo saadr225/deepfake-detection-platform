@@ -16,10 +16,10 @@ interface User {
 }
 
 // Context type
+// Update the UserContextType interface
 interface UserContextType {
   user: User | null;
   authInitialized: boolean;
-  //isLoading: boolean; // Add this line
   login: (email: string, password: string) => Promise<boolean>;
   register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -30,6 +30,7 @@ interface UserContextType {
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   changePassword: (oldPassword: string, newPassword: string, newPasswordRepeat: string) => Promise<{ success: boolean; message: string }>;
   changeEmail: (new_email: string) => Promise<{ success: boolean; message: string }>;
+  resetToken: string | null; // Add this line
 }
 
 
@@ -44,6 +45,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false); // Add this line
+  const [resetToken, setResetToken] = useState<string | null>(null);
   
   // Use router for navigation
   const router = useRouter();
@@ -361,64 +363,38 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
   // New forgot password method
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
     try {
-      // Check if user exists
-      const response = await fetch(`${API_URL_JSON}/users?email=${email}`);
-      const users = await response.json();
-  
-      if (users.length === 0) {
-        return {
-          success: false,
-          message: 'No account exists with this email address. Please check your email or sign up for a new account.'
-        };
-      }
-  
-      // Get the user
-      const user = users[0];
-  
-      // Generate a random token
-      const token = Math.random().toString(36).substring(2, 15) + 
-                   Math.random().toString(36).substring(2, 15);
-  
-      // Create expiration date (1 hour from now)
-      const expirationDate = new Date(Date.now() + 3600000).toISOString();
-  
-      // Update user with reset token
-      const updateResponse = await fetch(`${API_URL_JSON}/users/${user.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...user,
-          resetPasswordToken: token,
-          resetPasswordExpires: expirationDate
-        })
+      const response = await axios.post(`${API_URL_MAIN}/api/user/forgot_password/`, { 
+        email 
       });
   
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update user with reset token');
+      // Extract token from the response
+      const { code, data } = response.data;
+      
+      if (code === 'S01' && data?.reset_token) {
+        // Store the token in memory
+        setResetToken(data.reset_token);
+        
+        return {
+          success: true,
+          message: 'Password reset instructions have been sent. Please check your email.'
+        };
+      } else {
+        return {
+          success: false,
+          message: 'Invalid response from server'
+        };
       }
-  
-      // Verify the token was set
-      const updatedUser = await updateResponse.json();
-      if (!updatedUser.resetPasswordToken) {
-        throw new Error('Failed to set reset token');
-      }
-  
-      // In a real app, you would send an email here
-      console.log('Reset token generated:', token);
-      console.log('Reset link:', `http://localhost:3000/reset-password/${token}`);
-      console.log('Token expires:', expirationDate);
-  
-      return {
-        success: true,
-        message: 'Password reset instructions have been sent to your email. For testing, check the console for the reset link.'
-      };
     } catch (error) {
       console.error('Forgot password error:', error);
+      if (axios.isAxiosError(error)) {
+        return {
+          success: false,
+          message: error.response?.data?.message || 'An error occurred while processing your request.'
+        };
+      }
       return {
         success: false,
-        message: 'An error occurred while processing your request. Please try again.'
+        message: 'An error occurred while processing your request.'
       };
     }
   };
@@ -429,58 +405,23 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
     newPassword: string
   ): Promise<{ success: boolean; message: string }> => {
     try {
-      if (newPassword.length < 8) {
-        return {
-          success: false,
-          message: 'Password must be at least 8 characters long'
-        };
-      }
-  
-      // Get all users and find the one with matching token
-      const response = await fetch(`${API_URL_JSON}/users`);
-      const users = await response.json();
+      // Use the stored token if available, otherwise use the token from params
+      const resetTokenToUse = resetToken || token;
       
-      // Find user with the exact matching token
-      const user = users.find((u: any) => u.resetPasswordToken === token);
-  
-      if (!user) {
+      if (!resetTokenToUse) {
         return {
           success: false,
-          message: 'Invalid or expired reset token'
+          message: 'Reset token not found. Please try the password reset process again.'
         };
       }
   
-      // Check if token is expired
-      if (user.resetPasswordExpires && new Date(user.resetPasswordExpires) < new Date()) {
-        return {
-          success: false,
-          message: 'Reset token has expired. Please request a new one.'
-        };
-      }
+      const response = await axios.post(
+        `${API_URL_MAIN}/api/user/reset_password/${resetTokenToUse}/`, 
+        { new_password: newPassword }
+      );
   
-      // Update user's password and remove reset token
-      const updateResponse = await fetch(`${API_URL_JSON}/users/${user.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          ...user,
-          password: newPassword,
-          resetPasswordToken: null,
-          resetPasswordExpires: null
-        })
-      });
-  
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update password');
-      }
-  
-      // Verify the update was successful
-      const updatedUser = await updateResponse.json();
-      if (updatedUser.resetPasswordToken !== null) {
-        throw new Error('Failed to clear reset token');
-      }
+      // Clear the stored token after successful reset
+      setResetToken(null);
   
       return {
         success: true,
@@ -488,6 +429,15 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
       };
     } catch (error) {
       console.error('Reset password error:', error);
+      // Clear the stored token on error as well
+      setResetToken(null);
+      
+      if (axios.isAxiosError(error)) {
+        return {
+          success: false,
+          message: error.response?.data?.message || 'An error occurred while resetting your password.'
+        };
+      }
       return {
         success: false,
         message: 'An error occurred while resetting your password.'
@@ -509,7 +459,8 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
     resetPassword,
     changePassword,
     changeEmail,
-    authInitialized, // Add this to the context value
+    authInitialized,
+    resetToken, // Add this to make it accessible in components
   };
 
     // Don't render children until auth is initialized
