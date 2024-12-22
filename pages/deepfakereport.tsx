@@ -85,9 +85,11 @@ export default function DeepfakeReportPage() {
   const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
   const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
   const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
-  const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | null>(null);
+  const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | 'original' | null>(null);
   const [errorLevelPage, setErrorLevelPage] = useState(0);
   const [heatmapPage, setHeatmapPage] = useState(0);
+  const [currentOriginalFrameSlide, setCurrentOriginalFrameSlide] = useState(0);
+  const [originalFramePage, setOriginalFramePage] = useState(0);
 
   useEffect(() => {
     const { detectionResult } = router.query;
@@ -201,16 +203,19 @@ export default function DeepfakeReportPage() {
     }
   };
 
-  const handleImageClick = (image: string, type: 'error' | 'heatmap', index: number) => {
+  const handleImageClick = (image: string, type: 'error' | 'heatmap' | 'original', index: number) => {
     setEnlargedImage(image);
     setCurrentSliderType(type);
     document.body.style.overflow = 'hidden';
     if (type === 'error') {
       setCurrentErrorLevelSlide(index);
-    } else {
+    } else if (type === 'heatmap') {
       setCurrentHeatmapSlide(index);
+    } else {
+      setCurrentOriginalFrameSlide(index);
     }
   };
+  
   
   const handleCloseModal = () => {
     setEnlargedImage(null);
@@ -312,7 +317,7 @@ export default function DeepfakeReportPage() {
   }: { 
     image: string;
     onClose: () => void;
-    sliderType: 'error' | 'heatmap';
+    sliderType: 'error' | 'heatmap' | 'original';
     frames: string[];
     currentSlide: number;
     onSlideChange: (index: number) => void;
@@ -565,6 +570,28 @@ export default function DeepfakeReportPage() {
               className="space-y-4"
               variants={itemVariants}
             >
+              {mediaType === 'video' && (
+  <motion.div 
+    className="border rounded-lg p-4 bg-background shadow-md"
+    variants={itemVariants}
+    whileHover={{ scale: 1.02 }}
+  >
+    <h3 className="text-lg font-semibold mb-2">
+      Original Frames
+    </h3>
+    <div className="space-y-4">
+      <h3 className="text-lg font-semibold">Analyzed Frames</h3>
+      <SmallCarousel
+        frames={analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)}
+        onImageClick={handleImageClick}
+        type="error"
+        currentIndex={currentOriginalFrameSlide}
+        currentPage={originalFramePage}
+        onPageChange={setOriginalFramePage}
+      />
+    </div>
+  </motion.div>
+)}
               {/* Error Level Analysis */}
               <motion.div 
                 className="border rounded-lg p-4 bg-background shadow-md"
@@ -647,28 +674,35 @@ export default function DeepfakeReportPage() {
 
       {/* Modal */}
       {enlargedImage && currentSliderType && (
-        <ImageModal
-          image={enlargedImage}
-          onClose={handleCloseModal}
-          sliderType={currentSliderType}
-          frames={currentSliderType === 'error'
-            ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
-            : analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
-          }
-          currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentHeatmapSlide}
-          onSlideChange={(index) => {
-            if (currentSliderType === 'error') {
-              setCurrentErrorLevelSlide(index);
-            } else {
-              setCurrentHeatmapSlide(index);
-            }
-            setEnlargedImage(currentSliderType === 'error'
-              ? analysisResult.analysis_report.frame_results[index].ela_path
-              : analysisResult.analysis_report.frame_results[index].gradcam_path
-            );
-          }}
-        />
-      )}
+  <ImageModal
+    image={enlargedImage}
+    onClose={handleCloseModal}
+    sliderType={currentSliderType}
+    frames={currentSliderType === 'error'
+      ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
+      : currentSliderType === 'heatmap'
+      ? analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
+      : analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)
+    }
+    currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentSliderType === 'heatmap' ? currentHeatmapSlide : currentOriginalFrameSlide}
+    onSlideChange={(index) => {
+      if (currentSliderType === 'error') {
+        setCurrentErrorLevelSlide(index);
+      } else if (currentSliderType === 'heatmap') {
+        setCurrentHeatmapSlide(index);
+      } else {
+        setCurrentOriginalFrameSlide(index);
+      }
+      setEnlargedImage(currentSliderType === 'error'
+        ? analysisResult.analysis_report.frame_results[index].ela_path
+        : currentSliderType === 'heatmap'
+        ? analysisResult.analysis_report.frame_results[index].gradcam_path
+        : analysisResult.analysis_report.frame_results[index].frame_path
+      );
+    }}
+  />
+)}
+
     </Layout>
   );
 }
