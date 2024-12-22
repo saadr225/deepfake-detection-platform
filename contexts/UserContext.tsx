@@ -43,14 +43,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Use router for navigation
   const router = useRouter();
 
-        // Check if refresh token is in cookies and set user accordingly
-        useEffect(() => {
-          const refreshToken = Cookies.get('refreshToken');
-          if (refreshToken) {
-            // Mock user data
-            setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
-          }
-        }, []);
+  // Check if refresh token is in cookies and set user accordingly
+  useEffect(() => {
+    const refreshToken = Cookies.get('refreshToken');
+    if (refreshToken) {
+      // Mock user data
+      setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
+    }
+  }, []);
 
   // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
