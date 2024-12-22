@@ -98,7 +98,12 @@ export default function DetectPage() {
       try {
         // Try to upload the file with the current access token
         if (!accessToken) {
-          throw new Error('Access token is missing');
+          clearInterval(progressInterval);
+          setIsAnalyzing(false);
+          setAnalysisProgress(0);
+          alert('Please login first to perform detection.');
+          //throw new Error('Access token is missing');
+          return;
         }
         response = await uploadFile(accessToken);
       } catch (error) {
@@ -119,12 +124,22 @@ export default function DetectPage() {
               Cookies.set('accessToken', accessToken);
             }
             if (!accessToken) {
-              throw new Error('Access token is missing');
+              clearInterval(progressInterval); // Clear the progress interval
+              setIsAnalyzing(false);
+              setAnalysisProgress(0);
+              alert('Please login first to perform detection.');
+              return; // Exit the function early
+              //throw new Error('Access token is missing');
             }
             // Retry the file upload with the new access token
             response = await uploadFile(accessToken);
           } else {
-            throw new Error('Refresh token is missing');
+            clearInterval(progressInterval); // Clear the progress interval
+            setIsAnalyzing(false);
+            setAnalysisProgress(0);
+            alert('Please login first to perform detection.');
+            return; // Exit the function early
+            //throw new Error('Refresh token is missing');
           }
         } else {
           throw error;

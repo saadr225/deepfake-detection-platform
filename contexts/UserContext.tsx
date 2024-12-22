@@ -180,7 +180,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
-    router.push('/login');
+    //router.push('/login');
   };
 
   // Add the changePassword method in the UserProvider:
