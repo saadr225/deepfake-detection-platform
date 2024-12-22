@@ -11,7 +11,7 @@ import { useUser } from '../contexts/UserContext';
 import { DetectionEntry, useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { useRouter } from 'next/router';
 import { Eye, Trash2, Trash } from 'lucide-react';
-import Image from 'next/image';
+import axios from 'axios';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -77,7 +77,7 @@ export default function Dashboard() {
     }
   }, [deleteDetectionEntry]);
 
-  // Handle profile update
+  // Handle profile update (only email can be updated)
   const handleProfileUpdate = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     setProfileUpdateError(null);
@@ -85,8 +85,8 @@ export default function Dashboard() {
 
     try {
       // Validate inputs
-      if (!username.trim()) {
-        setProfileUpdateError('Username cannot be empty');
+      if (!email.trim()) {
+        setProfileUpdateError('Email cannot be empty');
         setIsUpdating(false);
         return;
       }
@@ -195,6 +195,7 @@ export default function Dashboard() {
                             id="username"
                             value={username}
                             onChange={(e) => setUsername(e.target.value)}
+                            disabled
                           />
                         </div>
                         <div className="flex flex-col space-y-1.5">
@@ -330,7 +331,6 @@ export default function Dashboard() {
                     ) : (
                       <div className="space-y-4">                        
                         {detectionHistory.map((detection) => {
-                          
 
                           return (
                             <motion.div

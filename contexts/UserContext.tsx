@@ -27,6 +27,7 @@ interface UserContextType {
   forgotPassword: (email: string) => Promise<{ success: boolean; message: string }>;
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   changePassword: (oldPassword: string, newPassword: string, newPasswordRepeat: string) => Promise<{ success: boolean; message: string }>;
+  changeEmail: (new_email: string) => Promise<{ success: boolean; message: string }>;
 }
 
 // Create context
@@ -42,51 +43,14 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Use router for navigation
   const router = useRouter();
 
-  // Check if refresh token is in cookies, refresh access token, and set user accordingly
-  // useEffect(() => {
-  //   const refreshToken = Cookies.get('refreshToken');
-  //   if (refreshToken) {
-  //     axios.post(`${API_URL_MAIN}/api/auth/refresh_token/`, { refresh: refreshToken })
-  //       .then(response => {
-  //         const { access } = response.data;
-  //         Cookies.set('accessToken', access);
-
-  //         axios.get(`${API_URL_MAIN}/api/user/me/`, {
-  //           headers: {
-  //             Authorization: `Bearer ${access}`
-  //           }
-  //         })
-  //         .then(userResponse => {
-  //           const { id, username, email, is_verified } = userResponse.data;
-  //           setUser({
-  //             id,
-  //             username,
-  //             email,
-  //             isVerified: is_verified
-  //           });
-  //         })
-  //         .catch(userError => {
-  //           console.error('Failed to fetch user details:', userError);
-  //           logout();
-  //         });
-  //       })
-  //       .catch(refreshError => {
-  //         console.error('Failed to refresh access token:', refreshError);
-  //         logout();
-  //       });
-  //   } else {
-  //     logout();
-  //   }
-  // }, []);
-
-    // Check if refresh token is in cookies and set user accordingly
-    useEffect(() => {
-      const refreshToken = Cookies.get('refreshToken');
-      if (refreshToken) {
-        // Mock user data
-        setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
-      }
-    }, []);
+        // Check if refresh token is in cookies and set user accordingly
+        useEffect(() => {
+          const refreshToken = Cookies.get('refreshToken');
+          if (refreshToken) {
+            // Mock user data
+            setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
+          }
+        }, []);
 
   // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
@@ -146,13 +110,11 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         router.push('/login');
         return true;
       } else {
-        //setRegisterError(response.data.message || 'Registration failed');
         setRegisterError(response.data.error.username || 'Registration failed');
         return false;
       }
     } catch (error) {
       console.error('Registration error:', error);
-      //setRegisterError((error as any).response?.data?.message || 'An error occurred during registration');
       setRegisterError((error as any).response?.data?.error.username || 'An error occurred during registration');
       return false;
     }
@@ -248,47 +210,85 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       }
     }
   };
+
+  // Add the changeEmail method in the UserProvider:
+  const changeEmail = async (new_email: string): Promise<{ success: boolean; message: string }> => {
+    const changeEmailUrl = `${API_URL_MAIN}/api/user/change_email/`;
+    const refreshTokenUrl = `${API_URL_MAIN}/api/auth/refresh_token/`;
+  
+    const accessToken = Cookies.get('accessToken');
+    const refreshToken = Cookies.get('refreshToken');
+  
+    const makeChangeEmailRequest = async (token: string) => {
+      return axios.put(changeEmailUrl, { email: new_email }, {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+    };
+  
+    try {
+      await makeChangeEmailRequest(accessToken!);
+  
+      // Update the email in the user state
+      if (user) {
+        setUser({ ...user, email: new_email });
+      }
+  
+      return {
+        success: true,
+        message: 'Email changed successfully.'
+      };
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        try {
+          const refreshResponse = await axios.post(refreshTokenUrl, { refresh: refreshToken });
+  
+          const newAccessToken = refreshResponse.data.access;
+          Cookies.set('accessToken', newAccessToken);
+  
+          await makeChangeEmailRequest(newAccessToken);
+  
+          if (user) {
+            setUser({ ...user, email: new_email });
+          }
+  
+          return {
+            success: true,
+            message: 'Email changed successfully.'
+          };
+        } catch (refreshError) {
+          if (axios.isAxiosError(refreshError)) {
+            return {
+              success: false,
+              message: refreshError.response?.data?.message || 'Failed to refresh access token. Please log in again.'
+            };
+          }
+          return {
+            success: false,
+            message: 'Failed to refresh access token. Please log in again.'
+          };
+        }
+      } else if (axios.isAxiosError(error)) {
+        return {
+          success: false,
+          message: error.response?.data?.message || 'An error occurred while changing the email.'
+        };
+      } else {
+        return {
+          success: false,
+          message: 'An error occurred while changing the email.'
+        };
+      }
+    }
+  };
   
   // Add updateProfile method
   const updateProfile = async (username: string, email: string): Promise<boolean> => {
+    // We will remove the ability to update the username and only allow the email to be updated.
     try {
-      // Find the current user in the database
-      const response = await fetch(`${API_URL_JSON}/users?email=${user?.email}`);
-      const users = await response.json();
-
-      if (users.length === 0) {
-        throw new Error('User not found');
-      }
-
-      // Get the first (should be only) user
-      const currentUser = users[0];
-
-      // Update the user's profile
-      const updateResponse = await fetch(`${API_URL_JSON}/users/${currentUser.id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          name: username,
-          email: email
-        })
-      });
-
-      if (!updateResponse.ok) {
-        throw new Error('Failed to update profile');
-      }
-
-      // Update the user in the context
-      const updatedUser = await updateResponse.json();
-      setUser({
-        id: updatedUser.id,
-        username: updatedUser.name,
-        email: updatedUser.email,
-        isVerified: updatedUser.is_verified
-      });
-
-      return true;
+      const success = await changeEmail(email);
+      return success.success;
     } catch (error) {
       console.error('Profile update error:', error);
       return false;
@@ -444,7 +444,8 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     registerError,
     forgotPassword,
     resetPassword,
-    changePassword
+    changePassword,
+    changeEmail
   };
 
   return (
