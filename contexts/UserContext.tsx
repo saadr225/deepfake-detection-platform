@@ -30,7 +30,6 @@ interface UserContextType {
   resetPassword: (token: string, newPassword: string) => Promise<{ success: boolean; message: string }>;
   changePassword: (oldPassword: string, newPassword: string, newPasswordRepeat: string) => Promise<{ success: boolean; message: string }>;
   changeEmail: (new_email: string) => Promise<{ success: boolean; message: string }>;
-  resetToken: string | null; // Add this line
 }
 
 
@@ -45,7 +44,6 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
   const [authInitialized, setAuthInitialized] = useState(false); // Add this line
-  const [resetToken, setResetToken] = useState<string | null>(null);
   
   // Use router for navigation
   const router = useRouter();
@@ -182,7 +180,7 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setUser(null);
     Cookies.remove('accessToken');
     Cookies.remove('refreshToken');
-    router.push('/login');
+    //router.push('/login');
   };
 
   // Add the changePassword method in the UserProvider:
@@ -363,27 +361,14 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
   // New forgot password method
   const forgotPassword = async (email: string): Promise<{ success: boolean; message: string }> => {
     try {
-      const response = await axios.post(`${API_URL_MAIN}/api/user/forgot_password/`, { 
+      await axios.post(`${API_URL_MAIN}/api/user/forgot_password/`, { 
         email 
       });
-  
-      // Extract token from the response
-      const { code, data } = response.data;
       
-      if (code === 'S01' && data?.reset_token) {
-        // Store the token in memory
-        setResetToken(data.reset_token);
-        
-        return {
-          success: true,
-          message: 'Password reset instructions have been sent. Please check your email.'
-        };
-      } else {
-        return {
-          success: false,
-          message: 'Invalid response from server'
-        };
-      }
+      return {
+        success: true,
+        message: 'Password reset instructions have been sent to your email.'
+      };
     } catch (error) {
       console.error('Forgot password error:', error);
       if (axios.isAxiosError(error)) {
@@ -405,33 +390,17 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
     newPassword: string
   ): Promise<{ success: boolean; message: string }> => {
     try {
-      // Use the stored token if available, otherwise use the token from params
-      const resetTokenToUse = resetToken || token;
-      
-      if (!resetTokenToUse) {
-        return {
-          success: false,
-          message: 'Reset token not found. Please try the password reset process again.'
-        };
-      }
-  
-      const response = await axios.post(
-        `${API_URL_MAIN}/api/user/reset_password/${resetTokenToUse}/`, 
+      await axios.post(
+        `${API_URL_MAIN}/api/user/reset_password/${token}/`, 
         { new_password: newPassword }
       );
-  
-      // Clear the stored token after successful reset
-      setResetToken(null);
-  
+
       return {
         success: true,
         message: 'Password has been successfully reset. Please login with your new password.'
       };
     } catch (error) {
       console.error('Reset password error:', error);
-      // Clear the stored token on error as well
-      setResetToken(null);
-      
       if (axios.isAxiosError(error)) {
         return {
           success: false,
@@ -460,7 +429,6 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
     changePassword,
     changeEmail,
     authInitialized,
-    resetToken, // Add this to make it accessible in components
   };
 
     // Don't render children until auth is initialized

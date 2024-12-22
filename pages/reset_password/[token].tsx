@@ -1,5 +1,5 @@
 // pages/reset-password/[token].tsx
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/router'
 import Layout from '../../components/Layout'
 import Link from 'next/link'
@@ -16,9 +16,10 @@ export default function ResetPassword() {
   const [message, setMessage] = useState('')
   const [error, setError] = useState('')
   const router = useRouter()
-  const { token } = router.query
-  const { resetPassword, resetToken } = useUser() // Add resetToken from context
+  const { resetPassword } = useUser()
 
+  // Get token from URL path
+  const resetToken = router.query.token as string
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -26,23 +27,29 @@ export default function ResetPassword() {
     setMessage('')
     setError('')
 
+    // Validate token existence
+    if (!resetToken) {
+      setError('Invalid reset password link. Please request a new one.')
+      setIsLoading(false)
+      return
+    }
+
+    // Validate passwords
     if (password !== confirmPassword) {
       setError('Passwords do not match')
       setIsLoading(false)
       return
     }
 
-    // Use either the stored token or the token from URL
-    const tokenToUse = resetToken || token
-
-    if (!tokenToUse) {
-      setError('Reset token not found. Please try the password reset process again.')
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long')
       setIsLoading(false)
       return
     }
 
     try {
-      const { success, message } = await resetPassword(tokenToUse as string, password)
+      // Send request with extracted token and new password
+      const { success, message } = await resetPassword(resetToken, password)
       
       if (success) {
         setMessage(message)
@@ -60,7 +67,14 @@ export default function ResetPassword() {
       setIsLoading(false)
     }
   }
-  
+
+  // Add useEffect to validate token on page load
+  useEffect(() => {
+    if (router.isReady && !resetToken) {
+      setError('Invalid reset password link. Please request a new one.')
+    }
+  }, [router.isReady, resetToken])
+
   return (
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
@@ -129,7 +143,7 @@ export default function ResetPassword() {
                 variant="default"
                 type="submit"
                 className="w-full"
-                disabled={isLoading}
+                disabled={isLoading || !resetToken}
               >
                 {isLoading ? 'Resetting...' : 'Reset Password'}
               </Button>
