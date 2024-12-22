@@ -1,6 +1,7 @@
 import { useState, useCallback } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/router';
+import VideoComponent from '../components/ui/VideoComponent'; // import the memoized video component
 import Layout from '../components/Layout';
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
@@ -26,7 +27,6 @@ export default function DetectPage() {
 
   // Dropzone configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Validate file size (5MB for images, 10MB for videos)
     const file = acceptedFiles[0];
     const maxImageSize = 5 * 1024 * 1024; // 5MB
     const maxVideoSize = 10 * 1024 * 1024; // 10MB
@@ -268,11 +268,7 @@ export default function DetectPage() {
                       className="max-h-[350px] max-w-full object-contain mb-4"
                     />
                   ) : (
-                    <video 
-                      src={URL.createObjectURL(file)} 
-                      controls 
-                      className="max-h-[350px] max-w-full object-contain mb-4"
-                    />
+                    <VideoComponent file={file} /> // use the memoized video component here
                   )}
                   <p className="text-lg text-primary mb-4">{file.name}</p>
                   

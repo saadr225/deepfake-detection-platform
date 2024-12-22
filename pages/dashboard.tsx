@@ -353,7 +353,7 @@ export default function Dashboard() {
                                   {detection.detailedReport?.analysis_report.media_type === 'Video' && (
                                     <video
                                     src={detection.detailedReport?.analysis_report.media_path}
-                                      className="w-full h-full object-cover rounded-md"
+                                      className="w-full h-20 object-cover rounded-md"
                                       style={{ pointerEvents: 'none' }}
                                     >
                                       Your browser does not support the video tag.

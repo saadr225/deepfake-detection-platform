@@ -316,7 +316,10 @@
   transition: transform 0.25s ease;
 }
 
-
+.fixed-size {
+  height: 350px;
+  width: auto;
+}
 
   @keyframes fadeIn {
     from { opacity: 0; }
