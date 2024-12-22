@@ -18,6 +18,8 @@ interface User {
 // Context type
 interface UserContextType {
   user: User | null;
+  authInitialized: boolean;
+  //isLoading: boolean; // Add this line
   login: (email: string, password: string) => Promise<boolean>;
   register: (username: string, email: string, password: string) => Promise<boolean>;
   logout: () => void;
@@ -30,15 +32,18 @@ interface UserContextType {
   changeEmail: (new_email: string) => Promise<{ success: boolean; message: string }>;
 }
 
+
 // Create context
 const UserContext = createContext<UserContextType | undefined>(undefined);
 
 // Provider component
 export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   // State variables
+  //const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [loginError, setLoginError] = useState<string | null>(null);
   const [registerError, setRegisterError] = useState<string | null>(null);
+  const [authInitialized, setAuthInitialized] = useState(false); // Add this line
   
   // Use router for navigation
   const router = useRouter();
@@ -47,9 +52,10 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   useEffect(() => {
     const refreshToken = Cookies.get('refreshToken');
     if (refreshToken) {
-      // Mock user data
+      // Set basic user data immediately
       setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
     }
+    setAuthInitialized(true);
   }, []);
 
   // Login method
@@ -461,8 +467,14 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
     forgotPassword,
     resetPassword,
     changePassword,
-    changeEmail
+    changeEmail,
+    authInitialized, // Add this to the context value
   };
+
+    // Don't render children until auth is initialized
+    if (!authInitialized) {
+      return null; // Or return a loading spinner
+    }
 
   return (
     <UserContext.Provider value={contextValue}>

@@ -8,15 +8,21 @@ import Cookies from 'js-cookie';
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
-  const { user, logout } = useUser();
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [isLoading, setIsLoading] = useState(true); // Add loading state
+  const { user, logout, authInitialized } = useUser();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);  
 
   useEffect(() => {
+    // This will only run once when the component mounts
     const refreshToken = Cookies.get('refreshToken');
     setIsLoggedIn(!!refreshToken);
-    setIsLoading(false); // Set loading to false after checking the refresh token
+    // Remove the small delay in showing content
+    setIsLoading(false);
   }, []);
+
+  if (!authInitialized) {
+    return null; // Or return a loading spinner
+  }
 
   return (
     <div className="min-h-screen flex flex-col dark:bg-black">
@@ -30,43 +36,43 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               </Button>
             </div>
-            {!isLoading && ( // Render header content only when not loading
-              <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-2">
-                <Button variant="ghost" asChild>
-                  <Link href="/detect">Deepfake Detection</Link>
-                </Button>
-                <Button variant="ghost" asChild>
-                  <Link href="/aicontentdetection">AI Content Detection</Link>
-                </Button>
-                <Button variant="ghost" asChild>
-                  <Link href="/forum">Forum</Link>
-                </Button>
-                {isLoggedIn ? (
-                  <>
-                    <Button variant="ghost" asChild>
-                      <Link href="/dashboard">Dashboard</Link>
-                    </Button>
-                    <Button onClick={logout} variant="ghost">
-                      Logout
-                    </Button>
-                    <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
-                      <User className="h-5 w-5 mr-1" />
-                      {user?.username || 'User'}
-                    </div>
-                  </>
-                ) : (
-                  <>
-                    <Button variant="ghost" asChild>
-                      <Link href="/login">Login</Link>
-                    </Button>
-                    <Button variant="ghost" asChild>
-                      <Link href="/register">Sign Up</Link>
-                    </Button>
-                  </>
-                )}
-                <ThemeToggle />
-              </div>
-            )}
+            
+            <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-2">
+              <Button variant="ghost" asChild>
+                <Link href="/detect">Deepfake Detection</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/aicontentdetection">AI Content Detection</Link>
+              </Button>
+              <Button variant="ghost" asChild>
+                <Link href="/forum">Forum</Link>
+              </Button>
+              {user ? (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/dashboard">Dashboard</Link>
+                  </Button>
+                  <Button onClick={logout} variant="ghost">
+                    Logout
+                  </Button>
+                  <div className="flex items-center text-sm font-medium text-gray-900 dark:text-white">
+                    <User className="h-5 w-5 mr-1" />
+                    {user.username || 'User'}
+                  </div>
+                </>
+              ) : (
+                <>
+                  <Button variant="ghost" asChild>
+                    <Link href="/login">Login</Link>
+                  </Button>
+                  <Button variant="ghost" asChild>
+                    <Link href="/register">Sign Up</Link>
+                  </Button>
+                </>
+              )}
+              <ThemeToggle />
+            </div>
+
             <div className="-mr-2 flex items-center sm:hidden">
               <Button
                 variant="outline"
@@ -92,7 +98,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
               <Button variant="ghost" className="w-full" asChild>
                 <Link href="/forum">Forum</Link>
               </Button>
-              {isLoggedIn ? (
+              {user ? (
                 <>
                   <Button variant="ghost" className="w-full" asChild>
                     <Link href="/dashboard">Dashboard</Link>
@@ -102,7 +108,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                   </Button>
                   <div className="block px-3 py-2 rounded-md text-base font-medium text-gray-900 dark:text-white">
                     <User className="h-5 w-5 inline mr-1" />
-                    {user?.username || 'User'}
+                    {user.username || 'User'}
                   </div>
                 </>
               ) : (
@@ -122,12 +128,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         )}
       </header>
-      <div className="border-t border-gray-200 dark:border-gray-800 "></div>
 
-      <main className="flex-grow dark:bg-black">
-        {children}
-      </main>
-
+      <div className="border-t border-gray-200 dark:border-gray-800"></div>
+      <main className="flex-grow dark:bg-black">{children}</main>
       <div className="border-t border-gray-200 dark:border-gray-800"></div>
 
       <footer className="bg-white dark:bg-black">
