@@ -116,12 +116,12 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         router.push('/login');
         return true;
       } else {
-        setRegisterError(response.data.error.username || 'Registration failed');
+        setRegisterError(response.data.error.username || response.data.error.email || 'Registration failed');
         return false;
       }
     } catch (error) {
       console.error('Registration error:', error);
-      setRegisterError((error as any).response?.data?.error.username || 'An error occurred during registration');
+      setRegisterError((error as any).response?.data?.error.username || (error as any).response?.data?.error.email || 'An error occurred during registration');
       return false;
     }
   };

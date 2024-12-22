@@ -21,15 +21,15 @@ interface FrameResult {
   final_verdict: string;
   frame_path: string;
   crop_paths: string[];
-  ela_path: string; // Define ela_path
-  gradcam_path: string; // Define gradcam_path
+  ela_path: string; 
+  gradcam_path: string; 
 }
 
 interface AnalysisReport {
   media_path: string;
   media_type: string;
   file_id: string;
-  frame_results: FrameResult[]; // Use FrameResult[]
+  frame_results: FrameResult[]; 
   statistics: {
     confidence: number;
     is_deepfake: boolean;
@@ -49,7 +49,7 @@ interface DetectionResult {
   confidence_score: number;
   frames_analyzed: number;
   fake_frames: number;
-  analysis_report: AnalysisReport; // Use AnalysisReport
+  analysis_report: AnalysisReport; 
 }
 
 export default function DeepfakeReportPage() {
@@ -68,7 +68,7 @@ export default function DeepfakeReportPage() {
       media_path: '',
       media_type: '',
       file_id: '',
-      frame_results: [], // Initialize as an empty array
+      frame_results: [], 
       statistics: {
         confidence: 0,
         is_deepfake: false,
@@ -82,7 +82,13 @@ export default function DeepfakeReportPage() {
     },
   });
 
-  // Parse and set detection result from query
+  const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
+  const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
+  const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+  const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | null>(null);
+  const [errorLevelPage, setErrorLevelPage] = useState(0);
+  const [heatmapPage, setHeatmapPage] = useState(0);
+
   useEffect(() => {
     const { detectionResult } = router.query;
 
@@ -90,7 +96,6 @@ export default function DeepfakeReportPage() {
       try {
         const parsedResult = JSON.parse(detectionResult as string);
         
-        // Prepare detection entry
         const detectionEntry = {
           imageUrl: parsedResult.analysis_report.media_path,
           mediaType: parsedResult.analysis_report.media_type,
@@ -114,7 +119,6 @@ export default function DeepfakeReportPage() {
 
   useEffect(() => {
     if (analysisResult.analysis_report.media_path) {
-      // Determine media type
       const determineMediaType = async () => {
         try {
           const response = await fetch(analysisResult.analysis_report.media_path);
@@ -186,6 +190,259 @@ export default function DeepfakeReportPage() {
         duration: 0.5
       }
     }
+  };
+
+  const handleImageClick = (image: string, type: 'error' | 'heatmap', index: number) => {
+    setEnlargedImage(image);
+    setCurrentSliderType(type);
+    document.body.style.overflow = 'hidden';
+    if (type === 'error') {
+      setCurrentErrorLevelSlide(index);
+    } else {
+      setCurrentHeatmapSlide(index);
+    }
+  };
+  
+  const handleCloseModal = () => {
+    setEnlargedImage(null);
+    setCurrentSliderType(null);
+    document.body.style.overflow = 'auto';
+  };
+
+  const SmallCarousel = ({
+    frames,
+    onImageClick,
+    type,
+    currentIndex,
+    currentPage,
+    onPageChange,
+  }: {
+    frames: string[];
+    onImageClick: (image: string, type: 'error' | 'heatmap', index: number) => void;
+    type: 'error' | 'heatmap';
+    currentIndex: number;
+    currentPage: number;
+    onPageChange: (page: number) => void;
+  }) => {
+    const imagesPerPage = 3;
+    const totalPages = Math.ceil(frames.length / imagesPerPage);
+  
+    const handlePrevPage = () => {
+      const newPage = Math.max(0, currentPage - 1);
+      onPageChange(newPage);
+    };
+  
+    const handleNextPage = () => {
+      const newPage = Math.min(totalPages - 1, currentPage + 1);
+      onPageChange(newPage);
+    };
+  
+    const startIndex = currentPage * imagesPerPage;
+    const visibleFrames = frames.slice(startIndex, startIndex + imagesPerPage);
+  
+    return (
+      <div className="space-y-4">
+        {/* Image Container */}
+        <div className="grid grid-cols-3 gap-2">
+          {visibleFrames.map((frame, index) => {
+            const actualIndex = startIndex + index;
+            return (
+              <div 
+                key={actualIndex} 
+                className="relative aspect-video"
+              >
+                <img
+                  src={frame}
+                  alt={`Frame ${actualIndex + 1}`}
+                  className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                  onClick={() => onImageClick(frame, type, actualIndex)}
+                  loading="lazy"
+                />
+              </div>
+            );
+          })}
+        </div>
+  
+        {/* Navigation */}
+        <div className="flex items-center justify-between px-2">
+          <button
+            onClick={handlePrevPage}
+            disabled={currentPage === 0}
+            className={`carousel-button prev
+              ${currentPage === 0 
+                ? 'text-gray-400 cursor-not-allowed' 
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+          >
+          </button>
+  
+          <span className="text-sm text-gray-600 dark:text-gray-400">
+            Page {currentPage + 1} of {totalPages}
+          </span>
+  
+          <button
+            onClick={handleNextPage}
+            disabled={currentPage === totalPages - 1}
+            className={`carousel-button next
+              ${currentPage === totalPages - 1
+                ? 'text-gray-400 cursor-not-allowed'
+                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+          >
+          </button>
+        </div>
+      </div>
+    );
+  };
+
+  const ImageModal = ({ 
+    image, 
+    onClose, 
+    sliderType,
+    frames,
+    currentSlide,
+    onSlideChange,
+  }: { 
+    image: string;
+    onClose: () => void;
+    sliderType: 'error' | 'heatmap';
+    frames: string[];
+    currentSlide: number;
+    onSlideChange: (index: number) => void;
+  }) => {
+    const THUMBNAIL_LIMIT = 10;
+    
+    const initialThumbnailStart = Math.floor(currentSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+    const [thumbnailStart, setThumbnailStart] = useState(initialThumbnailStart);
+  
+    useEffect(() => {
+      const targetPage = Math.floor(currentSlide / THUMBNAIL_LIMIT);
+      const targetStart = targetPage * THUMBNAIL_LIMIT;
+      setThumbnailStart(targetStart);
+    }, [currentSlide, THUMBNAIL_LIMIT]);
+  
+    const handleMainNext = () => {
+      const nextSlide = (currentSlide + 1) % frames.length;
+      const nextPageStart = Math.floor(nextSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+      if (nextPageStart !== thumbnailStart) {
+        setThumbnailStart(nextPageStart);
+      }
+      onSlideChange(nextSlide);
+    };
+  
+    const handleMainPrev = () => {
+      const prevSlide = (currentSlide - 1 + frames.length) % frames.length;
+      const prevPageStart = Math.floor(prevSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+      if (prevPageStart !== thumbnailStart) {
+        setThumbnailStart(prevPageStart);
+      }
+      onSlideChange(prevSlide);
+    };
+  
+    const handleThumbnailNext = () => {
+      const nextStart = thumbnailStart + THUMBNAIL_LIMIT;
+      if (nextStart < frames.length) {
+        setThumbnailStart(nextStart);
+        onSlideChange(nextStart);
+      }
+    };
+  
+    const handleThumbnailPrev = () => {
+      const prevStart = thumbnailStart - THUMBNAIL_LIMIT;
+      if (prevStart >= 0) {
+        setThumbnailStart(prevStart);
+        onSlideChange(prevStart);
+      }
+    };
+  
+    const totalPages = Math.ceil(frames.length / THUMBNAIL_LIMIT);
+    const currentPage = Math.floor(thumbnailStart / THUMBNAIL_LIMIT) + 1;
+    
+    const visibleThumbnails = frames.slice(
+      thumbnailStart,
+      thumbnailStart + THUMBNAIL_LIMIT
+    );
+  
+    return (
+      <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4">
+        <div className="relative w-full max-w-6xl mx-auto carousel-container">
+          {/* Close button */}
+          <button
+            onClick={onClose}
+            className="absolute -top-2 right-0 text-white hover:text-gray-300 z-50 p-2"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="24"
+              height="24"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <path d="M18 6L6 18M6 6l12 12"/>
+            </svg>
+          </button>
+  
+          {/* Main Carousel */}
+          <div className="main-carousel">
+            <button 
+              onClick={handleMainPrev}
+              className="carousel-button prev"
+            >
+            </button>
+            <img
+              src={frames[currentSlide]}
+              alt={`View ${currentSlide + 1}`}
+              className="main-image"
+            />
+            <button 
+              onClick={handleMainNext}
+              className="carousel-button next"
+            >
+            </button>
+          </div>
+  
+          {/* Thumbnail Navigation */}
+          <div className="thumbnail-carousel">
+            <button
+              onClick={handleThumbnailPrev}
+              className="carousel-button prev"
+              disabled={thumbnailStart === 0}
+            >
+            </button>
+            <div className="thumbnails">
+              {visibleThumbnails.map((frame, index) => {
+                const realIndex = thumbnailStart + index;
+                return (
+                  <img
+                    key={realIndex}
+                    src={frame}
+                    alt={`Thumbnail ${realIndex + 1}`}
+                    className={`thumbnail ${realIndex === currentSlide ? 'active' : ''}`}
+                    onClick={() => onSlideChange(realIndex)}
+                  />
+                );
+              })}
+            </div>
+            <button
+              onClick={handleThumbnailNext}
+              className="carousel-button next"
+              disabled={thumbnailStart + THUMBNAIL_LIMIT >= frames.length}
+            >
+            </button>
+          </div>
+  
+          {/* Image counter and page information */}
+          <div className="text-center text-white mt-2 space-y-1">
+            <div>Image {currentSlide + 1} of {frames.length}</div>
+            <div className="text-sm text-gray-400">
+              Page {currentPage} of {totalPages}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -293,7 +550,6 @@ export default function DeepfakeReportPage() {
                 </p>
               </div>
             </motion.div>
-
             {/* Analysis Boxes */}
             <motion.div 
               className="space-y-4"
@@ -319,16 +575,14 @@ export default function DeepfakeReportPage() {
                   {mediaType === 'video' && (
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Analyzed Frames</h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {analysisResult.analysis_report.frame_results.map((frame, index) => (
-                          <img 
-                            key={index}
-                            src={frame.ela_path} 
-                            alt={`Error Level Analysis Frame ${index + 1}`} 
-                            className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
-                          />
-                        ))}
-                      </div>
+                      <SmallCarousel
+                        frames={analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)}
+                        onImageClick={handleImageClick}
+                        type="error"
+                        currentIndex={currentErrorLevelSlide}
+                        currentPage={errorLevelPage}
+                        onPageChange={setErrorLevelPage}
+                      />
                     </div>
                   )}
                 </div>
@@ -354,16 +608,14 @@ export default function DeepfakeReportPage() {
                   {mediaType === 'video' && (
                     <div className="space-y-4">
                       <h3 className="text-lg font-semibold">Analyzed Frames</h3>
-                      <div className="grid grid-cols-3 gap-2">
-                        {analysisResult.analysis_report.frame_results.map((frame, index) => (
-                          <img 
-                            key={index}
-                            src={frame.gradcam_path} 
-                            alt={`Gradcam Heatmap Frame ${index + 1}`} 
-                            className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
-                          />
-                        ))}
-                      </div>
+                      <SmallCarousel
+                        frames={analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)}
+                        onImageClick={handleImageClick}
+                        type="heatmap"
+                        currentIndex={currentHeatmapSlide}
+                        currentPage={heatmapPage}
+                        onPageChange={setHeatmapPage}
+                      />
                     </div>
                   )}
                 </div>
@@ -372,6 +624,31 @@ export default function DeepfakeReportPage() {
           </motion.div>
         </motion.div>
       </div>
+
+      {/* Modal */}
+      {enlargedImage && currentSliderType && (
+        <ImageModal
+          image={enlargedImage}
+          onClose={handleCloseModal}
+          sliderType={currentSliderType}
+          frames={currentSliderType === 'error'
+            ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
+            : analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
+          }
+          currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentHeatmapSlide}
+          onSlideChange={(index) => {
+            if (currentSliderType === 'error') {
+              setCurrentErrorLevelSlide(index);
+            } else {
+              setCurrentHeatmapSlide(index);
+            }
+            setEnlargedImage(currentSliderType === 'error'
+              ? analysisResult.analysis_report.frame_results[index].ela_path
+              : analysisResult.analysis_report.frame_results[index].gradcam_path
+            );
+          }}
+        />
+      )}
     </Layout>
   );
 }

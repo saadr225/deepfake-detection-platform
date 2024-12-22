@@ -46,9 +46,9 @@ export default function Home() {
 
           <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: Shield, title: "Deepfake Detection", description: "Advanced AI algorithms to identify manipulated media with high accuracy." },
+              { icon: Shield, title: "Deepfake and AI Detection", description: "Advanced AI algorithms to identify manipulated media with high accuracy." },
               { icon: Search, title: "Metadata Analysis", description: "Detailed examination of file metadata to uncover hidden manipulation traces." },
-              { icon: Users, title: "Expert Consultation", description: "Access to a network of media forensics experts for in-depth analysis." }
+              { icon: Users, title: "Community Forum", description: "Detailed Discussions regarding Deepfakes and AI-generated media." },
             ].map((feature, index) => (
               <motion.div 
                 key={feature.title}

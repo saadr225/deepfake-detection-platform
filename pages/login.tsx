@@ -103,12 +103,12 @@ export default function Login() {
             </div>
 
             <div className="flex items-center justify-between">
-              <div className="flex items-center">
+              {/* <div className="flex items-center">
                 <Checkbox id="remember-me" />
                 <Label htmlFor="remember-me" className="ml-2 block text-sm text-foreground dark:text-white">
                   Remember me
                 </Label>
-              </div>
+              </div> */}
 
               <div className="text-sm">
                 <Link href="/forgot-password" className="font-medium text-black hover:text-primary/80 transition-colors dark:text-white dark:hover:text-gray-300">

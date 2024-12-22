@@ -155,7 +155,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
             </div>
           </nav>
           <p className="mt-8 text-center text-base text-black dark:text-white">
-            &copy; 2023 DeepfakeDetect. All rights reserved.
+            &copy; 2024 Deep Media Inspection. All rights reserved.
           </p>
         </div>
       </footer>
