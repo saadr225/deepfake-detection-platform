@@ -155,20 +155,29 @@ export default function DeepfakeReportPage() {
   const handleShareReport = async () => {
     if (navigator.share) {
       try {
+        // Create the JSON file blob, same as in handleDownloadReport
+        const blob = new Blob([JSON.stringify(analysisResult, null, 2)], { type: 'application/json' });
+        const file = new File([blob], `deepfake_report_${new Date().toISOString()}.json`, {
+          type: 'application/json'
+        });
+  
+        // Share the file instead of the URL
         await navigator.share({
           title: 'Deepfake Detection Report',
           text: `Deepfake Detection Result: ${analysisResult.is_deepfake ? 'Likely Deepfake' : 'Likely Authentic'} (${(analysisResult.confidence_score * 100).toFixed(2)}% confidence)`,
-          url: window.location.href
+          files: [file]
         });
       } catch (error) {
         console.error('Error sharing:', error);
+        // Fallback to downloading if sharing fails
+        handleDownloadReport();
       }
     } else {
-      navigator.clipboard.writeText(window.location.href);
-      alert('Report link copied to clipboard');
+      // Fallback to downloading if Web Share API is not supported
+      handleDownloadReport();
     }
   };
-
+  
   const containerVariants = {
     hidden: { opacity: 0, y: 20 },
     visible: { 
@@ -475,6 +484,7 @@ export default function DeepfakeReportPage() {
                   variant="outline" 
                   size="sm" 
                   onClick={handleShareReport}
+                  disabled
                 >
                   <Share2 className="mr-2 h-4 w-4" /> Share
                 </Button>

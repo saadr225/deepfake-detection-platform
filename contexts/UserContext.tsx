@@ -48,15 +48,56 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // Use router for navigation
   const router = useRouter();
 
-  // Check if refresh token is in cookies and set user accordingly
+  // Check if refresh token is in cookies, refresh access token, and set user accordingly
   useEffect(() => {
     const refreshToken = Cookies.get('refreshToken');
     if (refreshToken) {
-      // Set basic user data immediately
-      setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
+      axios.post(`${API_URL_MAIN}/api/auth/refresh_token/`, { refresh: refreshToken })
+        .then(response => {
+          const { access } = response.data;
+          Cookies.set('accessToken', access);
+  
+          axios.get(`${API_URL_MAIN}/api/user/info/`, {
+            headers: {
+              Authorization: `Bearer ${access}`
+            }
+          })
+          .then(userResponse => {
+            const { data } = userResponse.data;
+            const { id, username, email } = data.user;
+            const { is_verified } = data.user_data;
+            
+            setUser({
+              id,
+              username,
+              email,
+              isVerified: is_verified
+            });
+          })
+          .catch(userError => {
+            console.error('Failed to fetch user details:', userError);
+            logout();
+          });
+        })
+        .catch(refreshError => {
+          console.error('Failed to refresh access token:', refreshError);
+          logout();
+        });
+    } else {
+      logout();
     }
     setAuthInitialized(true);
   }, []);
+
+  // Check if refresh token is in cookies and set user accordingly
+  // useEffect(() => {
+  //   const refreshToken = Cookies.get('refreshToken');
+  //   if (refreshToken) {
+  //     // Set basic user data immediately
+  //     setUser({ id: 1, username: 'User', email: 'user@example.com', isVerified: false });
+  //   }
+  //   setAuthInitialized(true);
+  // }, []);
 
   // Login method
   const login = async (email: string, password: string): Promise<boolean> => {
