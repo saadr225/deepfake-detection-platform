@@ -211,77 +211,90 @@ export const UserProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  // Add the changeEmail method in the UserProvider:
-  const changeEmail = async (new_email: string): Promise<{ success: boolean; message: string }> => {
-    const changeEmailUrl = `${API_URL_MAIN}/api/user/change_email/`;
-    const refreshTokenUrl = `${API_URL_MAIN}/api/auth/refresh_token/`;
-  
-    const accessToken = Cookies.get('accessToken');
-    const refreshToken = Cookies.get('refreshToken');
-  
-    const makeChangeEmailRequest = async (token: string) => {
-      return axios.put(changeEmailUrl, { email: new_email }, {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-    };
-  
-    try {
-      await makeChangeEmailRequest(accessToken!);
-  
-      // Update the email in the user state
-      if (user) {
-        setUser({ ...user, email: new_email });
+  // Add the changeEmail method in the UserProvider:  
+const changeEmail = async (new_email: string): Promise<{ success: boolean; message: string }> => {
+  const changeEmailUrl = `${API_URL_MAIN}/api/user/change_email/`;
+  const refreshTokenUrl = `${API_URL_MAIN}/api/auth/refresh_token/`;
+
+  const accessToken = Cookies.get('accessToken');
+  const refreshToken = Cookies.get('refreshToken');
+
+  const makeChangeEmailRequest = async (token: string) => {
+    return axios.put(changeEmailUrl, { new_email }, {
+      headers: {
+        Authorization: `Bearer ${token}`
       }
-  
-      return {
-        success: true,
-        message: 'Email changed successfully.'
-      };
-    } catch (error) {
-      if (axios.isAxiosError(error) && error.response?.status === 401) {
-        try {
-          const refreshResponse = await axios.post(refreshTokenUrl, { refresh: refreshToken });
-  
-          const newAccessToken = refreshResponse.data.access;
-          Cookies.set('accessToken', newAccessToken);
-  
-          await makeChangeEmailRequest(newAccessToken);
-  
-          if (user) {
-            setUser({ ...user, email: new_email });
-          }
-  
-          return {
-            success: true,
-            message: 'Email changed successfully.'
-          };
-        } catch (refreshError) {
-          if (axios.isAxiosError(refreshError)) {
-            return {
-              success: false,
-              message: refreshError.response?.data?.message || 'Failed to refresh access token. Please log in again.'
-            };
-          }
+    });
+  };
+
+  try {
+    const response = await makeChangeEmailRequest(accessToken!);
+
+    // Print the server response on success
+    console.log('Server response:', response.data);
+
+    // Update the email in the user state
+    if (user) {
+      setUser({ ...user, email: new_email });
+    }
+
+    return {
+      success: true,
+      message: 'Email changed successfully.'
+    };
+  } catch (error) {
+    // Print the server response on error
+    if (axios.isAxiosError(error)) {
+      console.error('Server response:', error.response?.data);
+    }
+
+    if (axios.isAxiosError(error) && error.response?.status === 401) {
+      try {
+        const refreshResponse = await axios.post(refreshTokenUrl, { refresh: refreshToken });
+
+        const newAccessToken = refreshResponse.data.access;
+        Cookies.set('accessToken', newAccessToken);
+
+        const retryResponse = await makeChangeEmailRequest(newAccessToken);
+
+        // Print the server response on success
+        console.log('Server response:', retryResponse.data);
+
+        if (user) {
+          setUser({ ...user, email: new_email });
+        }
+
+        return {
+          success: true,
+          message: 'Email changed successfully.'
+        };
+      } catch (refreshError) {
+        // Print the server response on error
+        if (axios.isAxiosError(refreshError)) {
+          console.error('Server response:', refreshError.response?.data);
           return {
             success: false,
-            message: 'Failed to refresh access token. Please log in again.'
+            message: refreshError.response?.data?.message || 'Failed to refresh access token. Please log in again.'
           };
         }
-      } else if (axios.isAxiosError(error)) {
         return {
           success: false,
-          message: error.response?.data?.message || 'An error occurred while changing the email.'
-        };
-      } else {
-        return {
-          success: false,
-          message: 'An error occurred while changing the email.'
+          message: 'Failed to refresh access token. Please log in again.'
         };
       }
+    } else if (axios.isAxiosError(error)) {
+      return {
+        success: false,
+        message: error.response?.data?.message || 'An error occurred while changing the email.'
+      };
+    } else {
+      return {
+        success: false,
+        message: 'An error occurred while changing the email.'
+      };
     }
-  };
+  }
+};
   
   // Add updateProfile method
   const updateProfile = async (username: string, email: string): Promise<boolean> => {
