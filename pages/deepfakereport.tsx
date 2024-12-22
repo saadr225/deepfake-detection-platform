@@ -92,6 +92,12 @@ export default function DeepfakeReportPage() {
   const [originalFramePage, setOriginalFramePage] = useState(0);
 
   useEffect(() => {
+    if (!user) {
+      router.push('/login');
+    }
+  }, [user, router]);
+
+  useEffect(() => {
     const { detectionResult } = router.query;
 
     if (detectionResult) {
@@ -284,8 +290,8 @@ export default function DeepfakeReportPage() {
             disabled={currentPage === 0}
             className={`carousel-button prev
               ${currentPage === 0 
-                ? 'text-gray-400 cursor-not-allowed' 
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+                ? 'text-gray-900 cursor-not-allowed' 
+                : 'text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
           >
           </button>
   
@@ -298,8 +304,8 @@ export default function DeepfakeReportPage() {
             disabled={currentPage === totalPages - 1}
             className={`carousel-button next
               ${currentPage === totalPages - 1
-                ? 'text-gray-400 cursor-not-allowed'
-                : 'text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+                ? 'text-gray-900 cursor-not-allowed'
+                : 'text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
           >
           </button>
         </div>
