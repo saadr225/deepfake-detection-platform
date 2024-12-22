@@ -10,17 +10,19 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const { user, logout, authInitialized } = useUser();
   const [isLoading, setIsLoading] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);  
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    // This will only run once when the component mounts
-    const refreshToken = Cookies.get('refreshToken');
-    setIsLoggedIn(!!refreshToken);
-    // Remove the small delay in showing content
-    setIsLoading(false);
+    const timer = setTimeout(() => {
+      const refreshToken = Cookies.get('refreshToken');
+      setIsLoggedIn(!!refreshToken);
+      setIsLoading(false);
+    }, 500);
+
+    return () => clearTimeout(timer);
   }, []);
 
-  if (!authInitialized) {
+  if (!authInitialized || isLoading) {
     return null; // Or return a loading spinner
   }
 
@@ -36,7 +38,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
                 </Link>
               </Button>
             </div>
-            
+
             <div className="hidden sm:ml-6 sm:flex sm:items-center sm:space-x-2">
               <Button variant="ghost" asChild>
                 <Link href="/detect">Deepfake Detection</Link>

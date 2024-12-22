@@ -473,7 +473,7 @@ const changeEmail = async (new_email: string): Promise<{ success: boolean; messa
 
     // Don't render children until auth is initialized
     if (!authInitialized) {
-      return null; // Or return a loading spinner
+      return <div>Loading...</div>; // Or a spinner
     }
 
   return (
