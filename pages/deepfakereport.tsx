@@ -575,11 +575,16 @@ export default function DeepfakeReportPage() {
                   Error Level Analysis
                 </h3>
                 <div>
-                  {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
+                {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
                     <img 
                       src={analysisResult.analysis_report.frame_results[0].ela_path} 
                       alt="Error Level Analysis" 
-                      className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                      className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                      onClick={() => handleImageClick(
+                        analysisResult.analysis_report.frame_results[0].ela_path,
+                        'error',
+                        0
+                      )}
                     />
                   )}
                   {mediaType === 'video' && (
@@ -608,11 +613,16 @@ export default function DeepfakeReportPage() {
                   Gradcam Heatmap
                 </h3>
                 <div>
-                  {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
+                {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
                     <img 
                       src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
                       alt="Gradcam Heatmap" 
-                      className="w-full max-h-[150px] object-contain cursor-pointer hover-enlarge"
+                      className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                      onClick={() => handleImageClick(
+                        analysisResult.analysis_report.frame_results[0].gradcam_path,
+                        'heatmap',
+                        0
+                      )}
                     />
                   )}
                   {mediaType === 'video' && (
