@@ -232,8 +232,8 @@ export default function DeepfakeReportPage() {
     onPageChange,
   }: {
     frames: string[];
-    onImageClick: (image: string, type: 'error' | 'heatmap', index: number) => void;
-    type: 'error' | 'heatmap';
+    onImageClick: (image: string, type: 'error' | 'heatmap' | 'original', index: number) => void;
+    type: 'error' | 'heatmap' | 'original';
     currentIndex: number;
     currentPage: number;
     onPageChange: (page: number) => void;
@@ -576,15 +576,15 @@ export default function DeepfakeReportPage() {
     variants={itemVariants}
     whileHover={{ scale: 1.02 }}
   >
-    <h3 className="text-lg font-semibold mb-2">
+    <h3 className="text-lg font-semibold mb-5">
       Original Frames
     </h3>
     <div className="space-y-4">
-      <h3 className="text-lg font-semibold">Analyzed Frames</h3>
+      {/* <h3 className="text-lg font-semibold">Analyzed Frames</h3> */}
       <SmallCarousel
         frames={analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)}
         onImageClick={handleImageClick}
-        type="error"
+        type="original"
         currentIndex={currentOriginalFrameSlide}
         currentPage={originalFramePage}
         onPageChange={setOriginalFramePage}

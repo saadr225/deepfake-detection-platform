@@ -62,14 +62,15 @@ export interface DetectionEntry {
   id: string;
   userId: number;
   imageUrl: string;
-  mediaType: 'Image' | 'Video' | 'unknown'; // Add mediaType field
+  mediaType: 'Image' | 'Video' | 'unknown';
   confidence: number;
   isDeepfake: boolean;
   date: string;
   detectionType: 'deepfake' | 'ai-content';
   detailedReport?: DetectionResult | AIContentDetectionResult;
   textContent?: string;
-  frames?: string[]; // Add this field
+  frames?: string[];
+  originalFrames?: string[]; // Add this field
 }
 
 interface DetectionHistoryContextType {
@@ -124,23 +125,23 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
     entry: Omit<DetectionEntry, 'id' | 'userId' | 'date'>
   ) => {
     if (!user) return;
-
+  
     if (isDuplicateEntry(entry)) {
       console.log('Duplicate entry detected, not adding to history.');
       return;
     }
-
+  
     const newEntry: DetectionEntry = {
       ...entry,
-      id: Date.now().toString(), // Generate unique ID
+      id: Date.now().toString(),
       userId: user.id,
       date: new Date().toISOString(),
-      // Determine detection type based on the detailed report
       detectionType: 'analysis_report' in (entry.detailedReport || {}) 
         ? 'deepfake' 
-        : 'ai-content'
+        : 'ai-content',
+      originalFrames: entry.detailedReport?.analysis_report.frame_results.map(frame => frame.frame_path) // Add this line
     };
-
+  
     setDetectionHistory(prev => [newEntry, ...prev]);
   };
 
