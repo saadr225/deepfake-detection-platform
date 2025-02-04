@@ -1,185 +1,261 @@
-import { useState, useCallback } from 'react'
-import { useDropzone } from 'react-dropzone'
-import { useRouter } from 'next/router'
-import Layout from '@/components/Layout'
-import { Button } from "@/components/ui/button"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { Progress } from "@/components/ui/progress"
-import { Upload, Link, X } from 'lucide-react'
-import { motion } from 'framer-motion'
-import { useUser } from '../contexts/UserContext'
-import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
-import { AIContentDetectionStub } from '../services/detectionService'
+import { useState, useCallback } from 'react';
+import { useDropzone } from 'react-dropzone';
+import { useRouter } from 'next/router';
+import Layout from '@/components/Layout';
+import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { Upload, Link, X } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { useUser } from '../contexts/UserContext';
+import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 export default function AIContentDetectionPage() {
-  const router = useRouter()
-  const { user } = useUser()
-  const { addDetectionEntry } = useDetectionHistory()
-  
-  const [activeTab, setActiveTab] = useState('media')
-  const [file, setFile] = useState<File | null>(null)
-  const [text, setText] = useState<string>('')
-  const [isAnalyzing, setIsAnalyzing] = useState(false)
-  const [analysisProgress, setAnalysisProgress] = useState(0)
-  const [socialMediaUrl, setSocialMediaUrl] = useState<string>('')
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [importError, setImportError] = useState<string | null>(null)
+  const router = useRouter();
+  const { user } = useUser();
+  const { addDetectionEntry } = useDetectionHistory();
 
-  // Dropzone configuration
+  const [activeTab, setActiveTab] = useState('media');
+  const [file, setFile] = useState<File | null>(null);
+  const [text, setText] = useState<string>('');
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [socialMediaUrl, setSocialMediaUrl] = useState<string>('');
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
+
+  // Dropzone configuration (images only, no videos)
   const onDrop = useCallback((acceptedFiles: File[]) => {
-    // Validate file size (5MB for images, 10MB for videos)
-    const file = acceptedFiles[0]
-    const maxImageSize = 5 * 1024 * 1024 // 5MB
-    const maxVideoSize = 10 * 1024 * 1024 // 10MB
+    const newFile = acceptedFiles[0];
+    const maxImageSize = 5 * 1024 * 1024; // 5MB
 
-    if (file) {
-      if (file.type.startsWith('image/') && file.size > maxImageSize) {
-        alert('Image size exceeds 5MB limit')
-        return
+    if (newFile) {
+      if (newFile.type.startsWith('image/') && newFile.size > maxImageSize) {
+        alert('Image size exceeds 5MB limit');
+        return;
       }
-      if (file.type.startsWith('video/') && file.size > maxVideoSize) {
-        alert('Video size exceeds 10MB limit')
-        return
+      if (!newFile.type.startsWith('image/')) {
+        alert('Only images are allowed for AI content detection.');
+        return;
       }
-      setFile(file)
+      setFile(newFile);
     }
-  }, [])
+  }, []);
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     onDrop,
     accept: {
-      'image/*': ['.jpeg', '.jpg', '.png'],
-      'video/*': ['.mp4', '.avi', '.mov']
+      'image/*': ['.jpeg', '.jpg', '.png']
     },
     multiple: false
-  })
+  });
 
-  // Analysis handler
+  // File upload handler
+  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const selectedFile = event.target.files?.[0];
+    if (selectedFile) {
+      onDrop([selectedFile]);
+    }
+  };
+
+  // Remove file handler
+  const handleRemoveFile = () => {
+    setFile(null);
+    if (document.getElementById('fileUpload')) {
+      (document.getElementById('fileUpload') as HTMLInputElement).value = '';
+    }
+  };
+
+  // Social media import handler
+  const handleSocialMediaImport = async () => {
+    setImportError(null);
+    try {
+      if (!socialMediaUrl.trim()) {
+        setImportError('Please enter a valid social media URL');
+        return;
+      }
+
+      // Simple URL format validation
+      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+      if (!urlPattern.test(socialMediaUrl)) {
+        setImportError('Invalid URL format');
+        return;
+      }
+
+      // Simulate fetch from /api/import-social-media
+      const response = await fetch('/api/import-social-media', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ url: socialMediaUrl })
+      });
+
+      if (response.ok) {
+        const mediaFile = await response.blob();
+        const importedFile = new File([mediaFile], 'social-media-import', {
+          type: mediaFile.type
+        });
+        onDrop([importedFile]);
+        setIsImportModalOpen(false);
+      } else {
+        const errorData = await response.json();
+        setImportError(errorData.message || 'Failed to import media');
+      }
+    } catch (error) {
+      console.error('Social media import error:', error);
+      setImportError('An error occurred while importing media');
+    }
+  };
+
+  // Analysis handler for images and text
   const handleAnalyze = async () => {
-    if (!file && !text.trim()) return
-    
-    setIsAnalyzing(true)
-    setAnalysisProgress(0)
+    // If neither file nor text is provided, do nothing
+    if (!file && !text.trim()) return;
+
+    setIsAnalyzing(true);
+    setAnalysisProgress(0);
+
+    // Simulate progress
+    const progressInterval = setInterval(() => {
+      setAnalysisProgress((prev) => {
+        if (prev >= 90) {
+          clearInterval(progressInterval);
+          return 90;
+        }
+        return prev + 10;
+      });
+    }, 500);
 
     try {
-      // Simulate analysis progress
-      const progressInterval = setInterval(() => {
-        setAnalysisProgress((prevProgress) => {
-          if (prevProgress >= 90) {
-            clearInterval(progressInterval)
-            return 90
+      let detectionResult: any;
+
+      // If analyzing an image (similar to detect.tsx logic)
+      if (file) {
+        // Provide logic for uploading and analyzing the image
+        const uploadFile = async (token: string) => {
+          const formData = new FormData();
+          formData.append('file', file as File);
+
+          // Adjust the endpoint as needed for AI content detection
+          const response = await axios.post(
+            'http://127.0.0.1:8000/api/process/ai_content/',
+            formData,
+            {
+              headers: {
+                Authorization: `Bearer ${token}`,
+                'Content-Type': 'multipart/form-data'
+              }
+            }
+          );
+          return response;
+        };
+
+        let accessToken = Cookies.get('accessToken');
+        let response;
+
+        if (!accessToken) {
+          clearInterval(progressInterval);
+          setIsAnalyzing(false);
+          setAnalysisProgress(0);
+          alert('Please login first to perform detection.');
+          return;
+        }
+
+        // Attempt upload
+        try {
+          response = await uploadFile(accessToken);
+        } catch (error) {
+          // Handle token expiry
+          if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+            const refreshToken = Cookies.get('refreshToken');
+            if (refreshToken) {
+              const refreshResponse = await axios.post(
+                'http://127.0.0.1:8000/api/auth/refresh_token/',
+                { refresh: refreshToken }
+              );
+              accessToken = refreshResponse.data.access;
+              if (accessToken) {
+                Cookies.set('accessToken', accessToken);
+              } else {
+                clearInterval(progressInterval);
+                setIsAnalyzing(false);
+                setAnalysisProgress(0);
+                alert('Please login first to perform detection.');
+                return;
+              }
+              response = await uploadFile(accessToken);
+            } else {
+              clearInterval(progressInterval);
+              setIsAnalyzing(false);
+              setAnalysisProgress(0);
+              alert('Please login first to perform detection.');
+              return;
+            }
+          } else {
+            throw error;
           }
-          return prevProgress + 10
-        })
-      }, 500)
+        }
 
-      // Use detection stub to analyze the content
-      const detectionResult = file 
-        ? await AIContentDetectionStub.detectAIContent(file)
-        : await AIContentDetectionStub.detectTextContent(text)
+        // Upload and detection was successful
+        clearInterval(progressInterval);
+        setAnalysisProgress(100);
+        setIsAnalyzing(false);
 
-      // Clear progress interval
-      clearInterval(progressInterval);
-      setAnalysisProgress(100);
-      setIsAnalyzing(false);
+        detectionResult = response?.data?.data;
+      } else {
+        // Dummy detection logic for text
+        clearInterval(progressInterval);
+        setAnalysisProgress(100);
+        setIsAnalyzing(false);
+
+        // Use the same data structure used in your detection results
+        detectionResult = {
+          analysis_report: {
+            media_path: '',         // No image path
+            media_type: 'text',     // Indicate text
+          },
+          confidence_score: 0.95,   // Dummy confidence
+          is_deepfake: false,      // Or isAIGenerated, depending on your schema
+          text_analyzed: text      // Extra field to show text was processed
+        };
+      }
 
       // Prepare detection entry
       const detectionEntry = {
-        imageUrl: detectionResult.imageUrl || '',
-        confidence: detectionResult.confidence,
-        isDeepfake: detectionResult.isAIGenerated,
+        imageUrl: detectionResult.analysis_report.media_path, // empty for text
+        mediaType: detectionResult.analysis_report.media_type, 
+        confidence: detectionResult.confidence_score,
+        isDeepfake: detectionResult.is_deepfake,
         detailedReport: detectionResult,
         detectionType: 'ai-content' as const,
-        ...(text && { textContent: text })
-      }
+        ...(text && { textContent: text })  // If text was analyzed
+      };
 
       // If user is logged in, save to detection history
       if (user) {
         addDetectionEntry(detectionEntry);
       }
-      
-      // Navigate to results page with full detection result
+
+      // Navigate to results page with the detection result
       router.push({
         pathname: '/aicontentreport',
-        query: {
-          detectionResult: JSON.stringify(detectionResult)
-        }
-      })
+        query: { detectionResult: JSON.stringify(detectionResult) }
+      });
     } catch (error) {
-      console.error('Detection analysis error:', error)
-      setIsAnalyzing(false)
-      alert('An error occurred during analysis. Please try again.')
+      console.error('Detection analysis error:', error);
+      clearInterval(progressInterval);
+      setAnalysisProgress(0);
+      setIsAnalyzing(false);
+      alert('An error occurred during analysis. Please try again.');
     }
-  }
-
-  // File upload handler
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const selectedFile = event.target.files?.[0]
-    if (selectedFile) {
-      onDrop([selectedFile])
-    }
-  }
-
-  // Remove file handler
-  const handleRemoveFile = () => {
-    setFile(null)
-    // Reset file input
-    if (document.getElementById('fileUpload')) {
-      (document.getElementById('fileUpload') as HTMLInputElement).value = ''
-    }
-  }
-
-  // Social media import handler
-  const handleSocialMediaImport = async () => {
-    setImportError(null)
-
-    try {
-      // Basic URL validation
-      if (!socialMediaUrl.trim()) {
-        setImportError('Please enter a valid social media URL')
-        return
-      }
-
-      // URL format validation (basic example)
-      const urlPattern = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/
-      if (!urlPattern.test(socialMediaUrl)) {
-        setImportError('Invalid URL format')
-        return
-      }
-
-      // Simulate social media import
-      const response = await fetch('/api/import-social-media', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({ url: socialMediaUrl })
-      })
-
-      if (response.ok) {
-        const mediaFile = await response.blob()
-        const importedFile = new File([mediaFile], 'social-media-import', { 
-          type: mediaFile.type 
-        })
-        
-        // Use onDrop to handle file validation and setting
-        onDrop([importedFile])
-        setIsImportModalOpen(false)
-      } else {
-        const errorData = await response.json()
-        setImportError(errorData.message || 'Failed to import media')
-      }
-    } catch (error) {
-      console.error('Social media import error:', error)
-      setImportError('An error occurred while importing media')
-    }
-  }
+  };
 
   return (
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8 bg-background">
-        <motion.div 
+        <motion.div
           className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -188,20 +264,17 @@ export default function AIContentDetectionPage() {
           <h1 className="text-4xl font-bold text-center mb-4 text-primary">
             AI Content Detection
           </h1>
-          <p className="text-center text- muted-foreground mt-12 mb-12 text-lg">
-            Detect AI-generated media and text with advanced analysis
+          <p className="text-center text-muted-foreground mt-12 mb-12 text-lg">
+            Detect AI-generated images and text with advanced analysis
           </p>
-          
-          <Tabs 
-            value={activeTab} 
-            onValueChange={setActiveTab} 
-            className="w-full"
-          >
+
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
             <TabsList className="grid w-full grid-cols-2 mb-6 shadow-md">
-              <TabsTrigger value="media">Media Detection</TabsTrigger>
+              <TabsTrigger value="media">Image Detection</TabsTrigger>
               <TabsTrigger value="text">Text Detection</TabsTrigger>
             </TabsList>
 
+            {/* Image Detection Tab */}
             <TabsContent value="media" className="w-full">
               <div className="bg-background border rounded-lg p-6 shadow-xl min-h-[500px]">
                 <div
@@ -211,28 +284,21 @@ export default function AIContentDetectionPage() {
                   }`}
                 >
                   <input {...getInputProps()} />
-                  
+
                   {file ? (
                     <div className="flex flex-col items-center justify-center h-full w-full">
-                      {file.type.startsWith('image/') ? (
-                        <img 
-                          src={URL.createObjectURL(file)} 
-                          alt="Uploaded file" 
-                          className="max-h-[350px] max-w-full object-contain mb-4"
-                        />
-                      ) : (
-                        <video 
-                          src={URL.createObjectURL(file)} 
-                          controls 
+                      {file.type.startsWith('image/') && (
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="Uploaded file"
                           className="max-h-[350px] max-w-full object-contain mb-4"
                         />
                       )}
                       <p className="text-lg text-primary mb-4">{file.name}</p>
-                      
                       <div className="flex items-center space-x-4">
-                        <Button 
-                          variant="outline" 
-                          size="sm" 
+                        <Button
+                          variant="outline"
+                          size="sm"
                           onClick={(e) => {
                             e.stopPropagation();
                             handleRemoveFile();
@@ -248,23 +314,24 @@ export default function AIContentDetectionPage() {
                     <div className="flex flex-col items-center">
                       <Upload className="mx-auto h-16 w-16 text-muted-foreground mb-4" />
                       <p className="text-lg text-muted-foreground">
-                        Drag & drop an image or video file here, or click to select a file
+                        Drag & drop an image file here, or click to select a file
                       </p>
+                      <p className="text-lg text-muted-foreground">Formats: (.JPEG, .PNG)</p>
                     </div>
                   )}
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4 mb-4">
                   <div className="relative w-full">
-                    <input 
-                      type="file" 
+                    <input
+                      type="file"
                       id="fileUpload"
                       className="hidden"
                       onChange={handleFileUpload}
-                      accept="image/*,video/*"
+                      accept="image/*"
                     />
-                    <Button 
-                      variant="outline" 
+                    <Button
+                      variant="outline"
                       className="w-full"
                       onClick={() => document.getElementById('fileUpload')?.click()}
                     >
@@ -272,6 +339,7 @@ export default function AIContentDetectionPage() {
                     </Button>
                   </div>
 
+                  {/* Social Media Import Dialog */}
                   <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
                     <DialogTrigger asChild>
                       <Button variant="outline" className="w-full">
@@ -283,8 +351,8 @@ export default function AIContentDetectionPage() {
                         <DialogTitle>Import from Social Media</DialogTitle>
                       </DialogHeader>
                       <div className="space-y-4">
-                        <input 
-                          type="text" 
+                        <input
+                          type="text"
                           placeholder="Enter social media post URL"
                           value={socialMediaUrl}
                           onChange={(e) => setSocialMediaUrl(e.target.value)}
@@ -301,13 +369,14 @@ export default function AIContentDetectionPage() {
                     </DialogContent>
                   </Dialog>
                 </div>
+
                 <div className="flex items-center ml-1 mt-4 w-full">
                   <div className="flex-grow text-xs text-muted-foreground pr-6">
-                    Max size allowed for image is 5mb and max size allowed for video is 10mb. 
-                    By clicking "DETECT", you agree to terms and conditions of AI Content Detection.
+                    Max size allowed is 5MB for images. By clicking "DETECT", you agree to the AI 
+                    Content Detection terms and conditions.
                   </div>
-                  <Button 
-                    onClick={handleAnalyze} 
+                  <Button
+                    onClick={handleAnalyze}
                     disabled={!file || isAnalyzing}
                     className="w-[250px]"
                     variant="default"
@@ -318,20 +387,22 @@ export default function AIContentDetectionPage() {
               </div>
             </TabsContent>
 
+            {/* Text Detection Tab */}
             <TabsContent value="text" className="w-full">
               <div className="bg-background border rounded-lg p-6 shadow-sm min-h-[500px]">
-                <textarea 
+                <textarea
                   placeholder="Paste text for AI detection"
                   className="w-full h-[400px] p-4 border rounded mb-4"
                   value={text}
                   onChange={(e) => setText(e.target.value)}
                 />
                 <div className="flex items-center ml-1 mt-4 w-full">
-                  <div className="flex-grow text-xs text-muted-foreground pr-6"> 
-                    By clicking "DETECT", you agree to terms and conditions of AI Content Detection.
+                  <div className="flex-grow text-xs text-muted-foreground pr-6">
+                    By clicking "DETECT", you agree to the AI Content Detection terms 
+                    and conditions.
                   </div>
-                  <Button 
-                    onClick={handleAnalyze} 
+                  <Button
+                    onClick={handleAnalyze}
                     disabled={!text.trim() || isAnalyzing}
                     className="w-[250px]"
                     variant="default"
@@ -343,7 +414,7 @@ export default function AIContentDetectionPage() {
             </TabsContent>
           </Tabs>
 
-          {/* Progress indicator during analysis */}
+          {/* Analysis progress indicator */}
           {isAnalyzing && (
             <div className="mt-6">
               <Progress value={analysisProgress} className="w-full" />
@@ -352,5 +423,5 @@ export default function AIContentDetectionPage() {
         </motion.div>
       </div>
     </Layout>
-  )
+  );
 }

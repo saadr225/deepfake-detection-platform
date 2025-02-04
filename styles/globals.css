@@ -321,6 +321,56 @@
   width: auto;
 }
 
+/* Add this to your global CSS file */
+.transition-width {
+  transition: width 0.3s;
+}
+
+/* global.css or Sidebar.module.css */
+
+.sidebar {
+  transition: width 0.3s;
+}
+
+.sidebar .menu-item {
+  padding: 1rem;
+  color: var(--text-color);
+  display: flex;
+  align-items: center;
+  transition: all 0.2s;
+  gap: 1.5rem;
+}
+
+.sidebar .menu-item:hover {
+  background-color: var(--hover-bg-color);
+  color: var(--hover-text-color);
+}
+
+.sidebar .menu-item.active {
+  background-color: var(--active-bg-color);
+}
+
+.sidebar .menu-item .icon {
+  margin-right: 0.5rem;
+}
+
+.sidebar .toggle-button {
+  margin-left: auto;
+  color: var(--toggle-icon-color);
+}
+
+.sidebar.collapsed .menu-item .label {
+  display: none;
+}
+
+.sidebar.collapsed .menu-item .icon {
+  margin-right: 0;
+}
+
+.sidebar.collapsed .toggle-button {
+  transform: rotate(180deg);
+}
+
   @keyframes fadeIn {
     from { opacity: 0; }
     to { opacity: 1; }
