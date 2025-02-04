@@ -37,7 +37,7 @@ export default function Sidebar() {
     } transition-all duration-300 shadow-lg`}>
       <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
         <div className="flex items-center">
-          <Image src="/assets/logo.jpg" alt="DMI Logo" width={isCollapsed ? 40 : 120} height={40} />
+          <Image src="/assets/logo.jpg" alt="DMI Logo" width={isCollapsed ? 40 : 80} height={40} />
         </div>
         <button 
           onClick={() => setIsCollapsed(!isCollapsed)}
