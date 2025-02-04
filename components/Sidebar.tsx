@@ -1,12 +1,12 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Home, ShieldAlert, MessageSquare, User, LogOut, LogIn, Menu, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Home, ShieldAlert, MessageSquare, User, LogOut, LogIn, Menu, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react';
 import { useRouter } from 'next/router';
 import { useUser } from '../contexts/UserContext';
+import { ThemeToggle } from './ThemeToggle';
 import Image from 'next/image';
 
 export default function Sidebar() {
-  // Initialize state from localStorage if available, otherwise default to false
   const [isCollapsed, setIsCollapsed] = useState(() => {
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem('sidebarCollapsed');
@@ -18,7 +18,6 @@ export default function Sidebar() {
   const { user, logout } = useUser();
   const router = useRouter();
 
-  // Save collapse state to localStorage whenever it changes
   useEffect(() => {
     localStorage.setItem('sidebarCollapsed', JSON.stringify(isCollapsed));
   }, [isCollapsed]);
@@ -57,19 +56,21 @@ export default function Sidebar() {
           {menuItems.map((item) => (
             (!item.auth || user) && (
               <Link href={item.href} key={item.label} legacyBehavior>
-                <a className={`flex items-center px-4 py-3 rounded-lg transition-colors duration-200
-                  ${router.pathname === item.href 
-                    ? 'bg-gray-200 dark:bg-gray-700 text-primary' 
-                    : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                  }`}
-                >
-                  <item.icon className={`h-5 w-5 ${
-                    router.pathname === item.href 
-                      ? 'text-primary' 
-                      : 'text-gray-500 dark:text-gray-400'
-                  }`} />
+                <a className="group flex items-center justify-between px-5 py-3 rounded-lg transition-colors duration-200 relative
+                  hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <div className="flex items-center min-w-0">
+                    <item.icon className={`h-5 w-5 ${
+                      router.pathname === item.href 
+                        ? 'text-primary' 
+                        : 'text-gray-500 dark:text-gray-400'
+                    }`} />
+                    {!isCollapsed && (
+                      <span className="ml-3 text-sm font-medium truncate">{item.label}</span>
+                    )}
+                  </div>
                   {!isCollapsed && (
-                    <span className="ml-3 text-sm font-medium">{item.label}</span>
+                    <ArrowRight className="h-4 w-4 text-gray-400 transform translate-x-3 opacity-0 transition-all duration-200 
+                      group-hover:translate-x-0 group-hover:opacity-100" />
                   )}
                 </a>
               </Link>
@@ -77,37 +78,63 @@ export default function Sidebar() {
           ))}
         </div>
 
-        <div className="p-2 mt-auto">
+        <div className="p-2 mt-auto space-y-2">
           {user ? (
             <button 
               onClick={logout}
-              className="w-full flex items-center px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200"
+              className="group flex items-center justify-between w-full px-5 py-3 rounded-lg transition-colors duration-200
+                hover:bg-gray-100 dark:hover:bg-gray-800"
             >
-              <LogOut className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+              <div className="flex items-center min-w-0">
+                <LogOut className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                {!isCollapsed && (
+                  <span className="ml-3 text-sm font-medium">Logout</span>
+                )}
+              </div>
               {!isCollapsed && (
-                <span className="ml-3 text-sm font-medium">Logout</span>
+                <ArrowRight className="h-4 w-4 text-gray-400 transform translate-x-3 opacity-0 transition-all duration-200 
+                  group-hover:translate-x-0 group-hover:opacity-100" />
               )}
             </button>
           ) : (
             <div className="space-y-2">
               <Link href="/login" legacyBehavior>
-                <a className="w-full flex items-center px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-                  <LogIn className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <a className="group flex items-center justify-between w-full px-5 py-3 rounded-lg transition-colors duration-200
+                  hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <div className="flex items-center min-w-0">
+                    <LogIn className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    {!isCollapsed && (
+                      <span className="ml-3 text-sm font-medium">Login</span>
+                    )}
+                  </div>
                   {!isCollapsed && (
-                    <span className="ml-3 text-sm font-medium">Login</span>
+                    <ArrowRight className="h-4 w-4 text-gray-400 transform translate-x-3 opacity-0 transition-all duration-200 
+                      group-hover:translate-x-0 group-hover:opacity-100" />
                   )}
                 </a>
               </Link>
               <Link href="/register" legacyBehavior>
-                <a className="w-full flex items-center px-4 py-3 rounded-lg text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200">
-                  <LogIn className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                <a className="group flex items-center justify-between w-full px-5 py-3 rounded-lg transition-colors duration-200
+                  hover:bg-gray-100 dark:hover:bg-gray-800">
+                  <div className="flex items-center min-w-0">
+                    <LogIn className="h-5 w-5 text-gray-500 dark:text-gray-400" />
+                    {!isCollapsed && (
+                      <span className="ml-3 text-sm font-medium">Sign Up</span>
+                    )}
+                  </div>
                   {!isCollapsed && (
-                    <span className="ml-3 text-sm font-medium">Sign Up</span>
+                    <ArrowRight className="h-4 w-4 text-gray-400 transform translate-x-3 opacity-0 transition-all duration-200 
+                      group-hover:translate-x-0 group-hover:opacity-100" />
                   )}
                 </a>
               </Link>
             </div>
           )}
+          
+          {/* Theme Toggle */}
+          <div className="p-2">
+            <ThemeToggle isCollapsed={isCollapsed} />
+          </div>
         </div>
       </nav>
     </div>

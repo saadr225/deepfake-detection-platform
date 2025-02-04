@@ -17,6 +17,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (!authInitialized || isLoading) {
     return (
       <div className="flex justify-center items-center min-h-screen">
+        <Sidebar />
         <div className="spinner"></div>
       </div>
     );
