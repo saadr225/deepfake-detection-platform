@@ -23,9 +23,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex">
+    <div className="flex min-h-screen">
       <Sidebar />
-      <main className="flex-grow p-4 dark:bg-background">
+      <main className="flex-1 ml-20 lg:ml-60 p-4 dark:bg-background">
         {children}
       </main>
     </div>
