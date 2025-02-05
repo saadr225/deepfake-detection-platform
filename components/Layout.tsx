@@ -1,34 +1,45 @@
-import { useEffect, useState } from 'react';
-import { useUser } from '../contexts/UserContext';
-import Sidebar from './Sidebar';
+import { useEffect, useState } from "react"
+import { useUser } from "../contexts/UserContext"
+import Sidebar from "./Sidebar"
+import type React from "react" // Added import for React
 
 export default function Layout({ children }: { children: React.ReactNode }) {
-  const { authInitialized } = useUser();
-  const [isLoading, setIsLoading] = useState(true);
+  const { authInitialized } = useUser()
+  const [isLoading, setIsLoading] = useState(true)
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("sidebarCollapsed")
+      return saved ? JSON.parse(saved) : false
+    }
+    return false
+  })
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      setIsLoading(false);
-    }, 500);
+      setIsLoading(false)
+    }, 500)
 
-    return () => clearTimeout(timer);
-  }, []);
+    return () => clearTimeout(timer)
+  }, [])
+
+  useEffect(() => {
+    localStorage.setItem("sidebarCollapsed", JSON.stringify(isCollapsed))
+  }, [isCollapsed])
 
   if (!authInitialized || isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <Sidebar />
-        <div className="spinner"></div>
-      </div>
-    );
+        <div className="flex justify-center items-center min-h-screen bg-background">
+          <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+          <div className="spinner"></div>
+        </div>
+    )
   }
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar />
-      <main className="flex-1 ml-20 lg:ml-60 p-4 dark:bg-background">
-        {children}
-      </main>
-    </div>
-  );
+      <div className="flex min-h-screen bg-background">
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <main className={`flex-1 ${isCollapsed ? "ml-24" : "ml-72"} p-4 transition-all duration-300`}>{children}</main>
+      </div>
+  )
 }
+
