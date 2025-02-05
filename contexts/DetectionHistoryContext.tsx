@@ -136,9 +136,9 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
       id: Date.now().toString(),
       userId: user.id,
       date: new Date().toISOString(),
-      detectionType: 'analysis_report' in (entry.detailedReport || {}) 
-        ? 'deepfake' 
-        : 'ai-content',
+      // detectionType: 'analysis_report' in (entry.detailedReport || {}) 
+      //   ? 'deepfake' 
+      //   : 'ai-content',
       originalFrames: entry.detailedReport?.analysis_report.frame_results.map(frame => frame.frame_path) // Add this line
     };
   

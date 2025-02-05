@@ -35,7 +35,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   return (
     <div
-      className={`min-h-screen fixed left-0 top-0 h-full bg-sidebar-background text-sidebar-foreground flex flex-col ${
+      className={`min-h-screen fixed left-0 top-0 h-full bg-gray-200 dark:bg-black text-sidebar-foreground flex flex-col ${
         isCollapsed ? "w-24" : "w-72"
       } transition-width duration-300 shadow-lg`}
     >
@@ -113,11 +113,17 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <div className="space-y-2">
               <Link href="/login" legacyBehavior>
                 <a
-                  className="group flex items-center justify-between w-full px-5 py-3 rounded-lg transition-colors duration-200
-                  hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                  className={`group flex items-center justify-between px-5 py-3 rounded-lg transition-colors duration-200 relative
+                    hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+                      router.pathname === "/login"
+                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                        : "text-sidebar-foreground"
+                    }`}
                 >
                   <div className="flex items-center min-w-0">
-                    <LogIn className="h-5 w-5 text-sidebar-foreground" />
+                    <LogIn className={`h-5 w-5 ${
+                          router.pathname === "/login" ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
+                        }`} />
                     {!isCollapsed && <span className="ml-3 text-sm font-medium">Login</span>}
                   </div>
                   {!isCollapsed && (
@@ -130,11 +136,17 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               </Link>
               <Link href="/register" legacyBehavior>
                 <a
-                  className="group flex items-center justify-between w-full px-5 py-3 rounded-lg transition-colors duration-200
-                  hover:bg-sidebar-accent hover:text-sidebar-accent-hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+                 className={`group flex items-center justify-between px-5 py-3 rounded-lg transition-colors duration-200 relative
+                  hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+                    router.pathname === "/register"
+                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                      : "text-sidebar-foreground"
+                  }`}
                 >
                   <div className="flex items-center min-w-0">
-                    <LogIn className="h-5 w-5 text-sidebar-foreground" />
+                    <LogIn className={`h-5 w-5 ${
+                          router.pathname === "/register" ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
+                        }`} />
                     {!isCollapsed && <span className="ml-3 text-sm font-medium">Sign Up</span>}
                   </div>
                   {!isCollapsed && (

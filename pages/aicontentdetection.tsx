@@ -140,7 +140,7 @@ export default function AIContentDetectionPage() {
 
           // Adjust the endpoint as needed for AI content detection
           const response = await axios.post(
-            'http://127.0.0.1:8000/api/process/ai_content/',
+            'http://127.0.0.1:8000/api/process/df/',
             formData,
             {
               headers: {
