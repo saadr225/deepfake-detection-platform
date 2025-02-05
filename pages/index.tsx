@@ -90,38 +90,31 @@ export default function Home() {
         </section>
 
         <section className="mb-12 animate-fadeInUp animate-delay-100">
-        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-5 text-gray-900 dark:text-gray-100">
-                  Our Services
-                </h2>
-          {/* <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate"> */}
-            <div className="relative">
-              <div className="flex justify-between items-center mb-4">
-                
-                <div className="flex space-x-2">
-                  <Button variant="outline" size="icon" onClick={prevSlide} className="bg-white dark:bg-gray-800">
-                    <ChevronLeft className="h-4 w-4" />
-                  </Button>
-                  <Button variant="outline" size="icon" onClick={nextSlide} className="bg-white dark:bg-gray-800">
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
-                </div>
-              {/* </div> */}
-              <div className="flex space-x-4 overflow-hidden">
-                {services.slice(currentIndex, currentIndex + 3).map((service, index) => (
-                  <Card key={index} className="w-1/3 flex-shrink-0">
-                    <CardHeader>
-                      <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
-                      <CardTitle>{service.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </div>
-          </div>
-        </section>
+  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-5 text-gray-900 dark:text-gray-100 text-center">
+    Our Services
+  </h2>
+  <div className="relative flex items-center justify-center">
+    <Button variant="outline" size="sm" onClick={prevSlide} className="bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-900 mr-10">
+      <ChevronLeft className="h-4 w-4" />
+    </Button>
+    <div className="flex space-x-4 overflow-hidden">
+      {services.slice(currentIndex, currentIndex + 3).map((service, index) => (
+        <Card key={index} className="w-1/3 bg-white dark:bg-gray-800 flex-shrink-0">
+          <CardHeader>
+            <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
+            <CardTitle>{service.title}</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+    <Button variant="outline" size="sm" onClick={nextSlide} className="bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-900 ml-10">
+      <ChevronRight className="h-4 w-4" />
+    </Button>
+  </div>
+</section>
 
         <section className="mb-12 animate-fadeInUp animate-delay-200">
           <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
