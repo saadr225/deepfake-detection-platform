@@ -97,9 +97,9 @@ export default function Home() {
     <Button variant="outline" size="sm" onClick={prevSlide} className="bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-900 mr-10">
       <ChevronLeft className="h-4 w-4" />
     </Button>
-    <div className="flex space-x-4 overflow-hidden">
+    <div className="flex space-x-4 overflow-hidden transition-all duration-300 ease-in-out">
       {services.slice(currentIndex, currentIndex + 3).map((service, index) => (
-        <Card key={index} className="w-1/3 bg-white dark:bg-gray-800 flex-shrink-0">
+        <Card key={index} className="w-1/3 bg-white dark:bg-gray-800 flex-shrink-0 transition-all duration-300 ease-in-out" style={{ height: '280px' }}>
           <CardHeader>
             <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
             <CardTitle>{service.title}</CardTitle>
