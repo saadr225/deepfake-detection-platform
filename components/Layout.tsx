@@ -28,18 +28,22 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   if (!authInitialized || isLoading) {
     return (
-        <div className="flex justify-center items-center min-h-screen bg-background">
-          <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-          <div className="spinner"></div>
-        </div>
+      <div className="flex justify-center items-center min-h-screen bg-background">
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <div className="spinner"></div>
+      </div>
     )
   }
 
   return (
-      <div className="flex min-h-screen bg-background">
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <main className={`flex-1 ${isCollapsed ? "ml-24" : "ml-72"}  transition-all duration-300`}>{children}</main>
-      </div>
+    <div className="flex min-h-screen bg-background">
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+      <main
+        className={`flex-1 transition-all duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}
+      >
+        {children}
+      </main>
+    </div>
   )
 }
 

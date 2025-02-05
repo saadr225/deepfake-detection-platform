@@ -1,10 +1,10 @@
 "use client"
 
-import { useState, useEffect, useRef } from "react"
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Search, Users, ChevronRight, FileText, Thermometer, Archive, ChevronLeft } from "lucide-react"
+import { Shield, Search, Users, ChevronRight, FileText, Thermometer, Archive } from "lucide-react"
 import Layout from "../components/Layout"
 import { motion } from "framer-motion"
 
@@ -101,45 +101,22 @@ export default function Home() {
           <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-5 text-gray-900 dark:text-gray-100 text-center">
             Our Services
           </h2>
-          <div className="relative flex items-center justify-center">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={prevSlide}
-              className="bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-900 mr-4 z-10"
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <div className="flex space-x-4 overflow-hidden w-full max-w-5xl">
-              <div
-                className="flex transition-transform duration-300 ease-in-out"
-                style={{ transform: `translateX(-${currentIndex * 33.33}%)` }}
-              >
-                {services.map((service, index) => (
-                  <Card
-                    key={index}
-                    className="w-1/3 bg-white dark:bg-gray-800 flex-shrink-0 mr-4"
-                    style={{ height: "280px" }}
-                  >
-                    <CardHeader>
-                      <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
-                      <CardTitle>{service.title}</CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                      <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
+          <div className="relative">
+            <div className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide">
+              {services.map((service, index) => (
+                <Card key={index} className="flex-shrink-0 w-[280px] sm:w-[320px] bg-white dark:bg-gray-800">
+                  <CardHeader>
+                    <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
+                    <CardTitle>{service.title}</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
+                  </CardContent>
+                </Card>
+              ))}
             </div>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={nextSlide}
-              className="bg-white dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-900 ml-4 z-10"
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
+            <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-background to-transparent w-12 z-10"></div>
+            <div className="absolute top-0 bottom-0 right-0 bg-gradient-to-l from-background to-transparent w-12 z-10"></div>
           </div>
         </section>
 

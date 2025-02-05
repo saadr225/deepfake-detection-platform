@@ -12,7 +12,7 @@ import {
 } from "lucide-react"
 import { useRouter } from "next/router"
 import { useUser } from "../contexts/UserContext"
-import { ThemeToggle } from './ThemeToggle';
+import { ThemeToggle } from "./ThemeToggle"
 import Image from "next/image"
 
 interface SidebarProps {
@@ -35,9 +35,9 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   return (
     <div
-      className={`min-h-screen fixed left-0 top-0 h-full bg-gray-200 dark:bg-[#121212] text-sidebar-foreground flex flex-col ${
+      className={`min-h-screen fixed left-0 top-0 h-full bg-gray-200 dark:bg-[#121212] text-sidebar-foreground flex flex-col z-50 ${
         isCollapsed ? "w-24" : "w-72"
-      } transition-width duration-300 shadow-lg`}
+      } transition-width duration-300 shadow-lg sm:relative`}
     >
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-center w-full">
@@ -121,9 +121,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     }`}
                 >
                   <div className="flex items-center min-w-0">
-                    <LogIn className={`h-5 w-5 ${
-                          router.pathname === "/login" ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
-                        }`} />
+                    <LogIn
+                      className={`h-5 w-5 ${
+                        router.pathname === "/login" ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
+                      }`}
+                    />
                     {!isCollapsed && <span className="ml-3 text-sm font-medium">Login</span>}
                   </div>
                   {!isCollapsed && (
@@ -136,7 +138,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               </Link>
               <Link href="/register" legacyBehavior>
                 <a
-                 className={`group flex items-center justify-between px-5 py-3 rounded-lg transition-colors duration-200 relative
+                  className={`group flex items-center justify-between px-5 py-3 rounded-lg transition-colors duration-200 relative
                   hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
                     router.pathname === "/register"
                       ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -144,9 +146,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   }`}
                 >
                   <div className="flex items-center min-w-0">
-                    <LogIn className={`h-5 w-5 ${
-                          router.pathname === "/register" ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
-                        }`} />
+                    <LogIn
+                      className={`h-5 w-5 ${
+                        router.pathname === "/register" ? "text-sidebar-accent-foreground" : "text-sidebar-foreground"
+                      }`}
+                    />
                     {!isCollapsed && <span className="ml-3 text-sm font-medium">Sign Up</span>}
                   </div>
                   {!isCollapsed && (
