@@ -1,36 +1,74 @@
-import { useRef } from "react"
+"use client"
+
+import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
-import {
-  Shield,
-  Search,
-  Users,
-  ChevronRight,
-  ArrowRight,
-  FileText,
-  Thermometer,
-  Archive,
-} from "lucide-react"
-import Layout from '../components/Layout'
-import { motion } from 'framer-motion'
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Shield, Search, Users, ChevronRight, FileText, Thermometer, Archive, ChevronLeft } from "lucide-react"
+import Layout from "../components/Layout"
+import { motion } from "framer-motion"
+
+const services = [
+  {
+    icon: Shield,
+    title: "Deepfake Detection",
+    description: "Advanced AI algorithms to identify manipulated media with high accuracy.",
+  },
+  {
+    icon: Search,
+    title: "Metadata Analysis",
+    description: "Detailed examination of file metadata to uncover hidden manipulation traces.",
+  },
+  {
+    icon: Users,
+    title: "Community Forum",
+    description: "Join discussions about deepfakes and AI-generated media detection.",
+  },
+  {
+    icon: FileText,
+    title: "AI Generated Content Detection",
+    description: "Identify AI-generated text content with state-of-the-art language models.",
+  },
+  {
+    icon: Thermometer,
+    title: "Gradcam Heatmaps",
+    description: "Visualize areas of interest in images using gradient-weighted class activation mapping.",
+  },
+  {
+    icon: Search,
+    title: "Error Level Analysis",
+    description: "Detect image manipulation by analyzing compression error levels.",
+  },
+  {
+    icon: Archive,
+    title: "Public Deepfake Archive",
+    description: "Access a curated collection of known deepfakes for research and education.",
+  },
+]
 
 export default function Home() {
-  
+  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const nextSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex + 1) % (services.length - 2))
+  }
+
+  const prevSlide = () => {
+    setCurrentIndex((prevIndex) => (prevIndex - 1 + services.length - 2) % (services.length - 2))
+  }
+
   return (
     <Layout>
       <main className="p-6">
         <section className="mb-12 animate-fadeInUp">
           <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
             <div className="max-w-5xl mx-auto text-center">
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-              >
+              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-6 text-gray-900 dark:text-gray-100">
                   Detect Deepfakes with
                   <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
-                    {" "}Unmatched Precision
+                    {" "}
+                    Unmatched Precision
                   </span>
                 </h1>
                 <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
@@ -51,7 +89,39 @@ export default function Home() {
           </div>
         </section>
 
-        
+        <section className="mb-12 animate-fadeInUp animate-delay-100">
+        <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-5 text-gray-900 dark:text-gray-100">
+                  Our Services
+                </h2>
+          {/* <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate"> */}
+            <div className="relative">
+              <div className="flex justify-between items-center mb-4">
+                
+                <div className="flex space-x-2">
+                  <Button variant="outline" size="icon" onClick={prevSlide} className="bg-white dark:bg-gray-800">
+                    <ChevronLeft className="h-4 w-4" />
+                  </Button>
+                  <Button variant="outline" size="icon" onClick={nextSlide} className="bg-white dark:bg-gray-800">
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              {/* </div> */}
+              <div className="flex space-x-4 overflow-hidden">
+                {services.slice(currentIndex, currentIndex + 3).map((service, index) => (
+                  <Card key={index} className="w-1/3 flex-shrink-0">
+                    <CardHeader>
+                      <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
+                      <CardTitle>{service.title}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
 
         <section className="mb-12 animate-fadeInUp animate-delay-200">
           <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
@@ -77,7 +147,7 @@ export default function Home() {
                 },
               ].map((item) => (
                 <div key={item.step} className="relative">
-                  <motion.div 
+                  <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5 }}
@@ -190,3 +260,4 @@ export default function Home() {
     </Layout>
   )
 }
+
