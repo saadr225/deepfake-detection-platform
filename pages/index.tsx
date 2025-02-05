@@ -110,71 +110,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mb-12 animate-fadeInUp animate-delay-100">
-  <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-6 text-center text-gray-900 dark:text-gray-100">
-    Our Services
-  </h2>
-  <div className="relative max-w-screen-lg w-full px-12">
-    <div
-      ref={sliderRef}
-      className="flex overflow-x-auto gap-6 pb-4 snap-x snap-mandatory scrollbar-hide"
-      style={{
-        scrollbarWidth: "none",
-        msOverflowStyle: "none",
-        margin: "0 auto",
-        maxWidth: "calc(100vw - 4rem)", // Account for padding
-      }}
-    >
-      {services.map((service, index) => (
-        <div
-          key={index}
-          className="flex-shrink-0 w-full max-w-[calc(33.333%-1rem)]" // Set width to one-third minus gap
-          style={{
-            flex: "0 0 calc(33.333% - 1rem)", // Force each card to take exactly one-third of space
-          }}
-        >
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: index * 0.1 }}
-          >
-            <div className="rounded-xl bg-white dark:bg-gray-800 p-6 shadow-md hover-elevate h-full mx-2">
-              <service.icon className="h-12 w-12 mb-4 text-blue-600 dark:text-blue-400" />
-              <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">
-                {service.title}
-              </h3>
-              <p className="text-gray-600 dark:text-gray-300 mb-4">
-                {service.description}
-              </p>
-              <Button
-                variant="link"
-                className="p-0 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
-              >
-                Learn more
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Button>
-            </div>
-          </motion.div>
-        </div>
-      ))}
-    </div>
-
-    <button
-      onClick={scrollLeft}
-      className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      style={{ zIndex: 20 }}
-    >
-      <ChevronRight className="h-6 w-6 transform rotate-180 text-gray-600 dark:text-gray-300" />
-    </button>
-    <button
-      onClick={scrollRight}
-      className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
-      style={{ zIndex: 20 }}
-    >
-      <ChevronRight className="h-6 w-6 text-gray-600 dark:text-gray-300" />
-    </button>
-  </div>
-</section>
+        
 
         <section className="mb-12 animate-fadeInUp animate-delay-200">
           <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
