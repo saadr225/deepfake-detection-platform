@@ -28,7 +28,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   if (!authInitialized || isLoading) {
     return (
-      <div className="flex justify-center items-center min-h-screen bg-background">
+      <div className="flex items-center min-h-screen bg-background">
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className="spinner"></div>
       </div>

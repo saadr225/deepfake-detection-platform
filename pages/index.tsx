@@ -4,9 +4,9 @@ import { useState } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Search, Users, ChevronRight, FileText, Thermometer, Archive } from "lucide-react"
+import { Shield, Search, Users, ChevronRight, ChevronLeft, FileText, Thermometer, Archive } from "lucide-react"
 import Layout from "../components/Layout"
-import { motion } from "framer-motion"
+import { motion, AnimatePresence } from "framer-motion"
 
 const services = [
   {
@@ -47,15 +47,29 @@ const services = [
 ]
 
 export default function Home() {
-  const [currentIndex, setCurrentIndex] = useState(0)
+
+  const [currentPage, setCurrentPage] = useState(0)
+  const cardsPerPage = 3
+  const totalPages = Math.ceil(services.length / cardsPerPage)
 
   const nextSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex + 1) % services.length)
+    setCurrentPage((prev) => (prev + 1) % totalPages)
   }
 
   const prevSlide = () => {
-    setCurrentIndex((prevIndex) => (prevIndex - 1 + services.length) % services.length)
+    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages)
   }
+
+
+  // const [currentIndex, setCurrentIndex] = useState(0)
+
+  // const nextSlide = () => {
+  //   setCurrentIndex((prevIndex) => (prevIndex + 1) % services.length)
+  // }
+
+  // const prevSlide = () => {
+  //   setCurrentIndex((prevIndex) => (prevIndex - 1 + services.length) % services.length)
+  // }
 
   // useEffect(() => {
   //   const timer = setInterval(() => {
@@ -98,27 +112,68 @@ export default function Home() {
         </section>
 
         <section className="mb-12 animate-fadeInUp animate-delay-100">
-          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-5 text-gray-900 dark:text-gray-100 text-center">
-            Our Services
-          </h2>
-          <div className="relative">
-            <div className="flex overflow-x-auto space-x-4 pb-4 scrollbar-hide">
-              {services.map((service, index) => (
-                <Card key={index} className="flex-shrink-0 w-[280px] sm:w-[320px] bg-white dark:bg-gray-800">
-                  <CardHeader>
-                    <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
-                    <CardTitle>{service.title}</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
-                  </CardContent>
-                </Card>
-              ))}
+          <div className="flex items-center justify-between mb-5">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={prevSlide}
+              className="h-10 w-10 rounded-full"
+              aria-label="Previous slide"
+              disabled={currentPage === 0}
+            >
+              <ChevronLeft className="h-6 w-6" />
+            </Button>
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900 dark:text-gray-100 text-center">
+              Our Services
+            </h2>
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={nextSlide}
+              className="h-10 w-10 rounded-full"
+              aria-label="Next slide"
+              disabled={currentPage === totalPages - 1}
+            >
+              <ChevronRight className="h-6 w-6" />
+            </Button>
+          </div>
+          
+          <div className="relative overflow-hidden">
+            <div className="flex gap-4">
+              <AnimatePresence mode="wait">
+                <motion.div 
+                  key={currentPage}
+                  className="flex gap-4"
+                  initial={{ opacity: 1, x: 100 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -100 }}
+                  transition={{ duration: 0.3 }}
+                >
+                  {services
+                    .slice(
+                      currentPage * cardsPerPage,
+                      (currentPage * cardsPerPage) + cardsPerPage
+                    )
+                    .map((service, index) => (
+                      <Card
+                        key={currentPage * cardsPerPage + index}
+                        className="w-[280px] sm:w-[320px] bg-white dark:bg-gray-800"
+                      >
+                        <CardHeader>
+                          <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
+                          <CardTitle>{service.title}</CardTitle>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </motion.div>
+              </AnimatePresence>
             </div>
-            <div className="absolute top-0 bottom-0 left-0 bg-gradient-to-r from-background to-transparent w-12 z-10"></div>
-            <div className="absolute top-0 bottom-0 right-0 bg-gradient-to-l from-background to-transparent w-12 z-10"></div>
           </div>
         </section>
+
 
         <section className="mb-12 animate-fadeInUp animate-delay-200">
           <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
