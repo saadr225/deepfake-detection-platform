@@ -15,66 +15,7 @@ import Layout from '../components/Layout'
 import { motion } from 'framer-motion'
 
 export default function Home() {
-  const sliderRef = useRef<HTMLDivElement>(null)
-
-  const scrollLeft = () => {
-    if (sliderRef.current) {
-      const containerWidth = sliderRef.current.offsetWidth;
-      sliderRef.current.scrollBy({ 
-        left: -(containerWidth / 3), // Scroll exactly one card width
-        behavior: "smooth" 
-      });
-    }
-  };
   
-  const scrollRight = () => {
-    if (sliderRef.current) {
-      const containerWidth = sliderRef.current.offsetWidth;
-      sliderRef.current.scrollBy({ 
-        left: containerWidth / 3, // Scroll exactly one card width
-        behavior: "smooth" 
-      });
-    }
-  };
-
-  const services = [
-    {
-      icon: Shield,
-      title: "Deepfake Detection",
-      description: "Advanced AI algorithms to identify manipulated media with high accuracy.",
-    },
-    {
-      icon: Search,
-      title: "Metadata Analysis",
-      description: "Detailed examination of file metadata to uncover hidden manipulation traces.",
-    },
-    {
-      icon: Users,
-      title: "Community Forum",
-      description: "Join discussions about deepfakes and AI-generated media detection.",
-    },
-    {
-      icon: FileText,
-      title: "AI Generated Content Detection",
-      description: "Identify AI-generated text content with state-of-the-art language models.",
-    },
-    {
-      icon: Thermometer,
-      title: "Gradcam Heatmaps",
-      description: "Visualize areas of interest in images using gradient-weighted class activation mapping.",
-    },
-    {
-      icon: Search,
-      title: "Error Level Analysis",
-      description: "Detect image manipulation by analyzing compression error levels.",
-    },
-    {
-      icon: Archive,
-      title: "Public Deepfake Archive",
-      description: "Access a curated collection of known deepfakes for research and education.",
-    },
-  ]
-
   return (
     <Layout>
       <main className="p-6">
