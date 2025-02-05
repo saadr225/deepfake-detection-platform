@@ -346,6 +346,7 @@
   @apply transform rotate-180;
 }
 
+
 @keyframes fadeIn {
   from {
     opacity: 0;
