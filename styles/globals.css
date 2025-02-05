@@ -41,7 +41,7 @@
   }
 
   .dark {
-    --background: 0 0% 11%; /* Dark gray background like Spotify's dark mode */
+    --background: 0 0% 0%; /* Dark gray background like Spotify's dark mode */
     --foreground: 0 0% 100%; /* Pure white text */
     --card: 0 0 12%; /* Dark gray card background */
     --card-foreground: 210 40% 98%;

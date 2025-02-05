@@ -35,7 +35,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   return (
     <div
-      className={`min-h-screen fixed left-0 top-0 h-full bg-gray-200 dark:bg-black text-sidebar-foreground flex flex-col ${
+      className={`min-h-screen fixed left-0 top-0 h-full bg-gray-200 dark:bg-[#121212] text-sidebar-foreground flex flex-col ${
         isCollapsed ? "w-24" : "w-72"
       } transition-width duration-300 shadow-lg`}
     >

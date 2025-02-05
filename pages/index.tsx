@@ -1,75 +1,289 @@
+import { useRef } from "react"
+import Link from "next/link"
+import { Button } from "@/components/ui/button"
+import {
+  Shield,
+  Search,
+  Users,
+  ChevronRight,
+  ArrowRight,
+  FileText,
+  Thermometer,
+  Archive,
+} from "lucide-react"
 import Layout from '../components/Layout'
-import Link from 'next/link'
-import { ArrowRight, Shield, Search, Users } from 'lucide-react'
 import { motion } from 'framer-motion'
 
 export default function Home() {
+  const sliderRef = useRef<HTMLDivElement>(null)
+
+  const scrollLeft = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -400, behavior: "smooth" })
+    }
+  }
+
+  const scrollRight = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 400, behavior: "smooth" })
+    }
+  }
+
+  const services = [
+    {
+      icon: Shield,
+      title: "Deepfake Detection",
+      description: "Advanced AI algorithms to identify manipulated media with high accuracy.",
+    },
+    {
+      icon: Search,
+      title: "Metadata Analysis",
+      description: "Detailed examination of file metadata to uncover hidden manipulation traces.",
+    },
+    {
+      icon: Users,
+      title: "Community Forum",
+      description: "Join discussions about deepfakes and AI-generated media detection.",
+    },
+    {
+      icon: FileText,
+      title: "AI Generated Content Detection",
+      description: "Identify AI-generated text content with state-of-the-art language models.",
+    },
+    {
+      icon: Thermometer,
+      title: "Gradcam Heatmaps",
+      description: "Visualize areas of interest in images using gradient-weighted class activation mapping.",
+    },
+    {
+      icon: Search,
+      title: "Error Level Analysis",
+      description: "Detect image manipulation by analyzing compression error levels.",
+    },
+    {
+      icon: Archive,
+      title: "Public Deepfake Archive",
+      description: "Access a curated collection of known deepfakes for research and education.",
+    },
+  ]
+
   return (
     <Layout>
-      <section className="bg-background text-foreground">
-        <div className="max-w-7xl mx-auto py-24 px-4 sm:px-6 lg:px-8">
-          <motion.div 
-            className="text-center"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-5xl font-bold text-primary sm:text-6xl sm:tracking-tight lg:text-7xl mb-6">
-              Detect Deepfakes with Confidence
-            </h1>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-muted-foreground">
-              Our advanced AI-powered platform helps you identify and analyze deepfakes and AI-generated media.
-            </p>
-            <div className="mt-10">
-              <Link
-                href="/detect"
-                className="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-primary-foreground bg-primary hover:bg-primary/90 transition-colors duration-200"
-              >
-                Get Started
-                <ArrowRight className="ml-2 -mr-1 h-5 w-5" />
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
-
-      <section className="bg-background text-foreground py-20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-16">
-            <h2 className="text-3xl font-bold text-primary sm:text-4xl">
-              Our Key Features
-            </h2>
-            <p className="mt-4 max-w-2xl mx-auto text-xl text-muted-foreground">
-              Cutting-edge technology to protect you from digital deception
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-3">
-            {[
-              { icon: Shield, title: "Deepfake and AI Detection", description: "Advanced AI algorithms to identify manipulated media with high accuracy." },
-              { icon: Search, title: "Metadata Analysis", description: "Detailed examination of file metadata to uncover hidden manipulation traces." },
-              { icon: Users, title: "Community Forum", description: "Detailed Discussions regarding Deepfakes and AI-generated media." },
-            ].map((feature, index) => (
+      <main className="p-6 ">
+        <section className="mb-12 animate-fadeInUp">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
+            <div className="max-w-5xl mx-auto text-center">
               <motion.div 
-                key={feature.title}
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
+                transition={{ duration: 0.5 }}
               >
-                <div className="flex flex-col items-center">
-                  <div className="flex items-center justify-center w-16 h-16 rounded-full bg-primary text-primary-foreground mb-6">
-                    <feature.icon className="h-8 w-8" aria-hidden="true" />
-                  </div>
-                  <h3 className="text-xl font-semibold text-primary mb-3">{feature.title}</h3>
-                  <p className="text-center text-muted-foreground">
-                    {feature.description}
-                  </p>
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-6 text-gray-900 dark:text-gray-100">
+                  Detect Deepfakes with
+                  <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                    {" "}Unmatched Precision
+                  </span>
+                </h1>
+                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                  Our advanced AI-powered platform helps you identify and analyze deepfakes and AI-generated media with
+                  industry-leading accuracy.
+                </p>
+                <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                  <Button
+                    size="lg"
+                    className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+                  >
+                    Try it now
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
                 </div>
               </motion.div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-12 animate-fadeInUp animate-delay-100">
+          <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-6 text-center text-gray-900 dark:text-gray-100">
+            Our Services
+          </h2>
+          <div className="relative max-w-screen-lg">
+            <div
+              ref={sliderRef}
+              className="flex overflow-x-auto gap-8 pb-4 snap-x snap-mandatory scrollbar-hide"
+              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+            >
+              {services.map((service, index) => (
+                <div key={index} className="flex-shrink-0 w-[280px] sm:w-[300px] snap-center">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5, delay: index * 0.1 }}
+                  >
+                    <div className="rounded-xl bg-white dark:bg-gray-800 p-6 shadow-md hover-elevate h-full">
+                      <service.icon className="h-12 w-12 mb-4 text-blue-600 dark:text-blue-400" />
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">{service.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4">{service.description}</p>
+                      <Button
+                        variant="link"
+                        className="p-0 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+                      >
+                        Learn more
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </motion.div>
+                </div>
+              ))}
+            </div>
+            <button
+              onClick={scrollLeft}
+              className="absolute left-0 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md z-10"
+            >
+              <ChevronRight className="h-6 w-6 transform rotate-180 text-gray-600 dark:text-gray-300" />
+            </button>
+            <button
+              onClick={scrollRight}
+              className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-white dark:bg-gray-800 rounded-full p-2 shadow-md z-10"
+            >
+              <ChevronRight className="h-6 w-6 text-gray-600 dark:text-gray-300" />
+            </button>
+          </div>
+        </section>
+
+        <section className="mb-12 animate-fadeInUp animate-delay-200">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-6 text-center text-gray-900 dark:text-gray-100">
+              How It Works
+            </h2>
+            <div className="grid gap-8 md:grid-cols-3">
+              {[
+                {
+                  step: "01",
+                  title: "Upload Media",
+                  description: "Upload any image, video, or text content you want to analyze",
+                },
+                {
+                  step: "02",
+                  title: "Advanced Analysis",
+                  description: "Our AI performs multiple detection techniques simultaneously",
+                },
+                {
+                  step: "03",
+                  title: "Detailed Results",
+                  description: "Get comprehensive results with confidence scores and visual explanations",
+                },
+              ].map((item) => (
+                <div key={item.step} className="relative">
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    <div className="relative z-20 rounded-xl bg-gray-50 dark:bg-gray-700 p-6 pl-16">
+                      <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-blue-600 dark:bg-blue-500 flex items-center justify-center">
+                        <span className="text-xl font-bold text-white">{item.step}</span>
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">{item.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-300">{item.description}</p>
+                    </div>
+                  </motion.div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        <section className="mb-12 animate-fadeInUp animate-delay-300">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-lg hover-elevate">
+            <div className="grid gap-8 md:grid-cols-3">
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
+                  1M+
+                </div>
+                <div className="text-gray-600 dark:text-gray-300">Media Files Analyzed</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-purple-400 to-pink-600 bg-clip-text text-transparent">
+                  99.8%
+                </div>
+                <div className="text-gray-600 dark:text-gray-300">Detection Accuracy</div>
+              </div>
+              <div className="text-center">
+                <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-pink-400 to-red-600 bg-clip-text text-transparent">
+                  50K+
+                </div>
+                <div className="text-gray-600 dark:text-gray-300">Active Users</div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="animate-fadeInUp">
+          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 text-center shadow-lg hover-elevate">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4 text-gray-900 dark:text-gray-100">
+              Start Detecting AI-Generated Content Today
+            </h2>
+            <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-2xl mx-auto">
+              Join thousands of users who trust our platform for reliable AI content detection
+            </p>
+            <Button
+              size="lg"
+              className="bg-blue-600 text-white hover:bg-blue-700 dark:bg-blue-500 dark:hover:bg-blue-600"
+            >
+              Get Started Free
+              <ChevronRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
+        </section>
+      </main>
+
+      <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
+        <div className="container mx-auto px-4 py-10">
+          <div className="grid gap-8 md:grid-cols-4">
+            <div>
+              <Link href="/" className="text-2xl font-bold mb-4 block text-gray-900 dark:text-gray-100">
+                DMI
+              </Link>
+              <p className="text-sm text-gray-600 dark:text-gray-300">
+                Protecting digital authenticity through advanced AI detection technology.
+              </p>
+            </div>
+            {[
+              {
+                title: "Product",
+                items: ["Features", "Pricing", "API", "Documentation"],
+              },
+              {
+                title: "Company",
+                items: ["About", "Blog", "Careers", "Press"],
+              },
+              {
+                title: "Legal",
+                items: ["Privacy", "Terms", "Security", "Contact"],
+              },
+            ].map((section) => (
+              <div key={section.title}>
+                <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">{section.title}</h3>
+                <ul className="space-y-2">
+                  {section.items.map((item) => (
+                    <li key={item}>
+                      <Link
+                        href="#"
+                        className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
+                      >
+                        {item}
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              </div>
             ))}
           </div>
+          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-600 dark:text-gray-300">
+            © 2024 Deep Media Inspection. All rights reserved.
+          </div>
         </div>
-      </section>
+      </footer>
     </Layout>
   )
 }
