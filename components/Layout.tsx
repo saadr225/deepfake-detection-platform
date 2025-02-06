@@ -37,7 +37,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen bg-background">
+    <div className="flex min-h-screen h-full bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <main
         className={`flex-1 transition-all duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}

@@ -35,19 +35,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   return (
     <div
-      className={`min-h-screen fixed left-0 top-0 h-full bg-gray-200 dark:bg-[#121212] text-sidebar-foreground flex flex-col z-50 ${
-        isCollapsed ? "w-24" : "w-72"
-      } transition-width duration-300 shadow-lg sm:relative`}
-    >
+  className={`fixed left-0 top-0 bottom-0 bg-gray-200 dark:bg-[#121212] text-sidebar-foreground flex flex-col z-50 ${
+    isCollapsed ? "w-24" : "w-72"
+  } transition-width duration-300 shadow-lg sm:relative`}
+>
       <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
         <div className="flex items-center justify-center w-full">
           <Image src="/assets/logo.jpg" alt="DMI Logo" width={isCollapsed ? 40 : 60} height={40} />
+          
         </div>
-      </div>
-
-      <button
+        <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className="absolute right-0 top-1/2 transform -translate-y-1/2 bg-sidebar-accent p-2 rounded-full hover:bg-sidebar-accent-foreground transition-colors duration-200"
+        className=" right-0 top-1/2 transform -translate-y-1/8 bg-sidebar-accent p-2 rounded-full hover:bg-sidebar-accent-foreground transition-colors duration-200"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? (
@@ -56,9 +55,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           <ChevronLeft className="h-5 w-5 text-sidebar-foreground" />
         )}
       </button>
+      </div>
+
+      
 
       <nav className="flex-1 overflow-y-auto">
-        <div className="space-y-2 p-2">
+        <div className="space-y-2 ml-2 p-2">
           {menuItems.map(
             (item) =>
               (!item.auth || user) && (
