@@ -57,8 +57,6 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </button>
       </div>
 
-      
-
       <nav className="flex-1 overflow-y-auto">
         <div className="space-y-2 ml-2 p-2">
           {menuItems.map(
@@ -93,7 +91,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
         </div>
 
-        <div className="p-2 mt-auto space-y-2">
+        <div className="p-2 mt-auto ml-1 space-y-2">
           {user ? (
             <button
               onClick={logout}
@@ -167,7 +165,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
 
           {/* Theme Toggle */}
-          <div className="p-2">
+          <div className="p-2 ml-1">
             <ThemeToggle isCollapsed={isCollapsed} />
           </div>
         </div>
