@@ -1,10 +1,10 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useRef } from "react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Shield, Search, Users, ChevronRight, ChevronLeft, FileText, Thermometer, Archive } from "lucide-react"
+import { Shield, Search, Users, ChevronRight, ChevronLeft, FileText, Thermometer, Archive, ArrowRight } from "lucide-react"
 import Layout from "../components/Layout"
 import { motion, AnimatePresence } from "framer-motion"
 
@@ -48,52 +48,36 @@ const services = [
 
 export default function Home() {
 
-  const [currentPage, setCurrentPage] = useState(0)
-  const cardsPerPage = 3
-  const totalPages = Math.ceil(services.length / cardsPerPage)
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true)
+  const sliderRef = useRef<HTMLDivElement>(null)
 
-  const nextSlide = () => {
-    setCurrentPage((prev) => (prev + 1) % totalPages)
+  const scrollLeft = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: -300, behavior: "smooth" })
+    }
   }
 
-  const prevSlide = () => {
-    setCurrentPage((prev) => (prev - 1 + totalPages) % totalPages)
+  const scrollRight = () => {
+    if (sliderRef.current) {
+      sliderRef.current.scrollBy({ left: 300, behavior: "smooth" })
+    }
   }
-
-
-  // const [currentIndex, setCurrentIndex] = useState(0)
-
-  // const nextSlide = () => {
-  //   setCurrentIndex((prevIndex) => (prevIndex + 1) % services.length)
-  // }
-
-  // const prevSlide = () => {
-  //   setCurrentIndex((prevIndex) => (prevIndex - 1 + services.length) % services.length)
-  // }
-
-  // useEffect(() => {
-  //   const timer = setInterval(() => {
-  //     nextSlide()
-  //   }, 5000) // Change slide every 5 seconds
-
-  //   return () => clearInterval(timer)
-  // }, [])
 
   return (
     <Layout>
       <main className="p-6">
         <section className="mb-12 animate-fadeInUp">
-          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
+          <div className="rounded-2xl bg-gradient-to-l from-blue-200 to-purple-200 dark:from-blue-200 dark:to-purple-400 p-8 md:p-12 shadow-lg hover-elevate">
             <div className="max-w-5xl mx-auto text-center">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-6 text-gray-900 dark:text-gray-100">
+                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-6 text-gray-900 ">
                   Detect Deepfakes with
                   <span className="bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
                     {" "}
                     Unmatched Precision
                   </span>
                 </h1>
-                <p className="text-xl text-gray-600 dark:text-gray-300 mb-8 max-w-3xl mx-auto">
+                <p className="text-xl text-gray-600  mb-8 max-w-3xl mx-auto">
                   Our advanced AI-powered platform helps you identify and analyze deepfakes and AI-generated media with
                   industry-leading accuracy.
                 </p>
@@ -112,71 +96,54 @@ export default function Home() {
         </section>
 
         <section className="mb-12 animate-fadeInUp animate-delay-100">
-          <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-5">
             <Button
               variant="ghost"
-              size="icon"
-              onClick={prevSlide}
-              className="h-10 w-10 rounded-full"
-              aria-label="Previous slide"
-              disabled={currentPage === 0}
+              size="sm"
+              onClick={scrollLeft}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              <ChevronLeft className="h-6 w-6" />
+              <ChevronLeft className="h-5 w-5" />
             </Button>
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-gray-900 dark:text-gray-100 text-center">
               Our Services
             </h2>
             <Button
               variant="ghost"
-              size="icon"
-              onClick={nextSlide}
-              className="h-10 w-10 rounded-full"
-              aria-label="Next slide"
-              disabled={currentPage === totalPages - 1}
+              size="sm"
+              onClick={scrollRight}
+              className="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200"
             >
-              <ChevronRight className="h-6 w-6" />
+              <ChevronRight className="h-5 w-5" />
             </Button>
           </div>
-          
-          <div className="relative overflow-hidden">
-            <div className="flex gap-4">
-              <AnimatePresence mode="wait">
-                <motion.div 
-                  key={currentPage}
-                  className="flex gap-4"
-                  initial={{ opacity: 1, x: 100 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  exit={{ opacity: 0, x: -100 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  {services
-                    .slice(
-                      currentPage * cardsPerPage,
-                      (currentPage * cardsPerPage) + cardsPerPage
-                    )
-                    .map((service, index) => (
-                      <Card
-                        key={currentPage * cardsPerPage + index}
-                        className="w-[280px] sm:w-[320px] bg-white dark:bg-gray-800"
+            <div className="relative">
+              <div
+                ref={sliderRef}
+                className="flex overflow-x-auto gap-8 pb-4 pl-2 pt-2 snap-x snap-mandatory scrollbar-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {services.map((service, index) => (
+                  <div key={index} className="flex-shrink-0 w-[280px] sm:w-[340px] snap-center">
+                    <div className="rounded-xl bg-gray-200 dark:bg-gray-800 p-6 shadow-md hover-elevate  h-full">
+                      <service.icon className="h-12 w-12 mb-4 text-blue-600 dark:text-blue-400" />
+                      <h3 className="text-xl font-semibold mb-2 text-gray-900 dark:text-gray-100">{service.title}</h3>
+                      <p className="text-gray-600 dark:text-gray-300 mb-4">{service.description}</p>
+                      <Button
+                        variant="link"
+                        className="p-0 text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
                       >
-                        <CardHeader>
-                          <service.icon className="h-8 w-8 mb-2 text-blue-600 dark:text-blue-400" />
-                          <CardTitle>{service.title}</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <p className="text-gray-600 dark:text-gray-300">{service.description}</p>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </motion.div>
-              </AnimatePresence>
+                        Learn more
+                        <ArrowRight className="ml-2 h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
             </div>
-          </div>
-        </section>
-
-
+          </section>
         <section className="mb-12 animate-fadeInUp animate-delay-200">
-          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate">
+          <div className="rounded-2xl bg-gray-200 dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate ">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-6 text-center text-gray-900 dark:text-gray-100">
               How It Works
             </h2>
@@ -219,7 +186,7 @@ export default function Home() {
         </section>
 
         <section className="mb-12 animate-fadeInUp animate-delay-300">
-          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 shadow-lg hover-elevate">
+          <div className="rounded-2xl bg-gray-200 dark:bg-gray-800 p-8 shadow-lg hover-elevate ">
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">
                 <div className="text-4xl font-bold mb-2 bg-gradient-to-r from-blue-400 to-purple-600 bg-clip-text text-transparent">
@@ -244,7 +211,7 @@ export default function Home() {
         </section>
 
         <section className="animate-fadeInUp">
-          <div className="rounded-2xl bg-white dark:bg-gray-800 p-8 md:p-12 text-center shadow-lg hover-elevate">
+          <div className="rounded-2xl bg-gray-200 dark:bg-gray-800 p-8 md:p-12 text-center shadow-lg hover-elevate ">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4 text-gray-900 dark:text-gray-100">
               Start Detecting AI-Generated Content Today
             </h2>
@@ -261,54 +228,6 @@ export default function Home() {
           </div>
         </section>
       </main>
-
-      <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div className="container mx-auto px-4 py-10">
-          <div className="grid gap-8 md:grid-cols-4">
-            <div>
-              <Link href="/" className="text-2xl font-bold mb-4 block text-gray-900 dark:text-gray-100">
-                DMI
-              </Link>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Protecting digital authenticity through advanced AI detection technology.
-              </p>
-            </div>
-            {[
-              {
-                title: "Product",
-                items: ["Features", "Pricing", "API", "Documentation"],
-              },
-              {
-                title: "Company",
-                items: ["About", "Blog", "Careers", "Press"],
-              },
-              {
-                title: "Legal",
-                items: ["Privacy", "Terms", "Security", "Contact"],
-              },
-            ].map((section) => (
-              <div key={section.title}>
-                <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">{section.title}</h3>
-                <ul className="space-y-2">
-                  {section.items.map((item) => (
-                    <li key={item}>
-                      <Link
-                        href="#"
-                        className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-600 dark:text-gray-300">
-            © 2024 Deep Media Inspection. All rights reserved.
-          </div>
-        </div>
-      </footer>
     </Layout>
   )
 }
