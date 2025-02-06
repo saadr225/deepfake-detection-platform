@@ -29,7 +29,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   if (!authInitialized || isLoading) {
     return (
-      <div className="flex items-center min-h-screen bg-background">
+      <div className="flex min-h-screen h-full bg-background">
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className="spinner"></div>
       </div>
@@ -39,10 +39,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen h-full bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <main
-        className={`flex-1 transition-all duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}
-      >
-        {children}
+      <div className={`flex-1 transition-[margin] duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}>
+  <main className="p-4">
+    {children}
+  </main>
         <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
         <div className="container mx-auto px-4 py-10">
           <div className="grid gap-8 md:grid-cols-4">
@@ -90,7 +90,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
           </div>
         </div>
       </footer>
-      </main>
+    </div>
     </div>
   )
 }

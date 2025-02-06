@@ -39,14 +39,14 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     isCollapsed ? "w-24" : "w-72"
   } transition-width duration-300 shadow-lg sm:relative`}
 >
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
+      <div className="flex items-center justify-between p-4 border-b border-sidebar-border mb-2">
         <div className="flex items-center justify-center w-full">
           <Image src="/assets/logo.jpg" alt="DMI Logo" width={isCollapsed ? 40 : 60} height={40} />
           
         </div>
         <button
         onClick={() => setIsCollapsed(!isCollapsed)}
-        className=" right-0 top-1/2 transform -translate-y-1/8 bg-sidebar-accent p-2 rounded-full hover:bg-sidebar-accent-foreground transition-colors duration-200"
+        className="absolute right-[-20px] top-[20px] transform bg-sidebar-accent p-2 rounded-lg hover:bg-gray-400 dark:hover:bg-sidebar-accent/70 transition-colors duration-200"
         aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
       >
         {isCollapsed ? (

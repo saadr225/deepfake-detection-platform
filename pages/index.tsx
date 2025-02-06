@@ -95,7 +95,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mb-12 animate-fadeInUp animate-delay-100">
+        <section className="mb-12 animate-fadeInUp ">
         <div className="flex items-center justify-between mb-5">
             <Button
               variant="ghost"
@@ -142,7 +142,7 @@ export default function Home() {
               </div>
             </div>
           </section>
-        <section className="mb-12 animate-fadeInUp animate-delay-200">
+        <section className="mb-12 animate-fadeInUp ">
           <div className="rounded-2xl bg-gray-200 dark:bg-gray-800 p-8 md:p-12 shadow-lg hover-elevate ">
             <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-6 text-center text-gray-900 dark:text-gray-100">
               How It Works
@@ -185,7 +185,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="mb-12 animate-fadeInUp animate-delay-300">
+        <section className="mb-12 animate-fadeInUp">
           <div className="rounded-2xl bg-gray-200 dark:bg-gray-800 p-8 shadow-lg hover-elevate ">
             <div className="grid gap-8 md:grid-cols-3">
               <div className="text-center">

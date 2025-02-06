@@ -30,7 +30,8 @@
     /* Sidebar variables for light mode */
     --sidebar-background: 0 0% 95%;
     --sidebar-foreground: 0 0% 30%;
-    --sidebar-border: 214.3 31.8% 91.4%;
+    --sidebar-border: 0 0% 70%;
+    /* --sidebar-border: 214.3 31.8% 91.4%; */
     --sidebar-accent: 210 20% 86.1%;
     --sidebar-accent-foreground: 222.2 47.4% 11.2%;
     --chart-1: 12 76% 61%;
