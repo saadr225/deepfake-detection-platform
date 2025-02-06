@@ -67,7 +67,7 @@ export default function Home() {
     <Layout>
       <main className="p-6">
         <section className="mb-12 animate-fadeInUp">
-          <div className="rounded-2xl bg-gradient-to-l from-blue-200 to-purple-200 dark:from-blue-200 dark:to-purple-400 p-8 md:p-12 shadow-lg hover-elevate">
+          <div className="rounded-2xl bg-gradient-to-l from-blue-200 to-purple-200 dark:from-blue-300 dark:to-purple-300 p-8 md:p-12 shadow-lg hover-elevate">
             <div className="max-w-5xl mx-auto text-center">
               <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                 <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-6 text-gray-900 ">

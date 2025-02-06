@@ -58,7 +58,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
       </div>
 
       <nav className="flex-1 overflow-y-auto">
-        <div className="space-y-2 ml-2 p-2">
+        <div className="space-y-2 ml-1 p-2 pr-5">
+        {/* <div className={`space-y-2  p-2 ${isCollapsed ? "ml-4 w-16" : "ml-2"}`}> */}
           {menuItems.map(
             (item) =>
               (!item.auth || user) && (
@@ -91,7 +92,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
         </div>
 
-        <div className="p-2 mt-auto ml-1 space-y-2">
+        <div className="p-2 mt-auto ml-1 pr-5 space-y-2">
           {user ? (
             <button
               onClick={logout}
@@ -173,4 +174,3 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     </div>
   )
 }
-
