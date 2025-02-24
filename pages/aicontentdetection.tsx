@@ -16,7 +16,7 @@ import axios from 'axios';
 export default function AIContentDetectionPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { addDetectionEntry } = useDetectionHistory();
+  //const { addDetectionEntry } = useDetectionHistory();
 
   const [activeTab, setActiveTab] = useState('media');
   const [file, setFile] = useState<File | null>(null);
@@ -111,13 +111,11 @@ export default function AIContentDetectionPage() {
 
   // Analysis handler for images and text
   const handleAnalyze = async () => {
-    // If neither file nor text is provided, do nothing
     if (!file && !text.trim()) return;
 
     setIsAnalyzing(true);
     setAnalysisProgress(0);
 
-    // Simulate progress
     const progressInterval = setInterval(() => {
       setAnalysisProgress((prev) => {
         if (prev >= 90) {
@@ -131,16 +129,13 @@ export default function AIContentDetectionPage() {
     try {
       let detectionResult: any;
 
-      // If analyzing an image (similar to detect.tsx logic)
       if (file) {
-        // Provide logic for uploading and analyzing the image
         const uploadFile = async (token: string) => {
           const formData = new FormData();
           formData.append('file', file as File);
 
-          // Adjust the endpoint as needed for AI content detection
           const response = await axios.post(
-            'http://127.0.0.1:8000/api/process/df/',
+            'http://127.0.0.1:8000/api/process/ai/',
             formData,
             {
               headers: {
@@ -163,11 +158,9 @@ export default function AIContentDetectionPage() {
           return;
         }
 
-        // Attempt upload
         try {
           response = await uploadFile(accessToken);
         } catch (error) {
-          // Handle token expiry
           if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
             const refreshToken = Cookies.get('refreshToken');
             if (refreshToken) {
@@ -198,50 +191,52 @@ export default function AIContentDetectionPage() {
           }
         }
 
-        // Upload and detection was successful
         clearInterval(progressInterval);
         setAnalysisProgress(100);
         setIsAnalyzing(false);
 
         detectionResult = response?.data?.data;
       } else {
-        // Dummy detection logic for text
         clearInterval(progressInterval);
         setAnalysisProgress(100);
         setIsAnalyzing(false);
 
-        // Use the same data structure used in your detection results
         detectionResult = {
+          id: 1,
+          media_upload: 1,
+          is_generated: true,
+          confidence_score: 0.95,
           analysis_report: {
-            media_path: '',         // No image path
-            media_type: 'text',     // Indicate text
-          },
-          confidence_score: 0.95,   // Dummy confidence
-          is_deepfake: false,      // Or isAIGenerated, depending on your schema
-          text_analyzed: text      // Extra field to show text was processed
+            file_id: 'dummy_text',
+            media_path: '',
+            gradcam_path: '',
+            prediction: 'fake',
+            confidence: 0.95
+          }
         };
       }
 
-      // Prepare detection entry
       const detectionEntry = {
-        imageUrl: detectionResult.analysis_report.media_path, // empty for text
-        mediaType: detectionResult.analysis_report.media_type, 
+        imageUrl: detectionResult.analysis_report.media_path,
+        mediaType: 'Image' as const,
         confidence: detectionResult.confidence_score,
-        isDeepfake: detectionResult.is_deepfake,
+        isDeepfake: detectionResult.is_generated,
         detailedReport: detectionResult,
         detectionType: 'ai-content' as const,
-        ...(text && { textContent: text })  // If text was analyzed
+        ...(text && { textContent: text })
       };
 
-      // If user is logged in, save to detection history
-      if (user) {
-        addDetectionEntry(detectionEntry);
-      }
+      // if (user) {
+      //   addDetectionEntry(detectionEntry);
+      // }
 
-      // Navigate to results page with the detection result
+      // Store in sessionStorage
+      sessionStorage.setItem('aiContentResult', JSON.stringify(detectionResult));
+      
+      // Navigate to results page with only a flag
       router.push({
         pathname: '/aicontentreport',
-        query: { detectionResult: JSON.stringify(detectionResult) }
+        query: { fromDetection: 'true' }
       });
     } catch (error) {
       console.error('Detection analysis error:', error);

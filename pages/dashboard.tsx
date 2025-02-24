@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useUser } from '../contexts/UserContext';
 import { DetectionEntry, useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { useRouter } from 'next/router';
-import { Eye, Trash2, Trash } from 'lucide-react';
+import { Eye, Trash2, Trash, ChevronDown } from 'lucide-react';
 import axios from 'axios';
 import {
   AlertDialog,
@@ -27,7 +27,7 @@ import {
 export default function Dashboard() {
   const router = useRouter();
   const { user, updateProfile, changePassword } = useUser();
-  const { detectionHistory, deleteDetectionEntry, clearDetectionHistory } = useDetectionHistory();
+  const { detectionHistory, deleteDetectionEntry, clearDetectionHistory, fetchDetectionHistory } = useDetectionHistory();
 
   // State for profile
   const [username, setUsername] = useState(user?.username || '');
@@ -48,24 +48,32 @@ export default function Dashboard() {
     }
   }, [user, router]);
 
+  useEffect(() => {
+    fetchDetectionHistory();
+  }, [fetchDetectionHistory]);
+
   // Handle view detection details
   const handleViewDetectionDetails = useCallback((entry: DetectionEntry) => {
-    if (entry.detectionType === 'deepfake') {
-      router.push({
-        pathname: '/deepfakereport',
-        query: {
-          detectionResult: JSON.stringify(entry.detailedReport),
-          fromHistory: true
-        }
-      });
-    } else if (entry.detectionType === 'ai-content') {
-      router.push({
-        pathname: '/aicontentreport',
-        query: {
-          detectionResult: JSON.stringify(entry.detailedReport),
-          fromHistory: true
-        }
-      });
+    if (entry.detailedReport) {
+      if (entry.detectionType === 'deepfake') {
+        router.push({
+          pathname: '/deepfakereport',
+          query: {
+            file_id: entry.detailedReport.analysis_report.file_id,
+            fromHistory: true
+          }
+        });
+      } else if (entry.detectionType === 'ai-content') {
+        router.push({
+          pathname: '/aicontentreport',
+          query: {
+            file_id: entry.detailedReport.analysis_report.file_id,
+            fromHistory: true
+          }
+        });
+      }
+    } else {
+      console.error('detailedReport is undefined for entry:', entry);
     }
   }, [router]);
 
@@ -331,77 +339,81 @@ export default function Dashboard() {
                     ) : (
                       <div className="space-y-4">                        
                         {detectionHistory.map((detection) => {
-
                           return (
                             <motion.div
                               key={detection.id}
-                              className="flex items-center justify-between border-b dark:border-gray-700 pb-4"
+                              className="flex flex-col border-b dark:border-gray-700 pb-4"
                               initial={{ opacity: 0, x: -20 }}
                               animate={{ opacity: 1, x: 0 }}
                               transition={{ duration: 0.3 }}
                             >
-                              {/* Detected Media Thumbnail */}
-                              <div className="flex items-center space-x-4">
-                                <div className="w-20 h-30 relative">
-                                  {detection.detailedReport?.analysis_report.media_type === 'Image' && (
-                                    <img
-                                      src={detection.detailedReport?.analysis_report.media_path}
-                                      alt="Detected Image"
-                                      className="object-cover rounded-md"
-                                    />
-                                  )}
-                                  {detection.detailedReport?.analysis_report.media_type === 'Video' && (
-                                    <video
-                                    src={detection.detailedReport?.analysis_report.media_path}
-                                      className="w-full h-20 object-cover rounded-md"
-                                      style={{ pointerEvents: 'none' }}
-                                    >
-                                      Your browser does not support the video tag.
-                                    </video>
-                                  )}
-                                  {detection.detailedReport?.analysis_report.media_type === 'unknown' && (
-                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
-                                      Unsupported Media
-                                    </div>
-                                  )}
-                                </div>
+                              <div className="flex items-center justify-between">
+                                {/* Detected Media Thumbnail */}
+                                <div className="flex items-center space-x-4">
+                                  <div className="w-20 h-30 relative">
+                                    {detection.detectionType === 'deepfake' && detection.detailedReport?.analysis_report.media_type === 'Image' && (
+                                      <img
+                                        src={'media_path' in detection.detailedReport.analysis_report 
+                                          ? detection.detailedReport.analysis_report.media_path
+                                          : detection.detailedReport.analysis_report.image_path}
+                                        alt="Detected Image"
+                                        className="object-cover rounded-md"
+                                      />
+                                    )}
+                                    {detection.detectionType === 'ai-content' && detection.detailedReport && 'media_path' in detection.detailedReport.analysis_report && (
+                                      <img
+                                        src={detection.detailedReport.analysis_report.media_path}
+                                        alt="Detected AI Image"
+                                        className="object-cover rounded-md"
+                                      />
+                                    )}
+                                    {detection.detectionType === 'deepfake' && detection.detailedReport?.analysis_report.media_type === 'Video' && 'media_path' in detection.detailedReport.analysis_report && (
+                                      <video
+                                        src={detection.detailedReport?.analysis_report.media_path}
+                                        className="w-full h-20 object-cover rounded-md"
+                                        style={{ pointerEvents: 'none' }}
+                                      >
+                                        Your browser does not support the video tag.
+                                      </video>
+                                    )}
+                                    {detection.detailedReport?.analysis_report.media_type === 'unknown' && (
+                                      <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
+                                        Unsupported Media
+                                      </div>
+                                    )}
+                                  </div>
 
-                                {/* Detection Details */}
-                                <div>
-                                  <h3 className="text-lg font-semibold">
-                                    Detection Result
-                                    <span
-                                      className={`ml-2 px-2 py-1 rounded text-xs ${
-                                        detection.isDeepfake
-                                          ? 'bg-red-500 text-white'
-                                          : 'bg-green-500 text-white'
-                                      }`}
-                                    >
-                                      {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
-                                        : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
-                                    </span>
-                                  </h3>
-                                  <p className="text-sm text-muted-foreground">
-                                    Date: {new Date(detection.date).toLocaleDateString()}
-                                  </p>
-                                  <p className="text-sm text-muted-foreground">
-                                    Confidence: {(detection.confidence * 100).toFixed(2)}%
-                                  </p>
+                                  {/* Detection Details */}
+                                  <div>
+                                    <h3 className="text-lg font-semibold">
+                                      Detection Result
+                                      <span
+                                        className={`ml-2 px-2 py-1 rounded text-xs ${
+                                          detection.isDeepfake
+                                            ? 'bg-red-500 text-white'
+                                            : 'bg-green-500 text-white'
+                                        }`}
+                                      >
+                                        {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
+                                          : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
+                                      </span>
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">
+                                      Date: {new Date(detection.date).toLocaleDateString()}
+                                    </p>
+                                    <p className="text-sm text-muted-foreground">
+                                      Confidence: {(detection.confidence * 100).toFixed(2)}%
+                                    </p>
+                                  </div>
                                 </div>
-                              </div>
-                              <div className="flex space-x-2">
-                                <Button
-                                  variant="outline"
-                                  onClick={() => handleViewDetectionDetails(detection)}
-                                >
-                                  <Eye className="mr-2 h-4 w-4" /> View
-                                </Button>
-                                <Button
-                                  variant="outline"
-                                  onClick={() => handleDeleteEntry(detection.id)}
-                                >
-                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                </Button>
+                                <div className="flex space-x-2">
+                                  <Button
+                                    variant="outline"
+                                    onClick={() => handleViewDetectionDetails(detection)}
+                                  >
+                                    <Eye className="mr-2 h-4 w-4" /> View
+                                  </Button>
+                                </div>
                               </div>
                             </motion.div>
                           );

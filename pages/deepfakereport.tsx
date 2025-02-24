@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Download, Share2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 interface FrameResult {
   frame_id: string;
@@ -50,12 +52,13 @@ interface DetectionResult {
   frames_analyzed: number;
   fake_frames: number;
   analysis_report: AnalysisReport; 
+  metadata?: Record<string, string>;
 }
 
 export default function DeepfakeReportPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { detectionHistory, addDetectionEntry } = useDetectionHistory();
+  const { detectionHistory } = useDetectionHistory(); //addDetectionEntry } = useDetectionHistory();
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: 0,
@@ -98,32 +101,102 @@ export default function DeepfakeReportPage() {
   }, [user, router]);
 
   useEffect(() => {
-    const { detectionResult } = router.query;
+    const { fromDetection, file_id, fromHistory } = router.query;
 
-    if (detectionResult) {
-      try {
-        const parsedResult = JSON.parse(detectionResult as string);
-        
-        const detectionEntry = {
-          imageUrl: parsedResult.analysis_report.media_path,
-          mediaType: parsedResult.analysis_report.media_type,
-          confidence: parsedResult.confidence_score,
-          isDeepfake: parsedResult.is_deepfake,
-          detailedReport: parsedResult,
-          detectionType: 'deepfake' as const
-        };
-
-        if (user) {
-          addDetectionEntry(detectionEntry);
+    const fetchData = async () => {
+      // Case 1: Coming directly from detection
+      if (fromDetection === 'true') {
+        const storedResult = sessionStorage.getItem('deepfakeResult');
+        if (storedResult) {
+          setAnalysisResult(JSON.parse(storedResult));
+          // Clear after using
+          sessionStorage.removeItem('deepfakeResult');
+        } 
+        // else {
+        //   console.error('No stored detection result found');
+        //   router.push('/detect');
+        // }
+      }
+      // Case 2: Coming from history with file_id
+      else if (file_id && fromHistory) {
+        try {
+          // Get the access token from cookies
+          let accessToken = Cookies.get('accessToken');
+          
+          if (!accessToken) {
+            alert('Please login first to view detection results.');
+            router.push('/login');
+            return;
+          }
+          
+          try {
+            // Try to fetch with current access token
+            const response = await axios.get(
+              `http://127.0.0.1:8000/api/detection/${file_id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`
+                }
+              }
+            );
+            
+            setAnalysisResult(response.data.data);
+          } catch (error) {
+            if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+              // Access token is expired, refresh the token
+              const refreshToken = Cookies.get('refreshToken');
+              
+              if (refreshToken) {
+                // Get a new access token using the refresh token
+                const refreshResponse = await axios.post(
+                  'http://127.0.0.1:8000/api/auth/refresh_token/',
+                  { refresh: refreshToken }
+                );
+                
+                accessToken = refreshResponse.data.access;
+                
+                // Store the new access token in cookies
+                if (accessToken) {
+                  Cookies.set('accessToken', accessToken);
+                  
+                  // Retry the fetch with the new access token
+                  const response = await axios.get(
+                    `http://127.0.0.1:8000/api/detection/${file_id}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${accessToken}`
+                      }
+                    }
+                  );
+                  
+                  setAnalysisResult(response.data.data);
+                } else {
+                  alert('Please login first to view detection results.');
+                  router.push('/login');
+                }
+              } else {
+                alert('Please login first to view detection results.');
+                router.push('/login');
+              }
+            } else {
+              console.error('Failed to fetch detection result:', error);
+              router.push('/detect');
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch detection result:', error);
+          router.push('/detect');
         }
-
-        setAnalysisResult(parsedResult);
-      } catch (error) {
-        console.error('Failed to parse detection result:', error);
+      } 
+      // Case 3: No valid source
+      else {
+        console.error('No valid detection result source');
         router.push('/detect');
       }
-    }
-  }, [router.query, user, addDetectionEntry]);
+    };
+
+    fetchData();
+  }, [router.query]);
 
   useEffect(() => {
     if (analysisResult.analysis_report.media_path) {
@@ -465,6 +538,51 @@ export default function DeepfakeReportPage() {
     );
   };
 
+  const renderMetadata = (metadata: Record<string, string>) => {
+    const groupedMetadata: Record<string, Record<string, string>> = {};
+
+    // Group metadata by category
+    Object.entries(metadata).forEach(([key, value]) => {
+      const [category, field] = key.split(':');
+      if (!groupedMetadata[category]) {
+        groupedMetadata[category] = {};
+      }
+      groupedMetadata[category][field] = value;
+    });
+
+    return (
+      <div className="metadata-container mt-8 space-y-6 bg-background border rounded-lg p-6 shadow-md">
+        <h2 className="text-2xl font-bold mb-4">File Metadata</h2>
+        {Object.entries(groupedMetadata).map(([category, fields]) => (
+          <div key={category} className="metadata-category mb-6">
+            <h3 className="text-lg font-semibold border-b pb-2 mb-3">{category}</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                {Object.entries(fields).map(([field, value]) => (
+                  <tr key={field} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="pr-4 py-2 font-medium w-1/3">{field}</td>
+                    <td className="py-2">
+                      {typeof value === 'string' && value.startsWith('base64:') ? (
+                        <button
+                          onClick={() => navigator.clipboard.writeText(value)}
+                          className="text-blue-500 hover:text-blue-700 underline"
+                        >
+                          Copy Base64
+                        </button>
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8 bg-background">
@@ -708,6 +826,12 @@ export default function DeepfakeReportPage() {
     }}
   />
 )}
+
+      {analysisResult.metadata && (
+        <div className="max-w-6xl mx-auto px-4 pb-12">
+          {renderMetadata(analysisResult.metadata)}
+        </div>
+      )}
 
     </Layout>
   );

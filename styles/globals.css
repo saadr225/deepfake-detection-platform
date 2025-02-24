@@ -474,3 +474,40 @@
   }
 }
 
+/* Metadata styling */
+.metadata-container {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.metadata-category {
+  background-color: hsl(var(--card));
+  border-radius: 0.5rem;
+}
+
+.metadata-category h3 {
+  color: hsl(var(--primary));
+}
+
+.metadata-category table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.metadata-category tr:hover {
+  background-color: hsl(var(--muted));
+}
+
+.metadata-category td {
+  padding: 0.5rem;
+}
+
+/* Dark mode adjustments */
+.dark .metadata-category {
+  background-color: hsl(var(--card));
+}
+
+.dark .metadata-category tr:hover {
+  background-color: hsl(var(--muted));
+}
+

@@ -6,6 +6,8 @@ import { Button } from '@/components/ui/button'
 import { Download, Share2 } from 'lucide-react'
 import { useUser } from '../contexts/UserContext'
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
+import Cookies from 'js-cookie'
+import axios from 'axios'
 
 /**
  * Below are the interfaces for the AI content detection result.
@@ -50,11 +52,16 @@ interface AnalysisReport {
 interface AIContentDetectionResult {
   id: number
   media_upload: number
-  is_deepfake: boolean
+  is_generated: boolean
   confidence_score: number
-  frames_analyzed: number
-  fake_frames: number
-  analysis_report: AnalysisReport
+  analysis_report: {
+    file_id: string
+    media_path: string
+    gradcam_path: string
+    prediction: string
+    confidence: number
+  }
+  metadata: Record<string, string>
 }
 
 /**
@@ -64,32 +71,22 @@ interface AIContentDetectionResult {
 export default function AIContentReportPage() {
   const router = useRouter()
   const { user } = useUser()
-  const { addDetectionEntry } = useDetectionHistory()
+  //const { addDetectionEntry } = useDetectionHistory()
 
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown')
   const [analysisResult, setAnalysisResult] = useState<AIContentDetectionResult>({
     id: 0,
     media_upload: 0,
-    is_deepfake: false,
+    is_generated: false,
     confidence_score: 0,
-    frames_analyzed: 0,
-    fake_frames: 0,
     analysis_report: {
-      media_path: '',
-      media_type: '',
       file_id: '',
-      frame_results: [],
-      statistics: {
-        confidence: 0,
-        is_deepfake: false,
-        total_frames: 0,
-        fake_frames: 0,
-        fake_frames_percentage: 0,
-        total_crops: 0,
-        fake_crops: 0,
-        fake_crops_percentage: 0,
-      },
+      media_path: '',
+      gradcam_path: '',
+      prediction: '',
+      confidence: 0,
     },
+    metadata: {},
   })
 
   // Carousel state
@@ -114,34 +111,102 @@ export default function AIContentReportPage() {
    * store it to detectionHistory with detectionType: 'ai-content'.
    */
   useEffect(() => {
-    const { detectionResult } = router.query
+    const { fromDetection, file_id, fromHistory } = router.query;
 
-    if (detectionResult) {
-      try {
-        const parsedResult = JSON.parse(detectionResult as string)
-
-        // Build a detection entry similar to deepfakereport, but for AI content
-        const detectionEntry = {
-          imageUrl: parsedResult.analysis_report.media_path,
-          mediaType: parsedResult.analysis_report.media_type,
-          confidence: parsedResult.confidence_score,
-          isDeepfake: parsedResult.is_deepfake,
-          detectionType: 'ai-content' as const,
-          detailedReport: parsedResult
-        }
-
-        // Add to detection history if user is available
-        if (user) {
-          addDetectionEntry(detectionEntry)
-        }
-
-        setAnalysisResult(parsedResult)
-      } catch (error) {
-        console.error('Failed to parse AI detection result:', error)
-        router.push('/detect') // or wherever you want to redirect on error
+    const fetchData = async () => {
+      // Case 1: Coming directly from detection
+      if (fromDetection === 'true') {
+        const storedResult = sessionStorage.getItem('aiContentResult');
+        if (storedResult) {
+          setAnalysisResult(JSON.parse(storedResult));
+          // Clear after using
+          sessionStorage.removeItem('aiContentResult');
+        } 
+        // else {
+        //   console.error('No stored AI content detection result found');
+        //   router.push('/detect');
+        // }
       }
-    }
-  }, [router.query, user, addDetectionEntry])
+      // Case 2: Coming from history with file_id
+      else if (file_id && fromHistory) {
+        try {
+          // Get the access token from cookies
+          let accessToken = Cookies.get('accessToken');
+          
+          if (!accessToken) {
+            alert('Please login first to view detection results.');
+            router.push('/login');
+            return;
+          }
+          
+          try {
+            // Try to fetch with current access token
+            const response = await axios.get(
+              `http://127.0.0.1:8000/api/detection/${file_id}`,
+              {
+                headers: {
+                  Authorization: `Bearer ${accessToken}`
+                }
+              }
+            );
+            
+            setAnalysisResult(response.data.data);
+          } catch (error) {
+            if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+              // Access token is expired, refresh the token
+              const refreshToken = Cookies.get('refreshToken');
+              
+              if (refreshToken) {
+                // Get a new access token using the refresh token
+                const refreshResponse = await axios.post(
+                  'http://127.0.0.1:8000/api/auth/refresh_token/',
+                  { refresh: refreshToken }
+                );
+                
+                accessToken = refreshResponse.data.access;
+                
+                // Store the new access token in cookies
+                if (accessToken) {
+                  Cookies.set('accessToken', accessToken);
+                  
+                  // Retry the fetch with the new access token
+                  const response = await axios.get(
+                    `http://127.0.0.1:8000/api/detection/${file_id}`,
+                    {
+                      headers: {
+                        Authorization: `Bearer ${accessToken}`
+                      }
+                    }
+                  );
+                  
+                  setAnalysisResult(response.data.data);
+                } else {
+                  alert('Please login first to view detection results.');
+                  router.push('/login');
+                }
+              } else {
+                alert('Please login first to view detection results.');
+                router.push('/login');
+              }
+            } else {
+              console.error('Failed to fetch AI detection result:', error);
+              router.push('/detect');
+            }
+          }
+        } catch (error) {
+          console.error('Failed to fetch AI detection result:', error);
+          router.push('/detect');
+        }
+      } 
+      // Case 3: No valid source
+      else {
+        console.error('No valid AI detection result source');
+        router.push('/detect');
+      }
+    };
+
+    fetchData();
+  }, [router.query]);
 
   /**
    * Decide if it's image, video, or unknown by probing media_path content.
@@ -199,7 +264,7 @@ export default function AIContentReportPage() {
         await navigator.share({
           title: 'AI Content Detection Report',
           text: `AI Content Detection: ${
-            analysisResult.is_deepfake ? 'Likely AI-Generated' : 'Likely Authentic'
+            analysisResult.is_generated ? 'Likely AI-Generated' : 'Likely Authentic'
           } (${(analysisResult.confidence_score * 100).toFixed(2)}% confidence)`,
           files: [file]
         })
@@ -470,6 +535,51 @@ export default function AIContentReportPage() {
     )
   }
 
+  const renderMetadata = (metadata: Record<string, string>) => {
+    const groupedMetadata: Record<string, Record<string, string>> = {};
+
+    // Group metadata by category
+    Object.entries(metadata).forEach(([key, value]) => {
+      const [category, field] = key.split(':');
+      if (!groupedMetadata[category]) {
+        groupedMetadata[category] = {};
+      }
+      groupedMetadata[category][field] = value;
+    });
+
+    return (
+      <div className="metadata-container mt-8 space-y-6 bg-background border rounded-lg p-6 shadow-md">
+        <h2 className="text-2xl font-bold mb-4">File Metadata</h2>
+        {Object.entries(groupedMetadata).map(([category, fields]) => (
+          <div key={category} className="metadata-category mb-6">
+            <h3 className="text-lg font-semibold border-b pb-2 mb-3">{category}</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                {Object.entries(fields).map(([field, value]) => (
+                  <tr key={field} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="pr-4 py-2 font-medium w-1/3">{field}</td>
+                    <td className="py-2">
+                      {typeof value === 'string' && value.startsWith('base64:') ? (
+                        <button
+                          onClick={() => navigator.clipboard.writeText(value)}
+                          className="text-blue-500 hover:text-blue-700 underline"
+                        >
+                          Copy Base64
+                        </button>
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   // If no result is present, return a fallback
   if (!analysisResult || !analysisResult.analysis_report.media_path) {
     return (
@@ -507,25 +617,11 @@ export default function AIContentReportPage() {
             </div>
 
             <motion.div className="border rounded-lg overflow-hidden shadow-md" variants={itemVariants}>
-              {mediaType === 'image' && (
-                <img
-                  src={analysisResult.analysis_report.media_path}
-                  alt="Analyzed Media"
-                  className="w-full max-h-[500px] object-contain"
-                />
-              )}
-              {mediaType === 'video' && (
-                <video
-                  src={analysisResult.analysis_report.media_path}
-                  controls
-                  className="w-full max-h-[500px] object-contain"
-                />
-              )}
-              {mediaType === 'unknown' && (
-                <div className="w-full max-h-[500px] flex items-center justify-center">
-                  Unsupported media type
-                </div>
-              )}
+              <img
+                src={analysisResult.analysis_report.media_path}
+                alt="Analyzed Media"
+                className="w-full max-h-[500px] object-contain"
+              />
             </motion.div>
           </motion.div>
 
@@ -537,12 +633,12 @@ export default function AIContentReportPage() {
                 <h2 className="text-xl font-semibold">Detection Result</h2>
                 <motion.div
                   className={`px-3 py-1 rounded-full text-white text-sm ${
-                    analysisResult.is_deepfake ? 'bg-red-500' : 'bg-green-500'
+                    analysisResult.is_generated ? 'bg-red-500' : 'bg-green-500'
                   }`}
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
                 >
-                  {analysisResult.is_deepfake ? 'Likely AI-Generated' : 'Likely Authentic'}
+                  {analysisResult.is_generated ? 'Likely AI-Generated' : 'Likely Authentic'}
                 </motion.div>
               </div>
               <div className="mt-4 text-center">
@@ -558,101 +654,14 @@ export default function AIContentReportPage() {
               </div>
             </motion.div>
 
-            <motion.div className="space-y-4" variants={itemVariants}>
-              {/* If we have a video, display original frames carousel */}
-              {mediaType === 'video' && (
-                <motion.div
-                  className="border rounded-lg p-4 bg-background shadow-md"
-                  variants={itemVariants}
-                  whileHover={{ scale: 1.02 }}
-                >
-                  <h3 className="text-lg font-semibold mb-5">Original Frames</h3>
-                  <div className="space-y-4">
-                    <SmallCarousel
-                      frames={analysisResult.analysis_report.frame_results.map(
-                        (frame) => frame.frame_path
-                      )}
-                      onImageClick={handleImageClick}
-                      type="original"
-                      currentIndex={currentOriginalFrameSlide}
-                      currentPage={originalFramePage}
-                      onPageChange={setOriginalFramePage}
-                    />
-                  </div>
-                </motion.div>
-              )}
-
-              {/* Error Level Analysis (ELA) */}
-              <motion.div
-                className="border rounded-lg p-4 bg-background shadow-md"
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-              >
-                <h3 className="text-lg font-semibold mb-2">Error Level Analysis</h3>
-                {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
-                  <img
-                    src={analysisResult.analysis_report.frame_results[0].ela_path}
-                    alt="Error Level Analysis"
-                    className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                    onClick={() =>
-                      handleImageClick(
-                        analysisResult.analysis_report.frame_results[0].ela_path,
-                        'error',
-                        0
-                      )
-                    }
-                  />
-                )}
-                {mediaType === 'video' && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Analyzed Frames</h3>
-                    <SmallCarousel
-                      frames={analysisResult.analysis_report.frame_results.map((frame) => frame.ela_path)}
-                      onImageClick={handleImageClick}
-                      type="error"
-                      currentIndex={currentErrorLevelSlide}
-                      currentPage={errorLevelPage}
-                      onPageChange={setErrorLevelPage}
-                    />
-                  </div>
-                )}
-              </motion.div>
-
-              {/* Gradcam Heatmap */}
-              <motion.div
-                className="border rounded-lg p-4 bg-background shadow-md"
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-              >
-                <h3 className="text-lg font-semibold mb-2">Gradcam Heatmap</h3>
-                {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
-                  <img
-                    src={analysisResult.analysis_report.frame_results[0].gradcam_path}
-                    alt="Gradcam Heatmap"
-                    className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                    onClick={() =>
-                      handleImageClick(
-                        analysisResult.analysis_report.frame_results[0].gradcam_path,
-                        'heatmap',
-                        0
-                      )
-                    }
-                  />
-                )}
-                {mediaType === 'video' && (
-                  <div className="space-y-4">
-                    <h3 className="text-lg font-semibold">Analyzed Frames</h3>
-                    <SmallCarousel
-                      frames={analysisResult.analysis_report.frame_results.map((frame) => frame.gradcam_path)}
-                      onImageClick={handleImageClick}
-                      type="heatmap"
-                      currentIndex={currentHeatmapSlide}
-                      currentPage={heatmapPage}
-                      onPageChange={setHeatmapPage}
-                    />
-                  </div>
-                )}
-              </motion.div>
+            <motion.div className="border rounded-lg p-4 bg-background shadow-md" variants={itemVariants}>
+              <h3 className="text-lg font-semibold mb-2">Gradcam Heatmap</h3>
+              <img
+                src={analysisResult.analysis_report.gradcam_path}
+                alt="Gradcam Heatmap"
+                className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                onClick={() => handleImageClick(analysisResult.analysis_report.gradcam_path, 'heatmap', 0)}
+              />
             </motion.div>
           </motion.div>
         </motion.div>
@@ -664,33 +673,16 @@ export default function AIContentReportPage() {
           image={enlargedImage}
           onClose={handleCloseModal}
           sliderType={currentSliderType}
-          frames={
-            currentSliderType === 'error'
-              ? analysisResult.analysis_report.frame_results.map((frame) => frame.ela_path)
-              : currentSliderType === 'heatmap'
-              ? analysisResult.analysis_report.frame_results.map((frame) => frame.gradcam_path)
-              : analysisResult.analysis_report.frame_results.map((frame) => frame.frame_path)
-          }
-          currentSlide={
-            currentSliderType === 'error'
-              ? currentErrorLevelSlide
-              : currentSliderType === 'heatmap'
-              ? currentHeatmapSlide
-              : currentOriginalFrameSlide
-          }
-          onSlideChange={(newIndex) => {
-            if (currentSliderType === 'error') {
-              setCurrentErrorLevelSlide(newIndex)
-              setEnlargedImage(analysisResult.analysis_report.frame_results[newIndex].ela_path)
-            } else if (currentSliderType === 'heatmap') {
-              setCurrentHeatmapSlide(newIndex)
-              setEnlargedImage(analysisResult.analysis_report.frame_results[newIndex].gradcam_path)
-            } else {
-              setCurrentOriginalFrameSlide(newIndex)
-              setEnlargedImage(analysisResult.analysis_report.frame_results[newIndex].frame_path)
-            }
-          }}
+          frames={[analysisResult.analysis_report.gradcam_path]}
+          currentSlide={0}
+          onSlideChange={() => {}}
         />
+      )}
+
+      {analysisResult.metadata && (
+        <div className="max-w-6xl mx-auto px-4 pb-12">
+          {renderMetadata(analysisResult.metadata)}
+        </div>
       )}
     </Layout>
   )

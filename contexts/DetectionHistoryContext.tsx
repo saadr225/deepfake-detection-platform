@@ -1,5 +1,7 @@
 import React, { createContext, useState, useContext, ReactNode, useEffect } from 'react';
 import { useUser } from './UserContext';
+import axios from 'axios';
+import Cookies from 'js-cookie';
 
 // Define the types for the detection results
 interface FrameResult {
@@ -44,18 +46,24 @@ interface DetectionResult {
   confidence_score: number;
   frames_analyzed: number;
   fake_frames: number;
-  analysis_report: AnalysisReport; // Use AnalysisReport
+  analysis_report: AnalysisReport;
+  metadata: Record<string, string>;
 }
 
 interface AIContentDetectionResult {
-  // Define the structure for AI content detection results if needed
   id: number;
   media_upload: number;
-  is_deepfake: boolean;
+  is_generated: boolean;
   confidence_score: number;
-  frames_analyzed: number;
-  fake_frames: number;
-  analysis_report: AnalysisReport; // Use AnalysisReport
+  analysis_report: {
+    file_id: string;
+    image_path: string;
+    gradcam_path: string;
+    prediction: string;
+    confidence: number;
+    media_type: 'Image' | 'Video' | 'unknown';
+  };
+  metadata: Record<string, string>;
 }
 
 export interface DetectionEntry {
@@ -70,104 +78,166 @@ export interface DetectionEntry {
   detailedReport?: DetectionResult | AIContentDetectionResult;
   textContent?: string;
   frames?: string[];
-  originalFrames?: string[]; // Add this field
+  originalFrames?: string[];
 }
 
 interface DetectionHistoryContextType {
   detectionHistory: DetectionEntry[];
-  addDetectionEntry: (entry: Omit<DetectionEntry, 'id' | 'userId' | 'date'>) => void;
-  deleteDetectionEntry: (entryId: string) => void;
+  fetchDetectionHistory: () => void;
+  //addDetectionEntry: (entry: Partial<DetectionEntry>) => void;
+  deleteDetectionEntry: (id: string) => void;
   clearDetectionHistory: () => void;
-  getDetectionHistoryByType: (type: 'deepfake' | 'ai-content') => DetectionEntry[];
 }
 
 const DetectionHistoryContext = createContext<DetectionHistoryContextType | undefined>(undefined);
+
+// Add these interfaces above the map functions
+interface DeepfakeAnalysisEntry {
+  id: number;
+  file_type: 'Image' | 'Video' | 'unknown';
+  upload_date: string;
+  deepfake_detection: DetectionResult;
+}
+
+interface AIGeneratedAnalysisEntry {
+  id: number;
+  file_type: 'Image' | 'Video' | 'unknown';
+  upload_date: string;
+  ai_generated_media: AIContentDetectionResult;
+}
 
 export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [detectionHistory, setDetectionHistory] = useState<DetectionEntry[]>([]);
   const { user } = useUser();
 
-  // Load detection history from localStorage on mount
-  useEffect(() => {
-    if (user) {
-      const storedHistory = localStorage.getItem(`detectionHistory_${user.id}`);
-      if (storedHistory) {
-        try {
-          setDetectionHistory(JSON.parse(storedHistory));
-        } catch (error) {
-          console.error('Error parsing detection history:', error);
+  const fetchDetectionHistory = async () => {
+    if (!user) return;
+
+    let accessToken = Cookies.get('accessToken');
+
+    const fetchHistory = async (token: string) => {
+      const response = await axios.get('http://127.0.0.1:8000/api/user/submissions/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response;
+    };
+
+    try {
+      if (!accessToken) {
+        console.error('Access token is missing');
+        return;
+      }
+
+      const response = await fetchHistory(accessToken);
+      const { data } = response.data;
+
+      const deepfakeEntries = data.deepfake_analysis.map((entry: DeepfakeAnalysisEntry) => ({
+        id: entry.id.toString(),
+        userId: user.id,
+        imageUrl: entry.deepfake_detection.analysis_report.media_path,
+        mediaType: entry.file_type,
+        confidence: entry.deepfake_detection.confidence_score,
+        isDeepfake: entry.deepfake_detection.is_deepfake,
+        detectionType: 'deepfake',
+        detailedReport: entry.deepfake_detection,
+        date: entry.upload_date,
+        metadata: entry.deepfake_detection.metadata,
+      }));
+
+      const aiContentEntries = data.ai_generated_analysis.map((entry: AIGeneratedAnalysisEntry) => ({
+        id: entry.id.toString(),
+        userId: user.id,
+        imageUrl: entry.ai_generated_media.analysis_report.image_path,
+        mediaType: entry.file_type,
+        confidence: entry.ai_generated_media.confidence_score,
+        isDeepfake: entry.ai_generated_media.is_generated,
+        detectionType: 'ai-content',
+        detailedReport: entry.ai_generated_media,
+        date: entry.upload_date,
+        metadata: entry.ai_generated_media.metadata,
+      }));
+
+      setDetectionHistory([...deepfakeEntries, ...aiContentEntries]);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+        const refreshToken = Cookies.get('refreshToken');
+        if (refreshToken) {
+          try {
+            const refreshResponse = await axios.post('http://127.0.0.1:8000/api/auth/refresh_token/', {
+              refresh: refreshToken,
+            });
+            accessToken = refreshResponse.data.access;
+            if (accessToken) {
+              Cookies.set('accessToken', accessToken);
+              const response = await fetchHistory(accessToken);
+              const { data } = response.data;
+
+              const deepfakeEntries = data.deepfake_analysis.map((entry: DeepfakeAnalysisEntry) => ({
+                id: entry.id.toString(),
+                userId: user.id,
+                imageUrl: entry.deepfake_detection.analysis_report.media_path,
+                mediaType: entry.file_type,
+                confidence: entry.deepfake_detection.confidence_score,
+                isDeepfake: entry.deepfake_detection.is_deepfake,
+                detectionType: 'deepfake',
+                detailedReport: entry.deepfake_detection,
+                date: entry.upload_date,
+                metadata: entry.deepfake_detection.metadata,
+              }));
+
+              const aiContentEntries = data.ai_generated_analysis.map((entry: AIGeneratedAnalysisEntry) => ({
+                id: entry.id.toString(),
+                userId: user.id,
+                imageUrl: entry.ai_generated_media.analysis_report.image_path,
+                mediaType: entry.file_type,
+                confidence: entry.ai_generated_media.confidence_score,
+                isDeepfake: entry.ai_generated_media.is_generated,
+                detectionType: 'ai-content',
+                detailedReport: entry.ai_generated_media,
+                date: entry.upload_date,
+                metadata: entry.ai_generated_media.metadata,
+              }));
+
+              setDetectionHistory([...deepfakeEntries, ...aiContentEntries]);
+            } else {
+              console.error('Failed to refresh access token');
+            }
+          } catch (refreshError) {
+            console.error('Error refreshing token:', refreshError);
+          }
+        } else {
+          console.error('Refresh token is missing');
         }
+      } else {
+        console.error('Error fetching detection history:', error);
       }
     }
+  };
+
+  useEffect(() => {
+    fetchDetectionHistory();
   }, [user]);
 
-  // Save detection history to localStorage whenever it changes
-  useEffect(() => {
-    if (user) {
-      localStorage.setItem(
-        `detectionHistory_${user.id}`, 
-        JSON.stringify(detectionHistory)
-      );
-    }
-  }, [detectionHistory, user]);
+  // const addDetectionEntry = (entry: Partial<DetectionEntry>) => {
+  //   setDetectionHistory(prev => [...prev, { ...entry, id: Date.now().toString() } as DetectionEntry]);
+  // };
 
-  // Function to check for duplicate entries
-  const isDuplicateEntry = (entry: Omit<DetectionEntry, 'id' | 'userId' | 'date'>): boolean => {
-    return detectionHistory.some(existingEntry => 
-      existingEntry.imageUrl === entry.imageUrl &&
-      existingEntry.confidence === entry.confidence &&
-      existingEntry.isDeepfake === entry.isDeepfake
-    );
+  const deleteDetectionEntry = (id: string) => {
+    setDetectionHistory(prev => prev.filter(entry => entry.id !== id));
   };
 
-  // Add Detection Entry
-  const addDetectionEntry = (
-    entry: Omit<DetectionEntry, 'id' | 'userId' | 'date'>
-  ) => {
-    if (!user) return;
-  
-    if (isDuplicateEntry(entry)) {
-      console.log('Duplicate entry detected, not adding to history.');
-      return;
-    }
-  
-    const newEntry: DetectionEntry = {
-      ...entry,
-      id: Date.now().toString(),
-      userId: user.id,
-      date: new Date().toISOString(),
-      // detectionType: 'analysis_report' in (entry.detailedReport || {}) 
-      //   ? 'deepfake' 
-      //   : 'ai-content',
-      originalFrames: entry.detailedReport?.analysis_report.frame_results.map(frame => frame.frame_path) // Add this line
-    };
-  
-    setDetectionHistory(prev => [newEntry, ...prev]);
-  };
-
-  // Delete Detection Entry
-  const deleteDetectionEntry = (entryId: string) => {
-    setDetectionHistory(prev => 
-      prev.filter(entry => entry.id !== entryId)
-    );
-  };
-
-  // Clear Entire Detection History
   const clearDetectionHistory = () => {
     setDetectionHistory([]);
   };
 
-  // Get Detection History by Type
-  const getDetectionHistoryByType = (type: 'deepfake' | 'ai-content') => {
-    return detectionHistory.filter(entry => entry.detectionType === type);
-  };
-
   const contextValue = {
     detectionHistory,
-    addDetectionEntry,
+    fetchDetectionHistory,
+    //addDetectionEntry,
     deleteDetectionEntry,
-    clearDetectionHistory,
-    getDetectionHistoryByType
+    clearDetectionHistory
   };
 
   return (

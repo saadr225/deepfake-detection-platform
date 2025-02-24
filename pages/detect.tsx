@@ -12,11 +12,13 @@ import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import Cookies from 'js-cookie';
 import axios from 'axios';
+//import { useDetectionResult } from '../contexts/DetectionResultContext';
 
 export default function DetectPage() {
   const router = useRouter();
   const { user } = useUser();
-  const { addDetectionEntry } = useDetectionHistory();
+  //const { addDetectionEntry } = useDetectionHistory();
+  //const { setDeepfakeResult } = useDetectionResult();
   
   const [file, setFile] = useState<File | null>(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
@@ -154,27 +156,13 @@ export default function DetectPage() {
       // Extract detection results from the response
       const detectionResult = response.data.data;
   
-      // Prepare entry for detection history
-      const detectionEntry = {
-        imageUrl: detectionResult.analysis_report.media_path,
-        mediaType: detectionResult.analysis_report.media_type,
-        confidence: detectionResult.confidence_score,
-        isDeepfake: detectionResult.is_deepfake,
-        detailedReport: detectionResult,
-        detectionType: 'deepfake' as const // Explicitly set detection type
-      };
-  
-      // If user is logged in, save to detection history
-      if (user) {
-        addDetectionEntry(detectionEntry);
-      }
+      // Store in sessionStorage
+      sessionStorage.setItem('deepfakeResult', JSON.stringify(detectionResult));
       
-      // Navigate to results page with full detection result
+      // Navigate to results page with only a flag
       router.push({
         pathname: '/deepfakereport',
-        query: {
-          detectionResult: JSON.stringify(detectionResult)
-        }
+        query: { fromDetection: 'true' }
       });
     } catch (error) {
       console.error('Detection analysis error:', error);
