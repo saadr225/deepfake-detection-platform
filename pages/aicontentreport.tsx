@@ -111,7 +111,7 @@ export default function AIContentReportPage() {
    * store it to detectionHistory with detectionType: 'ai-content'.
    */
   useEffect(() => {
-    const { fromDetection, file_id, fromHistory } = router.query;
+    const { fromDetection, submission_identifier, fromHistory } = router.query;
 
     const fetchData = async () => {
       // Case 1: Coming directly from detection
@@ -128,7 +128,7 @@ export default function AIContentReportPage() {
         // }
       }
       // Case 2: Coming from history with file_id
-      else if (file_id && fromHistory) {
+      else if (submission_identifier && fromHistory) {
         try {
           // Get the access token from cookies
           let accessToken = Cookies.get('accessToken');
@@ -140,9 +140,8 @@ export default function AIContentReportPage() {
           }
           
           try {
-            // Try to fetch with current access token
             const response = await axios.get(
-              `http://127.0.0.1:8000/api/detection/${file_id}`,
+              `http://127.0.0.1:8000/api/user/submissions/${submission_identifier}`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`
@@ -150,7 +149,14 @@ export default function AIContentReportPage() {
               }
             );
             
-            setAnalysisResult(response.data.data);
+            setAnalysisResult({
+              id: response.data.data.id,
+              media_upload: response.data.data.id,
+              is_generated: response.data.data.data.is_generated,
+              confidence_score: response.data.data.data.confidence_score,
+              analysis_report: response.data.data.data.analysis_report,
+              metadata: response.data.data.metadata
+            });
           } catch (error) {
             if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
               // Access token is expired, refresh the token
@@ -171,7 +177,7 @@ export default function AIContentReportPage() {
                   
                   // Retry the fetch with the new access token
                   const response = await axios.get(
-                    `http://127.0.0.1:8000/api/detection/${file_id}`,
+                    `http://127.0.0.1:8000/api/user/submissions/${submission_identifier}`,
                     {
                       headers: {
                         Authorization: `Bearer ${accessToken}`
@@ -179,7 +185,14 @@ export default function AIContentReportPage() {
                     }
                   );
                   
-                  setAnalysisResult(response.data.data);
+                  setAnalysisResult({
+                    id: response.data.data.id,
+                    media_upload: response.data.data.id,
+                    is_generated: response.data.data.data.is_generated,
+                    confidence_score: response.data.data.data.confidence_score,
+                    analysis_report: response.data.data.data.analysis_report,
+                    metadata: response.data.data.metadata
+                  });
                 } else {
                   alert('Please login first to view detection results.');
                   router.push('/login');

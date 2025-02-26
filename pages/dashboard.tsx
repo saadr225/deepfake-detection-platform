@@ -59,7 +59,7 @@ export default function Dashboard() {
         router.push({
           pathname: '/deepfakereport',
           query: {
-            file_id: entry.detailedReport.analysis_report.file_id,
+            submission_identifier: entry.submissionIdentifier,
             fromHistory: true
           }
         });
@@ -67,7 +67,7 @@ export default function Dashboard() {
         router.push({
           pathname: '/aicontentreport',
           query: {
-            file_id: entry.detailedReport.analysis_report.file_id,
+            submission_identifier: entry.submissionIdentifier,
             fromHistory: true
           }
         });
@@ -394,8 +394,17 @@ export default function Dashboard() {
                                             : 'bg-green-500 text-white'
                                         }`}
                                       >
-                                        {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
-                                          : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Authentic') : 'Authentic'}
+                                        {/* {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
+                                          : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Not AI Generated') : 'Not Deepfake'} */}
+                                          {detection.isDeepfake 
+                                          ? (detection.detectionType === 'deepfake' 
+                                            ? 'Deepfake' 
+                                            : detection.detectionType === 'ai-content' 
+                                              ? 'AI Generated' 
+                                              : 'Not AI Generated') 
+                                          : (detection.detectionType === 'ai-content' 
+                                            ? 'Not AI Generated' 
+                                            : 'Not Deepfake')}
                                       </span>
                                     </h3>
                                     <p className="text-sm text-muted-foreground">

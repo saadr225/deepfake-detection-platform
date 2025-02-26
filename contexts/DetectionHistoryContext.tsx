@@ -75,7 +75,9 @@ export interface DetectionEntry {
   isDeepfake: boolean;
   date: string;
   detectionType: 'deepfake' | 'ai-content';
-  detailedReport?: DetectionResult | AIContentDetectionResult;
+  detailedReport?: any; // Keep this generic to handle both types
+  submissionIdentifier: string; // Add this new field
+  originalFilename: string; // Add this new field
   textContent?: string;
   frames?: string[];
   originalFrames?: string[];
@@ -112,9 +114,9 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
 
   const fetchDetectionHistory = async () => {
     if (!user) return;
-
+  
     let accessToken = Cookies.get('accessToken');
-
+  
     const fetchHistory = async (token: string) => {
       const response = await axios.get('http://127.0.0.1:8000/api/user/submissions/', {
         headers: {
@@ -123,42 +125,46 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
       });
       return response;
     };
-
+  
     try {
       if (!accessToken) {
         console.error('Access token is missing');
         return;
       }
-
+  
       const response = await fetchHistory(accessToken);
       const { data } = response.data;
-
-      const deepfakeEntries = data.deepfake_analysis.map((entry: DeepfakeAnalysisEntry) => ({
+  
+      const deepfakeEntries = data.deepfake_analysis.map((entry: any) => ({
         id: entry.id.toString(),
         userId: user.id,
-        imageUrl: entry.deepfake_detection.analysis_report.media_path,
+        imageUrl: entry.file,
         mediaType: entry.file_type,
         confidence: entry.deepfake_detection.confidence_score,
         isDeepfake: entry.deepfake_detection.is_deepfake,
         detectionType: 'deepfake',
         detailedReport: entry.deepfake_detection,
         date: entry.upload_date,
-        metadata: entry.deepfake_detection.metadata,
+        submissionIdentifier: entry.submission_identifier,
+        originalFilename: entry.original_filename,
+        metadata: entry.metadata,
       }));
-
-      const aiContentEntries = data.ai_generated_analysis.map((entry: AIGeneratedAnalysisEntry) => ({
+  
+      const aiContentEntries = data.ai_generated_analysis.map((entry: any) => ({
         id: entry.id.toString(),
         userId: user.id,
-        imageUrl: entry.ai_generated_media.analysis_report.image_path,
+        imageUrl: entry.file,
         mediaType: entry.file_type,
-        confidence: entry.ai_generated_media.confidence_score,
-        isDeepfake: entry.ai_generated_media.is_generated,
+        confidence: entry.ai_generated_media_detection.confidence_score,
+        isDeepfake: entry.ai_generated_media_detection.is_generated,
         detectionType: 'ai-content',
-        detailedReport: entry.ai_generated_media,
+        detailedReport: entry.ai_generated_media_detection,
         date: entry.upload_date,
-        metadata: entry.ai_generated_media.metadata,
+        submissionIdentifier: entry.submission_identifier,
+        originalFilename: entry.original_filename,
+        metadata: entry.metadata,
       }));
-
+  
       setDetectionHistory([...deepfakeEntries, ...aiContentEntries]);
     } catch (error) {
       if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
@@ -174,30 +180,34 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
               const response = await fetchHistory(accessToken);
               const { data } = response.data;
 
-              const deepfakeEntries = data.deepfake_analysis.map((entry: DeepfakeAnalysisEntry) => ({
+              const deepfakeEntries = data.deepfake_analysis.map((entry: any) => ({
                 id: entry.id.toString(),
                 userId: user.id,
-                imageUrl: entry.deepfake_detection.analysis_report.media_path,
+                imageUrl: entry.file,
                 mediaType: entry.file_type,
                 confidence: entry.deepfake_detection.confidence_score,
                 isDeepfake: entry.deepfake_detection.is_deepfake,
                 detectionType: 'deepfake',
                 detailedReport: entry.deepfake_detection,
                 date: entry.upload_date,
-                metadata: entry.deepfake_detection.metadata,
+                submissionIdentifier: entry.submission_identifier,
+                originalFilename: entry.original_filename,
+                metadata: entry.metadata,
               }));
-
-              const aiContentEntries = data.ai_generated_analysis.map((entry: AIGeneratedAnalysisEntry) => ({
+          
+              const aiContentEntries = data.ai_generated_analysis.map((entry: any) => ({
                 id: entry.id.toString(),
                 userId: user.id,
-                imageUrl: entry.ai_generated_media.analysis_report.image_path,
+                imageUrl: entry.file,
                 mediaType: entry.file_type,
-                confidence: entry.ai_generated_media.confidence_score,
-                isDeepfake: entry.ai_generated_media.is_generated,
+                confidence: entry.ai_generated_media_detection.confidence_score,
+                isDeepfake: entry.ai_generated_media_detection.is_generated,
                 detectionType: 'ai-content',
-                detailedReport: entry.ai_generated_media,
+                detailedReport: entry.ai_generated_media_detection,
                 date: entry.upload_date,
-                metadata: entry.ai_generated_media.metadata,
+                submissionIdentifier: entry.submission_identifier,
+                originalFilename: entry.original_filename,
+                metadata: entry.metadata,
               }));
 
               setDetectionHistory([...deepfakeEntries, ...aiContentEntries]);
