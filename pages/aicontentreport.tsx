@@ -141,7 +141,7 @@ export default function AIContentReportPage() {
           
           try {
             const response = await axios.get(
-              `http://127.0.0.1:8000/api/user/submissions/${submission_identifier}`,
+              `http://127.0.0.1:8000/api/user/submissions/${submission_identifier}/`,
               {
                 headers: {
                   Authorization: `Bearer ${accessToken}`
@@ -177,7 +177,7 @@ export default function AIContentReportPage() {
                   
                   // Retry the fetch with the new access token
                   const response = await axios.get(
-                    `http://127.0.0.1:8000/api/user/submissions/${submission_identifier}`,
+                    `http://127.0.0.1:8000/api/user/submissions/${submission_identifier}/`,
                     {
                       headers: {
                         Authorization: `Bearer ${accessToken}`

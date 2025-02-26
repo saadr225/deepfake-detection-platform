@@ -12,6 +12,7 @@ import { DetectionEntry, useDetectionHistory } from '../contexts/DetectionHistor
 import { useRouter } from 'next/router';
 import { Eye, Trash2, Trash, ChevronDown } from 'lucide-react';
 import axios from 'axios';
+import Cookies from 'js-cookie';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -78,12 +79,85 @@ export default function Dashboard() {
   }, [router]);
 
   // Handle delete single entry
-  const handleDeleteEntry = useCallback((entryId: string) => {
+  const handleDeleteEntry = useCallback(async (entryId: string) => {
     const confirmed = window.confirm('Are you sure you want to delete this detection entry?');
-    if (confirmed) {
-      deleteDetectionEntry(entryId);
+    if (!confirmed) return;
+  
+    try {
+      // Find the entry to get its submission identifier
+      const entry = detectionHistory.find(entry => entry.id === entryId);
+      if (!entry) {
+        console.error('Entry not found');
+        return;
+      }
+  
+      const submission_identifier = entry.submissionIdentifier;
+      let accessToken = Cookies.get('accessToken');
+      
+      if (!accessToken) {
+        alert('Please login first to delete entries.');
+        router.push('/login');
+        return;
+      }
+      
+      const deleteEntry = async (token: string) => {
+        return await axios.delete(`http://127.0.0.1:8000/api/user/submissions/${submission_identifier}/`, {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        });
+      };
+      
+      try {
+        await deleteEntry(accessToken);
+        // Update local state after successful deletion
+        deleteDetectionEntry(entryId);
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+          // Access token is expired, refresh the token
+          const refreshToken = Cookies.get('refreshToken');
+          
+          if (refreshToken) {
+            try {
+              // Get a new access token using the refresh token
+              const refreshResponse = await axios.post(
+                'http://127.0.0.1:8000/api/auth/refresh_token/',
+                { refresh: refreshToken }
+              );
+              
+              accessToken = refreshResponse.data.access;
+              
+              // Store the new access token in cookies
+              if (accessToken) {
+                Cookies.set('accessToken', accessToken);
+                
+                // Retry the delete with the new access token
+                await deleteEntry(accessToken);
+                // Update local state after successful deletion
+                deleteDetectionEntry(entryId);
+              } else {
+                alert('Authentication error. Please login again.');
+                router.push('/login');
+              }
+            } catch (refreshError) {
+              console.error('Error refreshing token:', refreshError);
+              alert('Authentication error. Please login again.');
+              router.push('/login');
+            }
+          } else {
+            alert('Authentication error. Please login again.');
+            router.push('/login');
+          }
+        } else {
+          console.error('Failed to delete entry:', error);
+          alert('Failed to delete entry. Please try again.');
+        }
+      }
+    } catch (error) {
+      console.error('Error during delete operation:', error);
+      alert('An unexpected error occurred. Please try again.');
     }
-  }, [deleteDetectionEntry]);
+  }, [detectionHistory, deleteDetectionEntry, router]);
 
   // Handle profile update (only email can be updated)
   const handleProfileUpdate = useCallback(async (e: React.FormEvent) => {
@@ -421,6 +495,13 @@ export default function Dashboard() {
                                     onClick={() => handleViewDetectionDetails(detection)}
                                   >
                                     <Eye className="mr-2 h-4 w-4" /> View
+                                  </Button>
+                                  <Button
+                                    variant="outline"
+                                    
+                                    onClick={() => handleDeleteEntry(detection.id)}
+                                  >
+                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
                                   </Button>
                                 </div>
                               </div>

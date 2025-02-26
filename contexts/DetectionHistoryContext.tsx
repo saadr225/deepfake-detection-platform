@@ -238,8 +238,54 @@ export const DetectionHistoryProvider: React.FC<{ children: ReactNode }> = ({ ch
     setDetectionHistory(prev => prev.filter(entry => entry.id !== id));
   };
 
-  const clearDetectionHistory = () => {
-    setDetectionHistory([]);
+  const clearDetectionHistory = async () => {
+    if (!user) return;
+
+    let accessToken = Cookies.get('accessToken');
+
+    const clearHistory = async (token: string) => {
+      const response = await axios.delete('http://127.0.0.1:8000/api/user/submissions/', {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      return response;
+    };
+
+    try {
+      if (!accessToken) {
+        console.error('Access token is missing');
+        return;
+      }
+
+      await clearHistory(accessToken);
+      setDetectionHistory([]);
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+        const refreshToken = Cookies.get('refreshToken');
+        if (refreshToken) {
+          try {
+            const refreshResponse = await axios.post('http://127.0.0.1:8000/api/auth/refresh_token/', {
+              refresh: refreshToken,
+            });
+            accessToken = refreshResponse.data.access;
+            if (accessToken) {
+              Cookies.set('accessToken', accessToken);
+              await clearHistory(accessToken);
+              setDetectionHistory([]);
+            } else {
+              console.error('Failed to refresh access token');
+            }
+          } catch (refreshError) {
+            console.error('Error refreshing token:', refreshError);
+          }
+        } else {
+          console.error('Refresh token is missing');
+        }
+      } else {
+        console.error('Error clearing detection history:', error);
+      }
+    }
   };
 
   const contextValue = {
