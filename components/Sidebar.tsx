@@ -95,7 +95,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
         </div>
 
-        <div className="px-3 mt-auto space-y-1 absolute bottom-4 w-full">
+        <div className="px-3 mt-auto space-y-1 absolute mt-10 w-full">
           {user ? (
             <button
               onClick={logout}

@@ -7,7 +7,8 @@
 @layer base {
   :root {
     /* New color scheme with transparent greyish background and bluish purple accent */
-    --background: 220 20% 97%; /* Light greyish background */
+    /*--background: 220 20% 97%; /* Light greyish background */
+    --background: 220 0% 85%; /* Light greyish background */
     --foreground: 224 71% 4%;
     --card: 0 0% 100%; /* White cards */
     --card-foreground: 224 71% 4%;
@@ -18,7 +19,7 @@
     --secondary: 220 14% 96%;
     --secondary-foreground: 262 69% 48%;
     --muted: 220 14% 96%;
-    --muted-foreground: 220 8% 46%;
+    --muted-foreground: 220 40% 25%;
     --accent: 262 59% 95%; /* Light purple accent */
     --accent-foreground: 262 69% 48%;
     --destructive: 0 84% 60%;
@@ -600,6 +601,6 @@
 
 /* Glass card effect */
 .glass-card {
-  @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-lg border border-white/20 dark:border-gray-800/30;
+  @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-lg border border-white dark:border-gray-800/30;
 }
 

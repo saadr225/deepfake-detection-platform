@@ -105,7 +105,7 @@ export default function Home() {
         <section className="mb-12 animate-fadeInUp">
           <div className="flex items-center justify-between mb-5">
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={scrollLeft}
               className="text-muted-foreground hover:text-foreground"
@@ -116,7 +116,7 @@ export default function Home() {
               Our Services
             </h2>
             <Button
-              variant="ghost"
+              variant="secondary"
               size="sm"
               onClick={scrollRight}
               className="text-muted-foreground hover:text-foreground"
