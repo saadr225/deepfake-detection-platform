@@ -27,7 +27,7 @@ const services = [
   {
     icon: FileText,
     title: "AI Generated Content Detection",
-    description: "Identify AI-generated text content with state-of-the-art language models.",
+    description: "Identify AI-generated content with state-of-the-art image and language detection models.",
   },
   {
     icon: Thermometer,

@@ -1,12 +1,14 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { useRouter } from 'next/router';
 import Layout from '@/components/Layout';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Progress } from '@/components/ui/progress';
-import { Upload, Link, X } from 'lucide-react';
+import { Upload, Link, X, AlertTriangle, CheckCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
@@ -26,6 +28,9 @@ export default function AIContentDetectionPage() {
   const [socialMediaUrl, setSocialMediaUrl] = useState<string>('');
   const [isImportModalOpen, setIsImportModalOpen] = useState(false);
   const [importError, setImportError] = useState<string | null>(null);
+  const [textResults, setTextResults] = useState<any>(null);
+  const [textError, setTextError] = useState<string | null>(null);
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Dropzone configuration (images only, no videos)
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -115,6 +120,9 @@ export default function AIContentDetectionPage() {
 
     setIsAnalyzing(true);
     setAnalysisProgress(0);
+    setTextResults(null);
+    setTextError(null);
+
 
     const progressInterval = setInterval(() => {
       setAnalysisProgress((prev) => {
@@ -196,56 +204,135 @@ export default function AIContentDetectionPage() {
         setIsAnalyzing(false);
 
         detectionResult = response?.data?.data;
-      } else {
-        clearInterval(progressInterval);
-        setAnalysisProgress(100);
-        setIsAnalyzing(false);
 
-        detectionResult = {
-          id: 1,
-          media_upload: 1,
-          is_generated: true,
-          confidence_score: 0.95,
-          analysis_report: {
-            file_id: 'dummy_text',
-            media_path: '',
-            gradcam_path: '',
-            prediction: 'fake',
-            confidence: 0.95
-          }
+        const detectionEntry = {
+          imageUrl: detectionResult.analysis_report.media_path,
+          mediaType: 'Image' as const,
+          confidence: detectionResult.confidence_score,
+          isDeepfake: detectionResult.is_generated,
+          detailedReport: detectionResult,
+          detectionType: 'ai-content' as const,
+          ...(text && { textContent: text })
         };
-      }
+  
+        // if (user) {
+        //   addDetectionEntry(detectionEntry);
+        // }
+  
+        // Store in sessionStorage
+        sessionStorage.setItem('aiContentResult', JSON.stringify(detectionResult));
+        
+        // Navigate to results page with only a flag
+        router.push({
+          pathname: '/aicontentreport',
+          query: { fromDetection: 'true' }
+        });
+      } 
 
-      const detectionEntry = {
-        imageUrl: detectionResult.analysis_report.media_path,
-        mediaType: 'Image' as const,
-        confidence: detectionResult.confidence_score,
-        isDeepfake: detectionResult.is_generated,
-        detailedReport: detectionResult,
-        detectionType: 'ai-content' as const,
-        ...(text && { textContent: text })
+    // For text detection (new code)
+    else if (text.trim()) {
+      let accessToken = Cookies.get('accessToken');
+
+      const processText = async (token: string) => {
+        const highlight = 'true';
+        const response = await axios.post(
+          'http://127.0.0.1:8000/api/process/text/',
+          { text, highlight },
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+              // 'Content-Type': 'application/json'
+            }
+          }
+        );
+        return response;
       };
 
-      // if (user) {
-      //   addDetectionEntry(detectionEntry);
-      // }
+      let response;
 
-      // Store in sessionStorage
-      sessionStorage.setItem('aiContentResult', JSON.stringify(detectionResult));
-      
-      // Navigate to results page with only a flag
-      router.push({
-        pathname: '/aicontentreport',
-        query: { fromDetection: 'true' }
-      });
-    } catch (error) {
-      console.error('Detection analysis error:', error);
+      if (!accessToken) {
+        clearInterval(progressInterval);
+        setIsAnalyzing(false);
+        setAnalysisProgress(0);
+        alert('Please login first to perform detection.');
+        return;
+      }
+
+      try {
+        response = await processText(accessToken);
+      } catch (error) {
+        if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+          const refreshToken = Cookies.get('refreshToken');
+          if (refreshToken) {
+            const refreshResponse = await axios.post(
+              'http://127.0.0.1:8000/api/auth/refresh_token/',
+              { refresh: refreshToken }
+            );
+            accessToken = refreshResponse.data.access;
+            if (accessToken) {
+              Cookies.set('accessToken', accessToken);
+            } else {
+              clearInterval(progressInterval);
+              setIsAnalyzing(false);
+              setAnalysisProgress(0);
+              alert('Please login first to perform detection.');
+              return;
+            }
+            response = await processText(accessToken);
+          } else {
+            clearInterval(progressInterval);
+            setIsAnalyzing(false);
+            setAnalysisProgress(0);
+            alert('Please login first to perform detection.');
+            return;
+          }
+        } else {
+          throw error;
+        }
+      }
+
       clearInterval(progressInterval);
-      setAnalysisProgress(0);
+      setAnalysisProgress(100);
       setIsAnalyzing(false);
-      alert('An error occurred during analysis. Please try again.');
+
+      // Set text results to display in the UI
+      setTextResults(response?.data?.data);
+      
+      // Scroll to results section after a short delay
+      setTimeout(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth' });
+      }, 100);
     }
-  };
+  } catch (error) {
+    console.error('Detection analysis error:', error);
+    clearInterval(progressInterval);
+    setAnalysisProgress(0);
+    setIsAnalyzing(false);
+    setTextError('An error occurred during analysis. Please try again.');
+    alert('An error occurred during analysis. Please try again.');
+  }
+};
+
+// Formatting helper function to add to the component
+const formatPercentage = (value: number) => {
+  return (value * 100).toFixed(2) + '%';
+};
+
+// Add this new function to render highlighted text
+const renderHighlightedText = (text: string) => {
+  if (!text) return null;
+  
+  // If using the html_text format (with spans)
+  if (textResults?.html_text) {
+    return (
+      <div 
+        className="whitespace-pre-wrap text-left p-4 border rounded-md bg-white dark:bg-gray-800"
+        dangerouslySetInnerHTML={{ __html: textResults.html_text }}
+      />
+    );
+  }
+  return null;
+};
 
   return (
     <Layout>
@@ -415,6 +502,91 @@ export default function AIContentDetectionPage() {
               <Progress value={analysisProgress} className="w-full" />
             </div>
           )}
+
+          {/* Text Analysis Results */}
+{textResults && (
+  <div ref={resultsRef} className="mt-12 animate-fadeInUp">
+    <h2 className="text-2xl font-bold mb-4 text-primary">AI Text Detection Results</h2>
+    
+    {/* Source Prediction */}
+    <div className="mb-6">
+      <div className="flex items-center gap-2 mb-2">
+        <h3 className="text-xl font-semibold">Primary Source Prediction:</h3>
+        <Badge variant="outline" className={
+          textResults.source_prediction === "Human" 
+            ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
+            : "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100"
+        }>
+          {textResults.source_prediction}
+        </Badge>
+        {textResults.is_ai_generated ? (
+          <div className="flex items-center text-amber-600 dark:text-amber-400">
+            <AlertTriangle className="w-5 h-5 mr-1" />
+            <span>AI-generated content detected</span>
+          </div>
+        ) : (
+          <div className="flex items-center text-green-600 dark:text-green-400">
+            <CheckCircle className="w-5 h-5 mr-1" />
+            <span>Likely human-written content</span>
+          </div>
+        )}
+      </div>
+    </div>
+
+    {/* Confidence Scores */}
+    <Card className="mb-8">
+      <CardHeader>
+        <CardTitle>Confidence Scores</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {Object.entries(textResults.confidence_scores || {}).map(([source, score]) => (
+            <Card key={source} className="overflow-hidden">
+              <CardHeader className={`py-3 ${
+                source === textResults.source_prediction ? 'bg-primary/10' : ''
+              }`}>
+                <CardTitle className="text-lg">{source}</CardTitle>
+              </CardHeader>
+              <CardContent className="py-4">
+                <div className="text-2xl font-bold">{formatPercentage(score as number)}</div>
+                <Progress 
+                  value={(score as number) * 100} 
+                  className={`mt-2 ${
+                    source === "Human" 
+                      ? "[&>div]:bg-green-500" 
+                      : source === "Claude" 
+                      ? "[&>div]:bg-blue-500" 
+                      : "[&>div]:bg-amber-500"
+                  }`}
+                />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+
+    {/* Analyzed Text with Highlights */}
+    <Card>
+      <CardHeader>
+        <CardTitle>Analyzed Text</CardTitle>
+        <p className="text-sm text-muted-foreground">
+          Highlighted portions indicate AI-generated content
+        </p>
+      </CardHeader>
+      <CardContent>
+        {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}
+      </CardContent>
+    </Card>
+  </div>
+)}
+
+{textError && (
+  <div className="mt-8 p-4 bg-red-100 dark:bg-red-900 border border-red-400 rounded-md text-red-700 dark:text-red-300">
+    <p>{textError}</p>
+  </div>
+)}
+
         </motion.div>
       </div>
     </Layout>

@@ -511,3 +511,27 @@
   background-color: hsl(var(--muted));
 }
 
+/* Add this to the end of your globals.css file */
+.ai-generated {
+  background-color: rgba(250, 204, 21, 0.3); /* Yellow highlight with transparency */
+  padding: 1px 0;
+  border-radius: 2px;
+}
+
+/* Dark mode variant */
+.dark .ai-generated {
+  background-color: rgba(250, 204, 21, 0.2);
+}
+
+/* For the progress bar in the confidence score cards */
+.progress-indicator-color-green {
+  background-color: rgb(34, 197, 94);
+}
+
+.progress-indicator-color-blue {
+  background-color: rgb(59, 130, 246);
+}
+
+.progress-indicator-color-amber {
+  background-color: rgb(245, 158, 11);
+}
