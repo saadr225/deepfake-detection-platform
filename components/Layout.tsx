@@ -1,8 +1,11 @@
+"use client"
+
 import { useEffect, useState } from "react"
 import { useUser } from "../contexts/UserContext"
 import Sidebar from "./Sidebar"
-import type React from "react" // Added import for React
-import Link from 'next/link' // Added import for Link
+import type React from "react"
+import Link from "next/link"
+import { motion } from "framer-motion"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { authInitialized } = useUser()
@@ -31,7 +34,9 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     return (
       <div className="flex min-h-screen h-full bg-background">
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-        <div className="spinner"></div>
+        <div className="flex items-center justify-center w-full">
+          <div className="spinner"></div>
+        </div>
       </div>
     )
   }
@@ -39,58 +44,62 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <div className="flex min-h-screen h-full bg-background">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={`flex-1 transition-[margin] duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}>
-  <main className="p-4">
-    {children}
-  </main>
-        <footer className="border-t border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800">
-        <div className="container mx-auto px-4 py-10">
-          <div className="grid gap-8 md:grid-cols-4">
-            <div>
-              <Link href="/" className="text-2xl font-bold mb-4 block text-gray-900 dark:text-gray-100">
-                DMI
-              </Link>
-              <p className="text-sm text-gray-600 dark:text-gray-300">
-                Protecting digital authenticity through advanced AI detection technology.
-              </p>
-            </div>
-            {[
-              {
-                title: "Product",
-                items: ["Features", "Pricing", "API", "Documentation"],
-              },
-              {
-                title: "Company",
-                items: ["About", "Blog", "Careers", "Press"],
-              },
-              {
-                title: "Legal",
-                items: ["Privacy", "Terms", "Security", "Contact"],
-              },
-            ].map((section) => (
-              <div key={section.title}>
-                <h3 className="font-semibold mb-4 text-gray-900 dark:text-gray-100">{section.title}</h3>
-                <ul className="space-y-2">
-                  {section.items.map((item) => (
-                    <li key={item}>
-                      <Link
-                        href="#"
-                        className="text-sm text-gray-600 hover:text-gray-900 dark:text-gray-300 dark:hover:text-gray-100 transition-colors"
-                      >
-                        {item}
-                      </Link>
-                    </li>
-                  ))}
-                </ul>
+      <div
+        className={`flex-1 transition-[margin] duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}
+      >
+        <motion.main
+          className="p-4 md:p-8"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3 }}
+        >
+          {children}
+        </motion.main>
+        <footer className="border-t border-gray-200 dark:border-gray-700 bg-card">
+          <div className="container mx-auto px-4 py-10">
+            <div className="grid gap-8 md:grid-cols-4">
+              <div>
+                <Link href="/" className="text-2xl font-bold mb-4 block text-gradient">
+                  DMI
+                </Link>
+                <p className="text-sm text-muted-foreground">
+                  Protecting digital authenticity through advanced AI detection technology.
+                </p>
               </div>
-            ))}
+              {[
+                {
+                  title: "Product",
+                  items: ["Features", "Pricing", "API", "Documentation"],
+                },
+                {
+                  title: "Company",
+                  items: ["About", "Blog", "Careers", "Press"],
+                },
+                {
+                  title: "Legal",
+                  items: ["Privacy", "Terms", "Security", "Contact"],
+                },
+              ].map((section) => (
+                <div key={section.title}>
+                  <h3 className="font-semibold mb-4 text-foreground">{section.title}</h3>
+                  <ul className="space-y-2">
+                    {section.items.map((item) => (
+                      <li key={item}>
+                        <Link href="#" className="text-sm text-muted-foreground hover:text-primary transition-colors">
+                          {item}
+                        </Link>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+            <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-muted-foreground">
+              © 2024 Deep Media Inspection. All rights reserved.
+            </div>
           </div>
-          <div className="mt-8 pt-8 border-t border-gray-200 dark:border-gray-700 text-center text-sm text-gray-600 dark:text-gray-300">
-            © 2024 Deep Media Inspection. All rights reserved.
-          </div>
-        </div>
-      </footer>
-    </div>
+        </footer>
+      </div>
     </div>
   )
 }

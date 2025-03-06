@@ -1,25 +1,28 @@
-// pages/register.tsx
-import { useState } from 'react'
-import Layout from '../components/Layout'
-import Link from 'next/link'
-import { motion } from 'framer-motion'
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
+import Layout from "../components/Layout"
+import Link from "next/link"
+import { motion } from "framer-motion"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
-import { useUser } from '../contexts/UserContext'
+import { useUser } from "../contexts/UserContext"
 
 export default function Register() {
-  const [username, setUsername] = useState('')
-  const [email, setEmail] = useState('')
-  const [password, setPassword] = useState('')
-  const [confirmPassword, setConfirmPassword] = useState('')
+  const [username, setUsername] = useState("")
+  const [email, setEmail] = useState("")
+  const [password, setPassword] = useState("")
+  const [confirmPassword, setConfirmPassword] = useState("")
   const [isLoading, setIsLoading] = useState(false)
-  
+
   const { register, registerError } = useUser()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     // Validate password match
     if (password !== confirmPassword) {
       alert("Passwords do not match")
@@ -30,38 +33,32 @@ export default function Register() {
 
     try {
       const success = await register(username, email, password)
-      
+
       if (!success) {
         setIsLoading(false)
       }
     } catch (error) {
-      console.error('Registration error:', error)
+      console.error("Registration error:", error)
       setIsLoading(false)
     }
   }
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-background">
-        <motion.div 
-          className="max-w-md w-full space-y-8 bg-card p-10 rounded-xl shadow-xl dark:bg-white dark:bg-opacity-5"
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
+        <motion.div
+          className="max-w-md w-full space-y-8 glass-card p-10 rounded-xl shadow-xl"
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           <div>
-            <h2 className="mt-6 text-center text-3xl font-extrabold text-foreground">
-              Create your account
-            </h2>
-            
+            <h2 className="mt-6 text-center text-3xl font-bold text-gradient">Create your account</h2>
+
             {/* Error Message */}
-            {registerError && (
-              <div className="mt-4 text-center text-red-500">
-                {registerError}
-              </div>
-            )}
+            {registerError && <div className="mt-4 text-center text-red-500">{registerError}</div>}
           </div>
-          
+
           <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
             <div className="rounded-md shadow-sm">
               <div className="mb-4">
@@ -73,7 +70,7 @@ export default function Register() {
                   name="username"
                   type="text"
                   required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input bg-card placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                   placeholder="Username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
@@ -90,7 +87,7 @@ export default function Register() {
                   type="email"
                   autoComplete="email"
                   required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input bg-card placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                   placeholder="Email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -107,7 +104,7 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input bg-card placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                   placeholder="Password"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
@@ -124,10 +121,10 @@ export default function Register() {
                   type="password"
                   autoComplete="new-password"
                   required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
+                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input bg-card placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
                   placeholder="Confirm Password"
                   value={confirmPassword}
-                  onChange={(e) => setConfirmPassword(e.target. value)}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
                   disabled={isLoading}
                 />
               </div>
@@ -136,16 +133,17 @@ export default function Register() {
             <div>
               <Button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-primary-foreground bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
+                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary"
                 disabled={isLoading}
               >
-                {isLoading ? 'Registering...' : 'Register'}
+                {isLoading ? "Registering..." : "Register"}
               </Button>
             </div>
           </form>
           <div className="text-sm text-center">
+            <span className="text-muted-foreground">Already have an account? </span>
             <Link href="/login" className="font-medium text-primary hover:text-primary/80">
-              Already have an account? Sign in
+              Sign in
             </Link>
           </div>
         </motion.div>
@@ -153,3 +151,4 @@ export default function Register() {
     </Layout>
   )
 }
+
