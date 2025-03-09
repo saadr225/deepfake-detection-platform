@@ -8,7 +8,8 @@
   :root {
     /* New color scheme with transparent greyish background and bluish purple accent */
     /*--background: 220 20% 97%; /* Light greyish background */
-    --background: 220 0% 85%; /* Light greyish background */
+    /*--background: 180 5% 82%;*/
+    --background: 210 10% 92%;
     --foreground: 224 71% 4%;
     --card: 0 0% 100%; /* White cards */
     --card-foreground: 224 71% 4%;
@@ -19,7 +20,7 @@
     --secondary: 220 14% 96%;
     --secondary-foreground: 262 69% 48%;
     --muted: 220 14% 96%;
-    --muted-foreground: 220 40% 25%;
+    --muted-foreground: 220 8% 46%;
     --accent: 262 59% 95%; /* Light purple accent */
     --accent-foreground: 262 69% 48%;
     --destructive: 0 84% 60%;
@@ -601,6 +602,30 @@
 
 /* Glass card effect */
 .glass-card {
-  @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-lg border border-white dark:border-gray-800/30;
+  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-xl border border-white/20 dark:border-gray-800/30;
+}
+
+/* Add these custom scrollbar styles to the end of your globals.css file */
+/* Custom scrollbar styles */
+.scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+}
+
+.scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
 }
 

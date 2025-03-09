@@ -16,7 +16,6 @@ import {
 import { useRouter } from "next/router"
 import { useUser } from "../contexts/UserContext"
 import { ThemeToggle } from "./ThemeToggle"
-import { motion } from "framer-motion"
 
 interface SidebarProps {
   isCollapsed: boolean
@@ -36,15 +35,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   ]
 
   return (
-    <motion.div
-      initial={{ x: -20, opacity: 0 }}
-      animate={{ x: 0, opacity: 1 }}
-      transition={{ duration: 0.3 }}
-      className={`fixed left-0 top-0 bottom-0 bg-sidebar text-sidebar-foreground flex flex-col z-50 ${
+    <div
+      className={`fixed left-0 top-0 bottom-0 h-screen bg-sidebar text-sidebar-foreground flex flex-col z-50 ${
         isCollapsed ? "w-24" : "w-72"
-      } transition-width duration-300 shadow-xl sm:relative`}
+      } transition-width duration-300 shadow-xl`}
     >
-      <div className="flex items-center justify-between p-6 border-b border-sidebar-border mb-4">
+      <div className="flex items-center justify-between p-6 border-b border-sidebar-border">
         <div className="flex items-center justify-center w-full">
           {isCollapsed ? (
             <div className="text-white text-2xl font-bold">DMI</div>
@@ -61,7 +57,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         </button>
       </div>
 
-      <nav className="flex-1 overflow-y-auto py-4">
+      {/* Update the nav element to have proper scrolling */}
+      <nav className="flex-1 overflow-y-auto py-4 scrollbar-thin flex flex-col justify-between">
         <div className="space-y-1 px-3">
           {menuItems.map(
             (item) =>
@@ -69,11 +66,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 <Link href={item.href} key={item.label} legacyBehavior>
                   <a
                     className={`group flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 relative
-                    hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
-                      router.pathname === item.href
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground"
-                    }`}
+                hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+                  router.pathname === item.href
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground"
+                    : "text-sidebar-foreground"
+                }`}
                   >
                     <div className="flex items-center min-w-0">
                       <item.icon
@@ -86,7 +83,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                     {!isCollapsed && (
                       <ArrowRight
                         className="h-4 w-4 text-sidebar-foreground transform translate-x-3 opacity-0 transition-all duration-200 
-                        group-hover:translate-x-0 group-hover:opacity-100"
+                  group-hover:translate-x-0 group-hover:opacity-100"
                       />
                     )}
                   </a>
@@ -95,12 +92,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
         </div>
 
-        <div className="px-3 mt-auto space-y-1 absolute mt-10 w-full">
+        <div className="px-3 space-y-1 mt-auto">
           {user ? (
             <button
               onClick={logout}
               className="group flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors duration-200
-                hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
+      hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               <div className="flex items-center min-w-0">
                 <LogOut className="h-5 w-5 text-sidebar-foreground" />
@@ -109,7 +106,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               {!isCollapsed && (
                 <ArrowRight
                   className="h-4 w-4 text-sidebar-foreground transform translate-x-3 opacity-0 transition-all duration-200 
-                  group-hover:translate-x-0 group-hover:opacity-100"
+        group-hover:translate-x-0 group-hover:opacity-100"
                 />
               )}
             </button>
@@ -118,11 +115,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               <Link href="/login" legacyBehavior>
                 <a
                   className={`group flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 relative
-                    hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
-                      router.pathname === "/login"
-                        ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                        : "text-sidebar-foreground"
-                    }`}
+          hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+            router.pathname === "/login"
+              ? "bg-sidebar-accent text-sidebar-accent-foreground"
+              : "text-sidebar-foreground"
+          }`}
                 >
                   <div className="flex items-center min-w-0">
                     <LogIn
@@ -135,7 +132,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   {!isCollapsed && (
                     <ArrowRight
                       className="h-4 w-4 text-sidebar-foreground transform translate-x-3 opacity-0 transition-all duration-200 
-                      group-hover:translate-x-0 group-hover:opacity-100"
+            group-hover:translate-x-0 group-hover:opacity-100"
                     />
                   )}
                 </a>
@@ -143,11 +140,11 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               <Link href="/register" legacyBehavior>
                 <a
                   className={`group flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 relative
-                  hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
-                    router.pathname === "/register"
-                      ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                      : "text-sidebar-foreground"
-                  }`}
+        hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
+          router.pathname === "/register"
+            ? "bg-sidebar-accent text-sidebar-accent-foreground"
+            : "text-sidebar-foreground"
+        }`}
                 >
                   <div className="flex items-center min-w-0">
                     <LogIn
@@ -160,7 +157,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                   {!isCollapsed && (
                     <ArrowRight
                       className="h-4 w-4 text-sidebar-foreground transform translate-x-3 opacity-0 transition-all duration-200 
-                      group-hover:translate-x-0 group-hover:opacity-100"
+            group-hover:translate-x-0 group-hover:opacity-100"
                     />
                   )}
                 </a>
@@ -169,12 +166,12 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
 
           {/* Theme Toggle */}
-          <div className="px-1 pt-2">
+          <div className="px-1 pt-2 pb-4">
             <ThemeToggle isCollapsed={isCollapsed} />
           </div>
         </div>
       </nav>
-    </motion.div>
+    </div>
   )
 }
 

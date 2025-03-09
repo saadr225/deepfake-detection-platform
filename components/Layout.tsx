@@ -5,7 +5,6 @@ import { useUser } from "../contexts/UserContext"
 import Sidebar from "./Sidebar"
 import type React from "react"
 import Link from "next/link"
-import { motion } from "framer-motion"
 
 export default function Layout({ children }: { children: React.ReactNode }) {
   const { authInitialized } = useUser()
@@ -32,7 +31,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   if (!authInitialized || isLoading) {
     return (
-      <div className="flex min-h-screen h-full bg-background">
+      <div className="flex min-h-screen h-full bg-background overflow-x-hidden">
         <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
         <div className="flex items-center justify-center w-full">
           <div className="spinner"></div>
@@ -42,19 +41,10 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   }
 
   return (
-    <div className="flex min-h-screen h-full bg-background">
+    <div className="flex min-h-screen h-full bg-background overflow-x-hidden">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div
-        className={`flex-1 transition-[margin] duration-300 overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"} sm:ml-0`}
-      >
-        <motion.main
-          className="p-4 md:p-8"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.3 }}
-        >
-          {children}
-        </motion.main>
+      <div className={`flex-1 min-h-screen overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"}`}>
+        <main className="p-4 md:p-8">{children}</main>
         <footer className="border-t border-gray-200 dark:border-gray-700 bg-card">
           <div className="container mx-auto px-4 py-10">
             <div className="grid gap-8 md:grid-cols-4">
