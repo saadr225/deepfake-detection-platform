@@ -16,6 +16,7 @@ import {
 } from "lucide-react"
 import Layout from "../components/Layout"
 import { motion } from "framer-motion"
+import Image from "next/image"
 
 const services = [
   {
@@ -73,35 +74,54 @@ export default function Home() {
 
   return (
     <Layout>
-      <main className="p-6 max-w-7xl mx-auto">
-        <section className="mb-12 animate-fadeInUp">
-          <motion.div
-            className="rounded-2xl glass-card p-8 md:p-12 shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <div className="max-w-5xl mx-auto text-center">
-              <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-                <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mb-6 text-foreground">
-                  Detect Deepfakes with
-                  <span className="text-gradient ml-2">Unmatched Precision</span>
-                </h1>
-                <p className="text-xl text-muted-foreground mb-8 max-w-3xl mx-auto">
-                  Our advanced AI-powered platform helps you identify and analyze deepfakes and AI-generated media with
-                  industry-leading accuracy.
-                </p>
-                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                  <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
-                    Try it now
-                    <ChevronRight className="ml-2 h-4 w-4" />
-                  </Button>
-                </div>
-              </motion.div>
-            </div>
-          </motion.div>
-        </section>
+      {/* Full-width hero section with background image */}
+      <div className="relative w-full h-[600px] mb-12">
+        {/* Background image that extends full width */}
+        <div className="absolute inset-0 z-0">
+          <Image 
+            src="/images/deepfake-hero4.png" 
+            alt="Deepfake detection background" 
+            width={1920}
+  height={1080}
+  className="w-full h-full object-cover"
+            priority
+          />
+          {/* Dark gradient overlay for better text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-10"></div>
+        </div>
 
+        {/* Content positioned over the image */}
+        <div className="relative z-20 h-full flex   items-center px-6">
+          <div className="max-w-7xl mx-auto ">
+            <motion.div 
+              initial={{ opacity: 0, y: 20 }} 
+              animate={{ opacity: 1, y: 0 }} 
+              transition={{ duration: 0.5 }}
+            >
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl  mb-6 text-center text-white">
+                Deep Media Inspection
+                
+              </h1>
+              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mt-20 mb-16 text-center text-white">
+                Detect Deepfakes with
+                <span className="text-gradient ml-2">Unmatched Precision</span>
+              </h1>
+              <p className="text-xl text-center text-gray-200 mb-16 max-w-6xl mx-auto">
+                Our advanced AI-powered platform helps you identify and analyze deepfakes and AI-generated media with
+                industry-leading accuracy.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
+                  Try it now
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
+              </div>
+            </motion.div>
+          </div>
+        </div>
+      </div>
+
+      <main className="p-6 max-w-7xl mx-auto">
         <section className="mb-12 animate-fadeInUp">
           <div className="flex items-center justify-between mb-5">
             <Button
@@ -250,4 +270,3 @@ export default function Home() {
     </Layout>
   )
 }
-

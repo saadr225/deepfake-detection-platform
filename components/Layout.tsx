@@ -44,7 +44,8 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen h-full bg-background overflow-x-hidden">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
       <div className={`flex-1 min-h-screen overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"}`}>
-        <main className="p-4 md:p-8">{children}</main>
+        {/* <main className="p-4 md:p-8">{children}</main> */}
+        <main className="">{children}</main>
         <footer className="border-t border-gray-200 dark:border-gray-700 bg-card">
           <div className="container mx-auto px-4 py-10">
             <div className="grid gap-8 md:grid-cols-4">
