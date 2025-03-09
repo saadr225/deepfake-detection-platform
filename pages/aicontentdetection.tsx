@@ -12,7 +12,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { Upload, Link, X, AlertTriangle, CheckCircle } from "lucide-react"
+import { Upload, Link, X, AlertTriangle, CheckCircle, FileText, Cloud, BarChart2 } from 'lucide-react'
 import { motion } from "framer-motion"
 import { useUser } from "../contexts/UserContext"
 import Cookies from "js-cookie"
@@ -316,7 +316,7 @@ export default function AIContentDetectionPage() {
     if (textResults?.html_text) {
       return (
         <div
-          className="whitespace-pre-wrap text-left p-4 border rounded-md bg-card"
+          className="whitespace-pre-wrap text-left p-4 border rounded-xl bg-card"
           dangerouslySetInnerHTML={{ __html: textResults.html_text }}
         />
       )
@@ -328,33 +328,51 @@ export default function AIContentDetectionPage() {
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8 w-full"
+          className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-4xl font-bold text-center mb-4 text-gradient">AI Content Detection</h1>
-          <p className="text-center text-muted-foreground mt-8 mb-12 text-lg">
-            Detect AI-generated images and text with advanced analysis
-          </p>
+          <h1 className="text-3xl font-bold text-center mb-14 text-gradient">Generative AI Detection</h1>
+          
+          {/* Tab Buttons */}
+          <div className="tab-container mb-8">
+            <button 
+              className={`tab-button ${activeTab === "media" ? "tab-button-active" : "tab-button-inactive"}`}
+              onClick={() => setActiveTab("media")}
+            >
+              <div className="flex items-center justify-center">
+                <Upload className="mr-2 h-5 w-5" />
+                <span>Upload File</span>
+              </div>
+            </button>
+            <button 
+              className={`tab-button ${activeTab === "text" ? "tab-button-active" : "tab-button-inactive"}`}
+              onClick={() => setActiveTab("text")}
+            >
+              <div className="flex items-center justify-center">
+                <FileText className="mr-2 h-5 w-5" />
+                <span>Detect Text</span>
+              </div>
+            </button>
+          </div>
 
-          <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-2 mb-6 shadow-md">
-              <TabsTrigger value="media">Image Detection</TabsTrigger>
-              <TabsTrigger value="text">Text Detection</TabsTrigger>
-            </TabsList>
-
-            {/* Image Detection Tab */}
-            <TabsContent value="media" className="w-full">
-              <motion.div
-                className="glass-card rounded-xl p-6 shadow-xl min-h-[500px]"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
+          {/* Image Detection Tab */}
+          {activeTab === "media" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-8"
+            >
+              {/* Upload Section */}
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <h2 className="text-xl font-bold mb-4">Upload Media</h2>
+                <p className="text-muted-foreground mb-4">JPEG, PNG Supported (Max: 5MB)</p>
+                
                 <div
                   {...getRootProps()}
-                  className={`border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors mb-4 flex flex-col justify-center items-center h-full min-h-[500px] p-6 ${
+                  className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors mb-6 flex flex-col justify-center items-center h-full min-h-[300px] p-6 ${
                     isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground hover:border-primary"
                   }`}
                 >
@@ -366,7 +384,7 @@ export default function AIContentDetectionPage() {
                         <img
                           src={URL.createObjectURL(file) || "/placeholder.svg"}
                           alt="Uploaded file"
-                          className="max-h-[350px] max-w-full object-contain mb-4 rounded-lg shadow-md"
+                          className="max-h-[250px] max-w-full object-contain mb-4 rounded-xl shadow-md"
                         />
                       )}
                       <p className="text-lg text-primary mb-4">{file.name}</p>
@@ -382,7 +400,6 @@ export default function AIContentDetectionPage() {
                         >
                           <X className="mr-2 h-4 w-4" /> Remove
                         </Button>
-                        <Upload className="h-12 w-12 text-primary" />
                       </div>
                     </div>
                   ) : (
@@ -391,110 +408,41 @@ export default function AIContentDetectionPage() {
                       <p className="text-lg text-muted-foreground">
                         Drag & drop an image file here, or click to select a file
                       </p>
-                      <p className="text-lg text-muted-foreground">Formats: (.JPEG, .PNG)</p>
                     </div>
                   )}
                 </div>
 
-                <div className="flex flex-col sm:flex-row gap-4 mb-4">
-                  <div className="relative w-full">
-                    <input
-                      type="file"
-                      id="fileUpload"
-                      className="hidden"
-                      onChange={handleFileUpload}
-                      accept="image/*"
-                    />
-                    <Button
-                      variant="outline"
-                      className="w-full"
-                      onClick={() => document.getElementById("fileUpload")?.click()}
-                    >
-                      Upload File
-                    </Button>
-                  </div>
-
-                  {/* Social Media Import Dialog */}
-                  <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-                    <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                        <Link className="mr-2" /> Import from Social Media
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="bg-card">
-                      <DialogHeader>
-                        <DialogTitle>Import from Social Media</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-4">
-                        <input
-                          type="text"
-                          placeholder="Enter social media post URL"
-                          value={socialMediaUrl}
-                          onChange={(e) => setSocialMediaUrl(e.target.value)}
-                          className="w-full p-2 border rounded bg-background"
-                        />
-                        <Button
-                          onClick={handleSocialMediaImport}
-                          className="w-full bg-primary text-white hover:bg-primary/90"
-                        >
-                          Import Media
-                        </Button>
-                        {importError && <p className="text-red-500">{importError}</p>}
-                        <p className="text-sm text-muted-foreground">
-                          Supported platforms: Instagram, Twitter, Facebook, TikTok
-                        </p>
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-
-                <div className="flex items-center ml-1 mt-4 w-full">
-                  <div className="flex-grow text-xs text-muted-foreground pr-6">
-                    Max size allowed is 5MB for images. By clicking "DETECT", you agree to the AI Content Detection
-                    terms and conditions.
-                  </div>
+                <div className="flex flex-col md:flex-row gap-4 mb-4">
+                  <Button
+                    onClick={() => document.getElementById("fileUpload")?.click()}
+                    className="md:flex-1"
+                  >
+                    Select File
+                  </Button>
                   <Button
                     onClick={handleAnalyze}
                     disabled={!file || isAnalyzing}
-                    className="w-[250px] bg-primary hover:bg-primary/90 text-white"
+                    className="py-4 text-base md:flex-1"
                   >
                     {isAnalyzing ? "Analyzing..." : "Detect"}
                   </Button>
+                  <input
+                    type="file"
+                    id="fileUpload"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept="image/*"
+                  />
                 </div>
-              </motion.div>
-            </TabsContent>
 
-            {/* Text Detection Tab */}
-            <TabsContent value="text" className="w-full">
-              <motion.div
-                className="glass-card rounded-xl p-6 shadow-xl min-h-[500px]"
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <textarea
-                  placeholder="Paste text for AI detection"
-                  className="w-full h-[400px] p-4 border rounded-lg mb-4 bg-card"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                />
-                <div className="flex items-center ml-1 mt-4 w-full">
-                  <div className="flex-grow text-xs text-muted-foreground pr-6">
-                    By clicking "DETECT", you agree to the AI Content Detection terms and conditions.
-                  </div>
-                  <Button
-                    onClick={handleAnalyze}
-                    disabled={!text.trim() || isAnalyzing}
-                    className="w-[250px] bg-primary hover:bg-primary/90 text-white"
-                  >
-                    {isAnalyzing ? "Analyzing..." : "Detect"}
-                  </Button>
+                <div className="flex flex-col">
+                  <p className="text-xs text-muted-foreground">
+                    Max size allowed is 5MB for images. By clicking "DETECT", you agree to the AI Content Detection
+                    terms and conditions.
+                  </p>
                 </div>
-              </motion.div>
-            </TabsContent>
-          </Tabs>
 
-          {/* Analysis progress indicator */}
+                {/* Analysis progress indicator */}
           {isAnalyzing && (
             <motion.div
               className="mt-6"
@@ -508,21 +456,106 @@ export default function AIContentDetectionPage() {
               </p>
             </motion.div>
           )}
+              </div>
+
+              {/* Three Steps Section */}
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <h2 className="text-xl font-bold mb-6">Three Steps to Detect AI</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                      <Cloud className="text-primary w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl mb-2 ">Upload content</h3>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                      <BarChart2 className="text-primary w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl mb-2">AI analysis</h3>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                      <FileText className="text-primary w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl mb-2">View results</h3>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* Text Detection Tab */}
+          {activeTab === "text" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="space-y-8"
+            >
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <h2 className="text-xl font-bold mb-4">Text Analysis</h2>
+                <textarea
+                  placeholder="Enter text here..."
+                  className="w-full h-[300px] p-4 border rounded-xl mb-6 bg-background"
+                  value={text}
+                  onChange={(e) => setText(e.target.value)}
+                />
+                <div className="flex flex-col">
+                  <p className="text-xs text-muted-foreground mb-4">
+                    By clicking "ANALYZE TEXT", you agree to the AI Content Detection terms and conditions.
+                  </p>
+                  <Button
+                    onClick={handleAnalyze}
+                    disabled={!text.trim() || isAnalyzing}
+                    className="w-full py-4 text-base"
+                  >
+                    {isAnalyzing ? "Analyzing..." : "Analyze Text"}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Three Steps Section */}
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <h2 className="text-xl font-bold mb-6">Three Steps to Detect AI</h2>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                      <Cloud className="text-primary w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl mb-2">Upload content</h3>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                      <BarChart2 className="text-primary w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl mb-2">AI analysis</h3>
+                  </div>
+                  <div className="flex flex-col items-center text-center">
+                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                      <FileText className="text-primary w-8 h-8" />
+                    </div>
+                    <h3 className="text-xl mb-2">View results</h3>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
 
           {/* Text Analysis Results */}
           {textResults && (
             <motion.div
               ref={resultsRef}
-              className="mt-12"
+              className="mt-12 space-y-6"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
             >
-              <h2 className="text-2xl font-bold mb-4 text-gradient">AI Text Detection Results</h2>
+              <h2 className="text-2xl font-bold mb-4">AI Text Detection Results</h2>
 
               {/* Source Prediction */}
-              <div className="mb-6">
-                <div className="flex items-center gap-2 mb-2">
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-semibold">Primary Source Prediction:</h3>
                   <Badge
                     variant="outline"
@@ -534,6 +567,9 @@ export default function AIContentDetectionPage() {
                   >
                     {textResults.source_prediction}
                   </Badge>
+                </div>
+                
+                <div className="flex items-center mt-2">
                   {textResults.is_ai_generated ? (
                     <div className="flex items-center text-amber-600 dark:text-amber-400">
                       <AlertTriangle className="w-5 h-5 mr-1" />
@@ -549,59 +585,69 @@ export default function AIContentDetectionPage() {
               </div>
 
               {/* Confidence Scores */}
-              <Card className="mb-8 shadow-lg border-0">
-                <CardHeader>
-                  <CardTitle>Confidence Scores</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    {Object.entries(textResults.confidence_scores || {}).map(([source, score]) => (
-                      <Card key={source} className="overflow-hidden shadow-md border-0">
-                        <CardHeader
-                          className={`py-3 ${source === textResults.source_prediction ? "bg-primary/10" : ""}`}
-                        >
-                          <CardTitle className="text-lg">{source}</CardTitle>
-                        </CardHeader>
-                        <CardContent className="py-4">
-                          <div className="text-2xl font-bold">{formatPercentage(score as number)}</div>
-                          <Progress
-                            value={(score as number) * 100}
-                            className={`mt-2 ${
-                              source === "Human"
-                                ? "[&>div]:bg-green-500"
-                                : source === "Claude"
-                                  ? "[&>div]:bg-primary"
-                                  : "[&>div]:bg-amber-500"
-                            }`}
-                          />
-                        </CardContent>
-                      </Card>
-                    ))}
-                  </div>
-                </CardContent>
-              </Card>
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <h3 className="text-xl font-semibold mb-4">Confidence Scores</h3>
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {Object.entries(textResults.confidence_scores || {}).map(([source, score]) => (
+                    <div key={source} className="bg-card rounded-xl p-4 shadow-sm border">
+                      <div className="font-semibold mb-2">{source}</div>
+                      <div className="text-2xl font-bold">{formatPercentage(score as number)}</div>
+                      <Progress
+                        value={(score as number) * 100}
+                        className={`mt-2 ${
+                          source === "Human"
+                            ? "[&>div]:bg-green-500"
+                            : source === "Claude"
+                              ? "[&>div]:bg-primary"
+                              : "[&>div]:bg-amber-500"
+                        }`}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
 
               {/* Analyzed Text with Highlights */}
-              <Card className="shadow-lg border-0">
-                <CardHeader>
-                  <CardTitle>Analyzed Text</CardTitle>
-                  <p className="text-sm text-muted-foreground">Highlighted portions indicate AI-generated content</p>
-                </CardHeader>
-                <CardContent>
-                  {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}
-                </CardContent>
-              </Card>
+              <div className="bg-card rounded-2xl p-6 shadow-md">
+                <h3 className="text-xl font-semibold mb-2">Analyzed Text</h3>
+                <p className="text-sm text-muted-foreground mb-4">Highlighted portions indicate AI-generated content</p>
+                {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}
+              </div>
             </motion.div>
           )}
 
           {textError && (
-            <div className="mt-8 p-4 bg-red-100 dark:bg-red-900 border border-red-400 rounded-md text-red-700 dark:text-red-300">
+            <div className="mt-8 p-4 bg-red-100 dark:bg-red-900 border border-red-400 rounded-xl text-red-700 dark:text-red-300">
               <p>{textError}</p>
             </div>
           )}
         </motion.div>
       </div>
+
+      {/* Social Media Import Dialog */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="bg-card rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Import from Social Media</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Enter social media post URL"
+              value={socialMediaUrl}
+              onChange={(e) => setSocialMediaUrl(e.target.value)}
+              className="w-full p-4 border rounded-xl bg-background"
+            />
+            <Button onClick={handleSocialMediaImport} className="w-full">
+              Import Media
+            </Button>
+            {importError && <p className="text-red-500">{importError}</p>}
+            <p className="text-sm text-muted-foreground">
+              Supported platforms: Instagram, Twitter, Facebook, TikTok
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   )
 }
-

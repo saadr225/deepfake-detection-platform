@@ -6,76 +6,75 @@
 
 @layer base {
   :root {
-    /* New color scheme with transparent greyish background and bluish purple accent */
-    /*--background: 220 20% 97%; /* Light greyish background */
-    /*--background: 180 5% 82%;*/
-    --background: 210 10% 92%;
+    /* Updated color scheme to match mobile app */
+    --background: 260 33% 98%; /* Light lavender-tinted background */
     --foreground: 224 71% 4%;
     --card: 0 0% 100%; /* White cards */
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 262 69% 48%; /* #5729ce - Bluish purple */
+    --primary: 252 74% 64%; /* #7165E3 - Purple from mobile app */
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
-    --secondary-foreground: 262 69% 48%;
+    --secondary-foreground: 252 74% 64%;
     --muted: 220 14% 96%;
     --muted-foreground: 220 8% 46%;
-    --accent: 262 59% 95%; /* Light purple accent */
-    --accent-foreground: 262 69% 48%;
+    --accent: 252 100% 98%; /* Light purple accent */
+    --accent-foreground: 252 74% 64%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 262 69% 48%;
-    --radius: 0.5rem;
+    --ring: 252 74% 64%;
+    --radius: 1rem; /* Increased border radius to match mobile app */
 
     /* Sidebar variables for light mode */
-    --sidebar-background: 262 69% 48%; /* Purple sidebar */
+    --sidebar-background: 252 74% 64%; /* Purple sidebar */
     --sidebar-foreground: 0 0% 100%; /* White text */
-    --sidebar-border: 262 59% 40%;
-    --sidebar-accent: 262 59% 40%; /* Darker purple for hover */
+    --sidebar-border: 252 59% 40%;
+    --sidebar-accent: 252 59% 40%; /* Darker purple for hover */
     --sidebar-accent-foreground: 0 0% 100%;
 
     /* Chart colors */
-    --chart-1: 262 69% 48%; /* Primary purple */
-    --chart-2: 262 59% 65%; /* Lighter purple */
+    --chart-1: 252 74% 64%; /* Primary purple */
+    --chart-2: 252 59% 65%; /* Lighter purple */
     --chart-3: 230 64% 60%; /* Blue */
     --chart-4: 199 89% 48%; /* Cyan */
     --chart-5: 152 60% 52%; /* Teal */
   }
 
   .dark {
-    --background: 224 71% 4%; /* Dark background */
+    /* --background: 224 71% 4%; Dark background */
+    --background: 0 0 4%;
     --foreground: 210 40% 98%;
     --card: 224 71% 8%; /* Dark card background */
     --card-foreground: 210 40% 98%;
     --popover: 224 71% 8%;
     --popover-foreground: 210 40% 98%;
-    --primary: 262 69% 58%; /* Brighter purple for dark mode */
+    --primary: 252 74% 64%; /* Keep same purple for dark mode */
     --primary-foreground: 0 0% 100%;
     --secondary: 215 27% 16%;
     --secondary-foreground: 210 40% 98%;
     --muted: 215 27% 16%;
     --muted-foreground: 217 10% 64%;
-    --accent: 262 59% 20%;
+    --accent: 252 59% 20%;
     --accent-foreground: 210 40% 98%;
     --destructive: 0 62% 30%;
     --destructive-foreground: 210 40% 98%;
     --border: 215 27% 16%;
     --input: 215 27% 16%;
-    --ring: 262 69% 58%;
+    --ring: 252 74% 64%;
 
     /* Sidebar variables for dark mode */
-    --sidebar-background: 262 69% 25%; /* Darker purple sidebar */
+    --sidebar-background: 252 59% 25%; /* Darker purple sidebar */
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-border: 262 59% 20%;
-    --sidebar-accent: 262 59% 30%;
+    --sidebar-border: 252 59% 20%;
+    --sidebar-accent: 252 59% 30%;
     --sidebar-accent-foreground: 0 0% 100%;
 
     /* Chart colors for dark mode */
-    --chart-1: 262 69% 58%;
-    --chart-2: 262 59% 75%;
+    --chart-1: 252 74% 64%;
+    --chart-2: 252 59% 75%;
     --chart-3: 230 64% 70%;
     --chart-4: 199 89% 58%;
     --chart-5: 152 60% 62%;
@@ -120,29 +119,56 @@
 
   /* Card styling */
   .card-enhanced {
-    @apply bg-card rounded-xl shadow-card border border-border/40 transition-all duration-300 hover:shadow-card-hover;
+    @apply bg-card rounded-2xl shadow-card border border-border/40 transition-all duration-300 hover:shadow-card-hover;
   }
 
   /* Button styling */
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-lg px-4 py-2 font-medium transition-colors;
+    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 font-medium transition-colors;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-lg px-4 py-2 font-medium transition-colors;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl px-4 py-2 font-medium transition-colors;
   }
 
   .btn-outline {
-    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-lg px-4 py-2 font-medium transition-colors;
+    @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-xl px-4 py-2 font-medium transition-colors;
   }
 
   /* Form styling */
   .form-input {
-    @apply rounded-lg border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
   }
 
   .form-label {
     @apply text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70;
+  }
+
+  /* Feature card styling */
+  .feature-card {
+    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 flex items-start gap-4;
+  }
+  
+  .feature-icon {
+    @apply bg-accent rounded-xl p-3 text-primary;
+  }
+
+  /* Step card styling */
+  .step-card {
+    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 flex flex-col items-center text-center gap-4;
+  }
+  
+  .step-icon {
+    @apply bg-accent rounded-xl p-3 text-primary w-12 h-12 flex items-center justify-center;
+  }
+
+  /* Result card styling */
+  .result-card {
+    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40;
+  }
+  
+  .success-card {
+    @apply bg-success-light rounded-2xl p-6 shadow-md border border-success/20 text-center;
   }
 
   /* Add these styles to your existing globals.css */
@@ -219,7 +245,7 @@
     object-fit: cover;
     border: 2px solid transparent;
     cursor: pointer;
-    border-radius: 4px;
+    border-radius: 1rem;
     transition: border-color 0.2s;
     opacity: 0.7;
   }
@@ -229,7 +255,7 @@
   }
 
   .thumbnail.active {
-    border-color: hsl(var(--primary));
+    border-color: #7165E3;
     opacity: 1;
   }
 
@@ -269,7 +295,7 @@
   }
 
   .small-carousel-image.active {
-    border-color: hsl(var(--primary));
+    border-color: #7165E3;
   }
 
   .carousel-navigation {
@@ -283,7 +309,7 @@
     width: 40px;
     height: 40px;
     border-radius: 50%;
-    background-color: rgba(87, 41, 206, 0.8);
+    background-color: #7165E3;
     color: white;
     display: flex;
     align-items: center;
@@ -294,14 +320,14 @@
   }
 
   .carousel-button:hover {
-    background-color: rgba(87, 41, 206, 1);
+    background-color: #5d52c7;
     transform: scale(1.05);
   }
 
   .carousel-button:disabled {
     opacity: 0.5;
     cursor: not-allowed;
-    background-color: rgba(87, 41, 206, 0.4);
+    background-color: rgba(113, 101, 227, 0.4);
   }
 
   /* Add navigation button content */
@@ -318,20 +344,20 @@
   }
 
   .carousel-button:not(:disabled):hover {
-    background-color: hsl(var(--primary));
+    background-color: #5d52c7;
   }
 
   .dark .carousel-button:not(:disabled):hover {
-    background-color: hsl(var(--primary));
+    background-color: #5d52c7;
   }
 
   /* Dark mode support */
   .dark .carousel-button {
-    background-color: rgba(87, 41, 206, 0.6);
+    background-color: rgba(113, 101, 227, 0.6);
   }
 
   .dark .carousel-button:hover {
-    background-color: rgba(87, 41, 206, 0.8);
+    background-color: rgba(113, 101, 227, 0.8);
   }
 
   .grid-cols-3 {
@@ -344,7 +370,7 @@
     height: 120px; /* Reduced from 150px */
     width: 120px;
     object-fit: cover;
-    border-radius: 8px;
+    border-radius: 1rem;
     transition: transform 0.25s ease;
   }
 
@@ -365,7 +391,7 @@
   }
 
   .sidebar .menu-item {
-    @apply px-4 py-3 flex items-center gap-4 rounded-lg transition-colors duration-200;
+    @apply px-4 py-3 flex items-center gap-4 rounded-xl transition-colors duration-200;
   }
 
   .sidebar .menu-item:hover {
@@ -484,7 +510,7 @@
 
   .hover-elevate:hover {
     animation: elevate 0.3s ease forwards;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(87, 41, 206, 0.3);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(113, 101, 227, 0.3);
   }
 
   .hover-elevate:not(:hover) {
@@ -496,11 +522,11 @@
   }
 
   .dark .hover-elevate:hover {
-    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1), 0 0 0 3px rgba(87, 41, 206, 0.3);
+    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1), 0 0 0 3px rgba(113, 101, 227, 0.3);
   }
 
   .how-it-works-step {
-    @apply relative z-20 rounded-xl bg-card dark:bg-card p-6 pl-16 shadow-md;
+    @apply relative z-20 rounded-2xl bg-card dark:bg-card p-6 pl-16 shadow-md;
   }
 
   .how-it-works-step-number {
@@ -534,17 +560,17 @@
 .metadata-container {
   width: 100%;
   overflow-x: auto;
-  @apply bg-card rounded-xl shadow-md;
+  @apply bg-card rounded-2xl shadow-md;
 }
 
 .metadata-category {
   background-color: hsl(var(--card));
-  border-radius: 0.5rem;
+  border-radius: 1rem;
   @apply mb-6;
 }
 
 .metadata-category h3 {
-  color: hsl(var(--primary));
+  color: #7165E3;
   @apply text-lg font-semibold border-b pb-2 mb-3;
 }
 
@@ -572,7 +598,7 @@
 
 /* Add this to the end of your globals.css file */
 .ai-generated {
-  background-color: rgba(87, 41, 206, 0.15); /* Purple highlight with transparency */
+  background-color: rgba(113, 101, 227, 0.15); /* Purple highlight with transparency */
   padding: 1px 0;
   border-radius: 2px;
 }
@@ -588,7 +614,7 @@
 }
 
 .progress-indicator-color-blue {
-  background-color: rgb(87, 41, 206);
+  background-color: #7165E3;
 }
 
 .progress-indicator-color-amber {
@@ -602,7 +628,7 @@
 
 /* Glass card effect */
 .glass-card {
-  @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-xl shadow-xl border border-white/20 dark:border-gray-800/30;
+  @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 dark:border-gray-800/30;
 }
 
 /* Add these custom scrollbar styles to the end of your globals.css file */
@@ -616,16 +642,57 @@
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.3);
+  background: rgba(113, 101, 227, 0.3);
   border-radius: 10px;
 }
 
 .scrollbar-thin::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.5);
+  background: rgba(113, 101, 227, 0.5);
 }
 
 .scrollbar-thin {
   scrollbar-width: thin;
-  scrollbar-color: rgba(255, 255, 255, 0.3) transparent;
+  scrollbar-color: rgba(113, 101, 227, 0.3) transparent;
 }
 
+/* Three steps section styling */
+.three-steps {
+  @apply grid grid-cols-1 md:grid-cols-3 gap-6 my-8;
+}
+
+.step-item {
+  @apply flex flex-col items-center text-center;
+}
+
+.step-icon-container {
+  @apply bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center;
+}
+
+.step-icon {
+  @apply text-primary w-8 h-8;
+}
+
+.step-title {
+  @apply font-medium text-lg mb-2;
+}
+
+.step-description {
+  @apply text-muted-foreground text-sm;
+}
+
+/* Tab styling */
+.tab-container {
+  @apply flex rounded-2xl overflow-hidden mb-6 shadow-md;
+}
+
+.tab-button {
+  @apply flex-1 py-3 px-4 text-center font-medium transition-colors;
+}
+
+.tab-button-active {
+  @apply bg-primary text-white;
+}
+
+.tab-button-inactive {
+  @apply bg-card text-foreground hover:bg-accent;
+}

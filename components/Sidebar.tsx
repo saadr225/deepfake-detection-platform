@@ -65,7 +65,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               (!item.auth || user) && (
                 <Link href={item.href} key={item.label} legacyBehavior>
                   <a
-                    className={`group flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 relative
+                    className={`group flex items-center justify-between px-6 py-3 rounded-lg transition-colors duration-200 relative
                 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
                   router.pathname === item.href
                     ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -96,7 +96,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           {user ? (
             <button
               onClick={logout}
-              className="group flex items-center justify-between w-full px-4 py-3 rounded-lg transition-colors duration-200
+              className="group flex items-center justify-between w-full px-6 py-3 rounded-lg transition-colors duration-200
       hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
             >
               <div className="flex items-center min-w-0">
@@ -114,7 +114,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
             <div className="space-y-1">
               <Link href="/login" legacyBehavior>
                 <a
-                  className={`group flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 relative
+                  className={`group flex items-center justify-between px-6 py-3 rounded-lg transition-colors duration-200 relative
           hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
             router.pathname === "/login"
               ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -139,7 +139,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
               </Link>
               <Link href="/register" legacyBehavior>
                 <a
-                  className={`group flex items-center justify-between px-4 py-3 rounded-lg transition-colors duration-200 relative
+                  className={`group flex items-center justify-between px-6 py-3 rounded-lg transition-colors duration-200 relative
         hover:bg-sidebar-accent hover:text-sidebar-accent-foreground ${
           router.pathname === "/register"
             ? "bg-sidebar-accent text-sidebar-accent-foreground"
@@ -166,7 +166,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           )}
 
           {/* Theme Toggle */}
-          <div className="px-1 pt-2 pb-4">
+          <div className="px-3 pt-2 pb-4">
             <ThemeToggle isCollapsed={isCollapsed} />
           </div>
         </div>

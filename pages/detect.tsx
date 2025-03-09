@@ -10,7 +10,7 @@ import Layout from "../components/Layout"
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { Upload, LinkIcon, X } from "lucide-react"
+import { Upload, LinkIcon, X, Cloud, BarChart2, FileText } from 'lucide-react'
 import { motion } from "framer-motion"
 import { useUser } from "../contexts/UserContext"
 import Cookies from "js-cookie"
@@ -230,29 +230,48 @@ export default function DetectPage() {
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8">
         <motion.div
-          className="max-w-4xl mx-auto py-16 px-4 sm:px-6 lg:px-8 w-full"
+          className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
           {/* Page Header */}
-          <h1 className="text-4xl font-bold text-center mb-4 text-gradient">
-            Detect Deepfakes with Exceptional Precision
-          </h1>
-          <p className="text-center text-muted-foreground mt-8 mb-12 text-lg">
-            Upload any image or video and get detailed deepfake detection analysis
-          </p>
+          <h1 className="text-3xl font-bold text-center mb-14 text-gradient">Detect Deepfakes with Exceptional Precision</h1>
+          
+          {/* Action Buttons */}
+          <div className="grid grid-cols-2 gap-4 mb-8">
+            <Button 
+              className="h-14 text-base font-medium"
+              onClick={() => document.getElementById("fileUpload")?.click()}
+            >
+              <Upload className="mr-2 h-5 w-5" /> Upload File
+            </Button>
+            <Button 
+              variant="outline" 
+              className="h-14 text-base font-medium"
+              onClick={() => setIsImportModalOpen(true)}
+            >
+              <LinkIcon className="mr-2 h-5 w-5" /> Import URL
+            </Button>
+            <input
+              type="file"
+              id="fileUpload"
+              className="hidden"
+              onChange={handleFileUpload}
+              accept="image/*,video/*"
+            />
+          </div>
+
+          
 
           {/* Detection Area */}
-          <motion.div
-            className="glass-card rounded-xl p-6 shadow-xl min-h-[500px]"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
+          <div className="bg-card rounded-2xl p-6 shadow-md mb-8">
+            <h2 className="text-xl font-bold mb-4">Upload Media</h2>
+            <p className="text-muted-foreground mb-4">JPEG, PNG, MP4 Supported (Max: 10MB)</p>
+            
             <div
               {...getRootProps()}
-              className={`border-2 border-dashed rounded-lg text-center cursor-pointer transition-colors mb-4 flex flex-col justify-center items-center h-full min-h-[500px] p-6 ${
+              className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors mb-6 flex flex-col justify-center items-center h-full min-h-[300px] p-6 ${
                 isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground hover:border-primary"
               }`}
             >
@@ -265,7 +284,7 @@ export default function DetectPage() {
                     <img
                       src={URL.createObjectURL(file) || "/placeholder.svg"}
                       alt="Uploaded file"
-                      className="max-h-[350px] max-w-full object-contain mb-4 rounded-lg shadow-md"
+                      className="max-h-[250px] max-w-full object-contain mb-4 rounded-xl shadow-md"
                     />
                   ) : (
                     <VideoComponent file={file} />
@@ -284,7 +303,6 @@ export default function DetectPage() {
                     >
                       <X className="mr-2 h-4 w-4" /> Remove
                     </Button>
-                    <Upload className="h-12 w-12 text-muted-foreground" />
                   </div>
                 </div>
               ) : (
@@ -293,76 +311,105 @@ export default function DetectPage() {
                   <p className="text-lg text-muted-foreground">
                     Drag & drop an image or video file here, or click to select a file
                   </p>
-                  <p className="text-lg text-muted-foreground">Format Supported: (.JPEG, .PNG, .MP4)</p>
                 </div>
               )}
             </div>
 
-            {/* File Upload Button */}
-            <div className="flex flex-col sm:flex-row gap-4 mb-4">
-              <div className="relative w-full">
-                <input
-                  type="file"
-                  id="fileUpload"
-                  className="hidden"
-                  onChange={handleFileUpload}
-                  accept="image/*,video/*"
-                />
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => document.getElementById("fileUpload")?.click()}
-                >
-                  Upload File
-                </Button>
-              </div>
-
-              {/* Social Media Import Dialog */}
-              <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-                <DialogTrigger asChild>
-                  <Button variant="outline" className="w-full">
-                    <LinkIcon className="mr-2" /> Import from Social Media
-                  </Button>
-                </DialogTrigger>
-                <DialogContent className="bg-card">
-                  <DialogHeader>
-                    <DialogTitle>Import from Social Media</DialogTitle>
-                  </DialogHeader>
-                  <div className="space-y-4">
-                    <input
-                      type="text"
-                      placeholder="Enter social media post URL"
-                      value={socialMediaUrl}
-                      onChange={(e) => setSocialMediaUrl(e.target.value)}
-                      className="w-full p-2 border rounded bg-background"
-                    />
-                    <Button onClick={handleSocialMediaImport} className="w-full">
-                      Import Media
-                    </Button>
-                    {importError && <p className="text-red-500">{importError}</p>}
-                    <p className="text-sm text-muted-foreground">
-                      Supported platforms: Instagram, Twitter, Facebook, TikTok
-                    </p>
-                  </div>
-                </DialogContent>
-              </Dialog>
-            </div>
-
-            {/* Terms and Conditions */}
-            <div className="flex items-center ml-1 mt-4 w-full">
-              <div className="flex-grow text-xs text-muted-foreground pr-6">
+            {/* Terms and Detect Button */}
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+              <p className="text-sm text-muted-foreground md:flex-1 md:mb-0 mb-4">
                 Max size allowed for image is 5mb and max size allowed for video is 10mb. By clicking "DETECT", you
                 agree to terms and conditions of Deep Media Inspection.
-              </div>
+              </p>
               <Button
                 onClick={handleAnalyze}
                 disabled={!file || isAnalyzing}
-                className="w-[250px] bg-primary hover:bg-primary/90 text-white"
+                className="py-4 text-base md:w-auto w-full md:min-w-[230px]"
               >
                 {isAnalyzing ? "Analyzing..." : "Detect"}
               </Button>
             </div>
-          </motion.div>
+          </div>
+
+          {/* Three Steps Section */}
+          <div className="bg-card rounded-2xl p-6 mb-8 shadow-md">
+            <h2 className="text-xl font-bold mb-6">Three Steps to Detect Deepfakes</h2>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                  <Cloud className="text-primary w-8 h-8" />
+                </div>
+                <h3 className="text-xl mb-2">Upload media</h3>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                  <BarChart2 className="text-primary w-8 h-8" />
+                </div>
+                <h3 className="text-xl mb-2">Deepfake analysis</h3>
+              </div>
+              <div className="flex flex-col items-center text-center">
+                <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
+                  <FileText className="text-primary w-8 h-8" />
+                </div>
+                <h3 className="text-xl mb-2">Detailed results</h3>
+              </div>
+            </div>
+          </div>
+
+          {/* Features Section */}
+          <div className="bg-card rounded-2xl p-6 shadow-md">
+            <h2 className="text-xl font-bold mb-6">Features of Deepfake Detection Module</h2>
+            <div className="space-y-4">
+              <div className="feature-card">
+                <div className="feature-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M22 15.01L21.999 3.00101C21.999 2.4487 21.552 2.00101 21 2.00101L9 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M8 16H3C2.44772 16 2 16.4477 2 17V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16 8L18 6M10 14L16 8L10 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M7 17V17.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Error Level Analysis</h3>
+                  <p className="text-muted-foreground text-sm">Detect image manipulation by analyzing compression error levels.</p>
+                </div>
+              </div>
+              
+              <div className="feature-card">
+                <div className="feature-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M16.2426 7.75736C18.5858 10.1005 18.5858 13.8995 16.2426 16.2426C13.8995 18.5858 10.1005 18.5858 7.75736 16.2426C5.41421 13.8995 5.41421 10.1005 7.75736 7.75736C10.1005 5.41421 13.8995 5.41421 16.2426 7.75736" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M14.1213 9.87868C15.2929 11.0503 15.2929 12.9497 14.1213 14.1213C12.9497 15.2929 11.0503 15.2929 9.87868 14.1213C8.70711 12.9497 8.70711 11.0503 9.87868 9.87868C11.0503 8.70711 12.9497 8.70711 14.1213 9.87868" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Gradcam Heatmaps</h3>
+                  <p className="text-muted-foreground text-sm">Visualize areas of interest in images using gradient-weighted class activation mapping.</p>
+                </div>
+              </div>
+              
+              <div className="feature-card">
+                <div className="feature-icon">
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M12 2V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 20V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M4 12H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M22 12H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19.0784 4.92163L17.6642 6.33584" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M6.33584 17.6642L4.92163 19.0784" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M19.0784 19.0784L17.6642 17.6642" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M6.33584 6.33584L4.92163 4.92163" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                    <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold mb-1">Meta data analysis</h3>
+                  <p className="text-muted-foreground text-sm">Detailed examination of file metadata to uncover hidden manipulation traces.</p>
+                </div>
+              </div>
+            </div>
+          </div>
 
           {/* Progress indicator during analysis */}
           {isAnalyzing && (
@@ -380,7 +427,31 @@ export default function DetectPage() {
           )}
         </motion.div>
       </div>
+
+      {/* Social Media Import Dialog */}
+      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
+        <DialogContent className="bg-card rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Import from Social Media</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <input
+              type="text"
+              placeholder="Enter social media post URL"
+              value={socialMediaUrl}
+              onChange={(e) => setSocialMediaUrl(e.target.value)}
+              className="w-full p-4 border rounded-xl bg-background"
+            />
+            <Button onClick={handleSocialMediaImport} className="w-full">
+              Import Media
+            </Button>
+            {importError && <p className="text-red-500">{importError}</p>}
+            <p className="text-sm text-muted-foreground">
+              Supported platforms: Instagram, Twitter, Facebook, TikTok
+            </p>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Layout>
   )
 }
-

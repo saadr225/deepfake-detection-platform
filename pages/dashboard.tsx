@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useUser } from '../contexts/UserContext';
 import { DetectionEntry, useDetectionHistory } from '../contexts/DetectionHistoryContext';
 import { useRouter } from 'next/router';
-import { Eye, Trash2, Trash, ChevronDown } from 'lucide-react';
+import { Eye, Trash2, Trash, ChevronDown, FileText, Upload, User, History } from 'lucide-react';
 import axios from 'axios';
 import Cookies from 'js-cookie';
 import {
@@ -42,6 +42,7 @@ export default function Dashboard() {
   const [passwordUpdateError, setPasswordUpdateError] = useState<string | null>(null);
   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
+  const [activeTab, setActiveTab] = useState("profile");
 
   useEffect(() => {
     if (!user) {
@@ -237,9 +238,9 @@ export default function Dashboard() {
         animate={{ opacity: 1 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="max-w-5xl mx-auto py-12 sm:px-6 lg:px-8">
+        <div className="max-w-6xl mx-auto py-12 sm:px-6 lg:px-8">
           <motion.h1
-            className="text-3xl font-bold text-gray-900 dark:text-white mb-10"
+            className="text-3xl font-bold text-gradient dark:text-white mb-10"
             initial={{ y: -20, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             transition={{ delay: 0.2 }}
@@ -247,274 +248,293 @@ export default function Dashboard() {
             Welcome, {user?.username}
           </motion.h1>
 
-          <Tabs defaultValue="profile">
-            <TabsList className="grid w-full grid-cols-2 shadow-md">
-              <TabsTrigger value="profile">Profile Settings</TabsTrigger>
-              <TabsTrigger value="history">Detection History</TabsTrigger>
-            </TabsList>
+          {/* Replace Tabs component with custom tab buttons */}
+          <div className="tab-container mb-8">
+            <button 
+              className={`tab-button ${activeTab === "profile" ? "tab-button-active" : "tab-button-inactive"}`}
+              onClick={() => setActiveTab("profile")}
+            >
+              <div className="flex items-center justify-center">
+                <User className="mr-2 h-5 w-5" />
+                <span>Profile Settings</span>
+              </div>
+            </button>
+            <button 
+              className={`tab-button ${activeTab === "history" ? "tab-button-active" : "tab-button-inactive"}`}
+              onClick={() => setActiveTab("history")}
+            >
+              <div className="flex items-center justify-center">
+                <History className="mr-2 h-5 w-5" />
+                <span>Detection History</span>
+              </div>
+            </button>
+          </div>
 
-            {/* Profile Settings Tab */}
-            <TabsContent value="profile" className="mt-8 shadow-xl">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Profile Settings</CardTitle>
-                    <CardDescription>Update your profile information here.</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    {profileUpdateError && (
-                      <div className="text-red-500 mb-4">{profileUpdateError}</div>
-                    )}
-                    <form onSubmit={handleProfileUpdate}>
-                      <div className="grid w-full items-center gap-4">
-                        <div className="flex flex-col space-y-1.5">
-                          <Label htmlFor="username">Username</Label>
-                          <Input
-                            id="username"
-                            value={username}
-                            onChange={(e) => setUsername(e.target.value)}
-                            disabled
-                          />
-                        </div>
-                        <div className="flex flex-col space-y-1.5">
-                          <Label htmlFor="email">Email</Label>
-                          <Input
-                            id="email"
-                            type="email"
-                            value={email}
-                            onChange={(e) => setEmail(e.target.value)}
-                          />
-                        </div>
+          {/* Profile Settings Tab Content */}
+          {activeTab === "profile" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-8 shadow-xl"
+            >
+              <Card>
+                {/* Existing profile tab content */}
+                <CardHeader>
+                  <CardTitle>Profile Settings</CardTitle>
+                  <CardDescription>Update your profile information here.</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {profileUpdateError && (
+                    <div className="text-red-500 mb-4">{profileUpdateError}</div>
+                  )}
+                  <form onSubmit={handleProfileUpdate}>
+                    <div className="grid w-full items-center gap-4">
+                      <div className="flex flex-col space-y-1.5">
+                        <Label htmlFor="username">Username</Label>
+                        <Input
+                          id="username"
+                          value={username}
+                          onChange={(e) => setUsername(e.target.value)}
+                          disabled
+                        />
+                      </div>
+                      <div className="flex flex-col space-y-1.5">
+                        <Label htmlFor="email">Email</Label>
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                        />
+                      </div>
+                    </div>
+                    <Button
+                      type="submit"
+                      className="mt-4"
+                      disabled={isUpdating}
+                    >
+                      {isUpdating ? 'Updating...' : 'Update Profile'}
+                    </Button>
+                  </form>
+                  <div className="mt-6 pt-6 border-t">
+                    <div className="flex justify-between items-center mb-4">
+                      <div>
+                        <h3 className="text-lg font-medium">Password Settings</h3>
+                        <p className="text-sm text-muted-foreground">Update your password here.</p>
                       </div>
                       <Button
-                        type="submit"
-                        className="mt-4"
-                        disabled={isUpdating}
+                        variant="outline"
+                        onClick={() => setShowPasswordForm(!showPasswordForm)}
                       >
-                        {isUpdating ? 'Updating...' : 'Update Profile'}
+                        {showPasswordForm ? 'Cancel' : 'Change Password'}
                       </Button>
-                    </form>
-                    <div className="mt-6 pt-6 border-t">
-                      <div className="flex justify-between items-center mb-4">
-                        <div>
-                          <h3 className="text-lg font-medium">Password Settings</h3>
-                          <p className="text-sm text-muted-foreground">Update your password here.</p>
+                    </div>
+
+                    {showPasswordForm && (
+                      <form onSubmit={handlePasswordChange} className="space-y-4">
+                        {passwordUpdateError && (
+                          <div className="text-red-500 text-sm">{passwordUpdateError}</div>
+                        )}
+                        {passwordUpdateSuccess && (
+                          <div className="text-green-500 text-sm">{passwordUpdateSuccess}</div>
+                        )}
+
+                        <div className="space-y-2">
+                          <Label htmlFor="current-password">Current Password</Label>
+                          <Input
+                            id="current-password"
+                            type="password"
+                            value={currentPassword}
+                            onChange={(e) => setCurrentPassword(e.target.value)}
+                            required
+                          />
                         </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="new-password">New Password</Label>
+                          <Input
+                            id="new-password"
+                            type="password"
+                            value={newPassword}
+                            onChange={(e) => setNewPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+
+                        <div className="space-y-2">
+                          <Label htmlFor="confirm-new-password">Confirm New Password</Label>
+                          <Input
+                            id="confirm-new-password"
+                            type="password"
+                            value={confirmNewPassword}
+                            onChange={(e) => setConfirmNewPassword(e.target.value)}
+                            required
+                          />
+                        </div>
+
                         <Button
-                          variant="outline"
-                          onClick={() => setShowPasswordForm(!showPasswordForm)}
+                          type="submit"
+                          disabled={isChangingPassword}
                         >
-                          {showPasswordForm ? 'Cancel' : 'Change Password'}
+                          {isChangingPassword ? 'Updating Password...' : 'Update Password'}
                         </Button>
-                      </div>
+                      </form>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
-                      {showPasswordForm && (
-                        <form onSubmit={handlePasswordChange} className="space-y-4">
-                          {passwordUpdateError && (
-                            <div className="text-red-500 text-sm">{passwordUpdateError}</div>
-                          )}
-                          {passwordUpdateSuccess && (
-                            <div className="text-green-500 text-sm">{passwordUpdateSuccess}</div>
-                          )}
-
-                          <div className="space-y-2">
-                            <Label htmlFor="current-password">Current Password</Label>
-                            <Input
-                              id="current-password"
-                              type="password"
-                              value={currentPassword}
-                              onChange={(e) => setCurrentPassword(e.target.value)}
-                              required
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="new-password">New Password</Label>
-                            <Input
-                              id="new-password"
-                              type="password"
-                              value={newPassword}
-                              onChange={(e) => setNewPassword(e.target.value)}
-                              required
-                            />
-                          </div>
-
-                          <div className="space-y-2">
-                            <Label htmlFor="confirm-new-password">Confirm New Password</Label>
-                            <Input
-                              id="confirm-new-password"
-                              type="password"
-                              value={confirmNewPassword}
-                              onChange={(e) => setConfirmNewPassword(e.target.value)}
-                              required
-                            />
-                          </div>
-
-                          <Button
-                            type="submit"
-                            disabled={isChangingPassword}
-                          >
-                            {isChangingPassword ? 'Updating Password...' : 'Update Password'}
+          {/* Detection History Tab Content */}
+          {activeTab === "history" && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.3 }}
+              className="mt-8"
+            >
+              <Card>
+                {/* Existing history tab content */}
+                <CardHeader>
+                  <div className="flex justify-between items-center">
+                    <div>
+                      <CardTitle>Detection History</CardTitle>
+                      <CardDescription>Your recent deepfake detection activities.</CardDescription>
+                    </div>
+                    {detectionHistory.length > 0 && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button variant="destructive" size="sm">
+                            <Trash className="mr-2 h-4 w-4" /> Clear History
                           </Button>
-                        </form>
-                      )}
-                    </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-
-            {/* Detection History Tab */}
-            <TabsContent value="history" className= "mt-8">
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-              >
-                <Card>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <div>
-                        <CardTitle>Detection History</CardTitle>
-                        <CardDescription>Your recent deepfake detection activities.</CardDescription>
-                      </div>
-                      {detectionHistory.length > 0 && (
-                        <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                            <Button variant="destructive" size="sm">
-                              <Trash className="mr-2 h-4 w-4" /> Clear History
-                            </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                            <AlertDialogHeader>
-                              <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                              <AlertDialogDescription>
-                                This action will permanently clear your detection history. This cannot be undone.
-                              </AlertDialogDescription>
-                            </AlertDialogHeader>
-                            <AlertDialogFooter>
-                              <AlertDialogCancel>Cancel</AlertDialogCancel>
-                              <AlertDialogAction onClick={clearDetectionHistory}>
-                                Yes, clear history
-                              </AlertDialogAction>
-                            </AlertDialogFooter>
-                          </AlertDialogContent>
-                        </AlertDialog>
-                      )}
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    {detectionHistory.length === 0 ? (
-                      <div className="text-center py-4">No detection history found.</div>
-                    ) : (
-                      <div className="space-y-4">                        
-                        {detectionHistory.map((detection) => {
-                          return (
-                            <motion.div
-                              key={detection.id}
-                              className="flex flex-col border-b dark:border-gray-700 pb-4"
-                              initial={{ opacity: 0, x: -20 }}
-                              animate={{ opacity: 1, x: 0 }}
-                              transition={{ duration: 0.3 }}
-                            >
-                              <div className="flex items-center justify-between">
-                                {/* Detected Media Thumbnail */}
-                                <div className="flex items-center space-x-4">
-                                  <div className="w-20 h-30 relative">
-                                    {detection.detectionType === 'deepfake' && detection.detailedReport?.analysis_report.media_type === 'Image' && (
-                                      <img
-                                        src={'media_path' in detection.detailedReport.analysis_report 
-                                          ? detection.detailedReport.analysis_report.media_path
-                                          : detection.detailedReport.analysis_report.image_path}
-                                        alt="Detected Image"
-                                        className="object-cover rounded-md"
-                                      />
-                                    )}
-                                    {detection.detectionType === 'ai-content' && detection.detailedReport && 'media_path' in detection.detailedReport.analysis_report && (
-                                      <img
-                                        src={detection.detailedReport.analysis_report.media_path}
-                                        alt="Detected AI Image"
-                                        className="object-cover rounded-md"
-                                      />
-                                    )}
-                                    {detection.detectionType === 'deepfake' && detection.detailedReport?.analysis_report.media_type === 'Video' && 'media_path' in detection.detailedReport.analysis_report && (
-                                      <video
-                                        src={detection.detailedReport?.analysis_report.media_path}
-                                        className="w-full h-20 object-cover rounded-md"
-                                        style={{ pointerEvents: 'none' }}
-                                      >
-                                        Your browser does not support the video tag.
-                                      </video>
-                                    )}
-                                    {detection.detailedReport?.analysis_report.media_type === 'unknown' && (
-                                      <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
-                                        Unsupported Media
-                                      </div>
-                                    )}
-                                  </div>
-
-                                  {/* Detection Details */}
-                                  <div>
-                                    <h3 className="text-lg font-semibold">
-                                      Detection Result
-                                      <span
-                                        className={`ml-2 px-2 py-1 rounded text-xs ${
-                                          detection.isDeepfake
-                                            ? 'bg-red-500 text-white'
-                                            : 'bg-green-500 text-white'
-                                        }`}
-                                      >
-                                        {/* {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
-                                          : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Not AI Generated') : 'Not Deepfake'} */}
-                                          {detection.isDeepfake 
-                                          ? (detection.detectionType === 'deepfake' 
-                                            ? 'Deepfake' 
-                                            : detection.detectionType === 'ai-content' 
-                                              ? 'AI Generated' 
-                                              : 'Not AI Generated') 
-                                          : (detection.detectionType === 'ai-content' 
-                                            ? 'Not AI Generated' 
-                                            : 'Not Deepfake')}
-                                      </span>
-                                    </h3>
-                                    <p className="text-sm text-muted-foreground">
-                                      Date: {new Date(detection.date).toLocaleDateString()}
-                                    </p>
-                                    <p className="text-sm text-muted-foreground">
-                                      Confidence: {(detection.confidence * 100).toFixed(2)}%
-                                    </p>
-                                  </div>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              This action will permanently clear your detection history. This cannot be undone.
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                            <AlertDialogAction onClick={clearDetectionHistory}>
+                              Yes, clear history
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  {detectionHistory.length === 0 ? (
+                    <div className="text-center py-4">No detection history found.</div>
+                  ) : (
+                    <div className="space-y-4">                        
+                      {detectionHistory.map((detection) => {
+                        return (
+                          <motion.div
+                            key={detection.id}
+                            className="flex flex-col border-b dark:border-gray-700 pb-4"
+                            initial={{ opacity: 0, x: -20 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ duration: 0.3 }}
+                          >
+                            <div className="flex items-center justify-between">
+                              {/* Detected Media Thumbnail */}
+                              <div className="flex items-center space-x-4">
+                                <div className="w-20 h-30 relative">
+                                  {detection.detectionType === 'deepfake' && detection.detailedReport?.analysis_report.media_type === 'Image' && (
+                                    <img
+                                      src={'media_path' in detection.detailedReport.analysis_report 
+                                        ? detection.detailedReport.analysis_report.media_path
+                                        : detection.detailedReport.analysis_report.image_path}
+                                      alt="Detected Image"
+                                      className="object-cover rounded-md"
+                                    />
+                                  )}
+                                  {detection.detectionType === 'ai-content' && detection.detailedReport && 'media_path' in detection.detailedReport.analysis_report && (
+                                    <img
+                                      src={detection.detailedReport.analysis_report.media_path}
+                                      alt="Detected AI Image"
+                                      className="object-cover rounded-md"
+                                    />
+                                  )}
+                                  {detection.detectionType === 'deepfake' && detection.detailedReport?.analysis_report.media_type === 'Video' && 'media_path' in detection.detailedReport.analysis_report && (
+                                    <video
+                                      src={detection.detailedReport?.analysis_report.media_path}
+                                      className="w-full h-20 object-cover rounded-md"
+                                      style={{ pointerEvents: 'none' }}
+                                    >
+                                      Your browser does not support the video tag.
+                                    </video>
+                                  )}
+                                  {detection.detailedReport?.analysis_report.media_type === 'unknown' && (
+                                    <div className="w-full h-full bg-gray-200 flex items-center justify-center rounded-md">
+                                      Unsupported Media
+                                    </div>
+                                  )}
                                 </div>
-                                <div className="flex space-x-2">
-                                  <Button
-                                    variant="outline"
-                                    onClick={() => handleViewDetectionDetails(detection)}
-                                  >
-                                    <Eye className="mr-2 h-4 w-4" /> View
-                                  </Button>
-                                  <Button
-                                    variant="outline"
-                                    
-                                    onClick={() => handleDeleteEntry(detection.id)}
-                                  >
-                                    <Trash2 className="mr-2 h-4 w-4" /> Delete
-                                  </Button>
+
+                                {/* Detection Details */}
+                                <div>
+                                  <h3 className="text-lg font-semibold">
+                                    Detection Result
+                                    <span
+                                      className={`ml-2 px-2 py-1 rounded text-xs ${
+                                        detection.isDeepfake
+                                          ? 'bg-red-500 text-white'
+                                          : 'bg-green-500 text-white'
+                                      }`}
+                                    >
+                                      {/* {detection.isDeepfake ? (detection.detectionType === 'deepfake' ? 'Deepfake'
+                                        : detection.detectionType === 'ai-content' ? 'AI Generated' : 'Not AI Generated') : 'Not Deepfake'} */}
+                                        {detection.isDeepfake 
+                                        ? (detection.detectionType === 'deepfake' 
+                                          ? 'Deepfake' 
+                                          : detection.detectionType === 'ai-content' 
+                                            ? 'AI Generated' 
+                                            : 'Not AI Generated') 
+                                        : (detection.detectionType === 'ai-content' 
+                                          ? 'Not AI Generated' 
+                                          : 'Not Deepfake')}
+                                    </span>
+                                  </h3>
+                                  <p className="text-sm text-muted-foreground">
+                                    Date: {new Date(detection.date).toLocaleDateString()}
+                                  </p>
+                                  <p className="text-sm text-muted-foreground">
+                                    Confidence: {(detection.confidence * 100).toFixed(2)}%
+                                  </p>
                                 </div>
                               </div>
-                            </motion.div>
-                          );
-                        })}
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </motion.div>
-            </TabsContent>
-          </Tabs>
+                              <div className="flex space-x-2">
+                                <Button
+                                  variant="outline"
+                                  onClick={() => handleViewDetectionDetails(detection)}
+                                >
+                                  <Eye className="mr-2 h-4 w-4" /> View
+                                </Button>
+                                <Button
+                                  variant="outline"
+                                  
+                                  onClick={() => handleDeleteEntry(detection.id)}
+                                >
+                                  <Trash2 className="mr-2 h-4 w-4" /> Delete
+                                </Button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
         </div>
       </motion.div>
     </Layout>

@@ -18,7 +18,7 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "hsl(var(--primary))",
+          DEFAULT: "#7165E3", // Updated to match mobile app's purple
           foreground: "hsl(var(--primary-foreground))",
         },
         secondary: {
@@ -34,8 +34,8 @@ const config: Config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "hsl(var(--accent))",
-          foreground: "hsl(var(--accent-foreground))",
+          DEFAULT: "#F3F2FF", // Light purple accent background
+          foreground: "#7165E3",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -52,57 +52,24 @@ const config: Config = {
           accent: "hsl(var(--sidebar-accent))",
           "accent-foreground": "hsl(var(--sidebar-accent-foreground))",
         },
-        chart: {
-          "1": "hsl(var(--chart-1))",
-          "2": "hsl(var(--chart-2))",
-          "3": "hsl(var(--chart-3))",
-          "4": "hsl(var(--chart-4))",
-          "5": "hsl(var(--chart-5))",
-        },
-        // Custom brand colors
-        brand: {
-          purple: "#5729ce",
-          "purple-light": "#7c52e3",
-          "purple-dark": "#451fa6",
+        success: {
+          light: "#E8F5E9", // Light green background for success messages
+          DEFAULT: "#4CAF50", // Green text/icons for success
         },
       },
       borderRadius: {
-        lg: "var(--radius)",
-        md: "calc(var(--radius) - 2px)",
-        sm: "calc(var(--radius) - 4px)",
+        lg: "1rem", // Increased border radius to match mobile app
+        md: "0.75rem",
+        sm: "0.5rem",
+        xl: "1.25rem",
+        "2xl": "1.5rem", // Very rounded corners like in the app
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
       },
-      keyframes: {
-        "accordion-down": {
-          from: {
-            height: "0",
-          },
-          to: {
-            height: "var(--radix-accordion-content-height)",
-          },
-        },
-        "accordion-up": {
-          from: {
-            height: "var(--radix-accordion-content-height)",
-          },
-          to: {
-            height: "0",
-          },
-        },
-      },
-      animation: {
-        "accordion-down": "accordion-down 0.2s ease-out",
-        "accordion-up": "accordion-up 0.2s ease-out",
-      },
       boxShadow: {
         card: "0 4px 20px rgba(0, 0, 0, 0.08)",
         "card-hover": "0 8px 30px rgba(0, 0, 0, 0.12)",
-      },
-      backgroundImage: {
-        "gradient-radial": "radial-gradient(var(--tw-gradient-stops))",
-        "gradient-conic": "conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))",
       },
     },
   },
@@ -110,4 +77,3 @@ const config: Config = {
 } as const
 
 export default config
-
