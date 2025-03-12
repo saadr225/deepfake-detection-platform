@@ -575,7 +575,7 @@ export default function DeepfakeReportPage() {
     });
 
     return (
-      <div className="metadata-container mt-8 space-y-6 bg-background border rounded-lg p-6 shadow-md">
+      <div className="metadata-container mt-8 space-y-6 glass-card border rounded-lg p-6 shadow-md">
         <h2 className="text-2xl font-bold mb-4">File Metadata</h2>
         {Object.entries(groupedMetadata).map(([category, fields]) => (
           <div key={category} className="metadata-category mb-6">
@@ -680,7 +680,7 @@ export default function DeepfakeReportPage() {
           >
             {/* Confidence Result */}
             <motion.div 
-              className="bg-background border rounded-lg p-6 shadow-md"
+              className="glass-card border p-6 shadow-md"
               variants={itemVariants}
             >
               <div className="flex items-center justify-between">
@@ -720,7 +720,7 @@ export default function DeepfakeReportPage() {
             >
               {mediaType === 'video' && (
   <motion.div 
-    className="border rounded-lg p-4 bg-background shadow-md"
+    className="border rounded-lg p-4 glass-card shadow-md"
     variants={itemVariants}
     whileHover={{ scale: 1.02 }}
   >
@@ -742,7 +742,7 @@ export default function DeepfakeReportPage() {
 )}
               {/* Error Level Analysis */}
               <motion.div 
-                className="border rounded-lg p-4 bg-background shadow-md"
+                className="border rounded-lg p-4 glass-card shadow-md"
                 variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
               >
@@ -780,7 +780,7 @@ export default function DeepfakeReportPage() {
 
               {/* Gradcam Heatmap */}
               <motion.div 
-                className="border rounded-lg p-4 bg-background shadow-md"
+                className="border rounded-lg p-4 glass-card shadow-md"
                 variants={itemVariants}
                 whileHover={{ scale: 1.02 }}
               >

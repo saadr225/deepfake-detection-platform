@@ -628,7 +628,7 @@
 
 /* Glass card effect */
 .glass-card {
-  @apply bg-white/90 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 dark:border-gray-800/30;
+  @apply bg-white dark:bg-gray-900/80 backdrop-blur-md rounded-2xl shadow-lg border border-white/20 dark:border-gray-800/30;
 }
 
 /* Add these custom scrollbar styles to the end of your globals.css file */
