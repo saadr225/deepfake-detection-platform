@@ -337,7 +337,7 @@ const handleViewDetails = (submission: PDASubmission) => {
                       <img
                         src={submission.file_url || "/placeholder.svg"}
                         alt={submission.title}
-                        className="w-full h-full object-cover"
+                        className="w-full h-full object-contain"
                         onError={(e) => {
                           // Fallback for broken images
                           ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=192&width=384"

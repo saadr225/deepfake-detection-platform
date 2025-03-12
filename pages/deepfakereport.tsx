@@ -972,6 +972,39 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                 </p>
               </div>
             </motion.div>
+            {/* Analysis Statistics - Add this right after the Confidence Result container */}
+<motion.div 
+  className="glass-card border p-6 shadow-md"
+  variants={itemVariants}
+>
+  <h2 className="text-xl font-semibold mb-4">Analysis Statistics</h2>
+  <div className="grid grid-cols-2 gap-4">
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Total Frames</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.total_frames}
+      </div>
+    </div>
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Fake Frames</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.fake_frames}
+      </div>
+    </div>
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Total Crops</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.total_crops}
+      </div>
+    </div>
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Fake Crops</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.fake_crops}
+      </div>
+    </div>
+  </div>
+</motion.div>
             {/* Analysis Boxes */}
             <motion.div 
               className="space-y-4"
