@@ -3,6 +3,9 @@ import { useRouter } from 'next/router';
 import { motion } from 'framer-motion';
 import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { CheckCircle } from "lucide-react";
 import { Download, Share2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
@@ -93,6 +96,27 @@ export default function DeepfakeReportPage() {
   const [heatmapPage, setHeatmapPage] = useState(0);
   const [currentOriginalFrameSlide, setCurrentOriginalFrameSlide] = useState(0);
   const [originalFramePage, setOriginalFramePage] = useState(0);
+  // Add these state variables at the top with the other useState declarations
+const [showSubmitForm, setShowSubmitForm] = useState(false);
+const [submitSuccess, setSubmitSuccess] = useState(false);
+const [submitError, setSubmitError] = useState<string | null>(null);
+const [submitting, setSubmitting] = useState(false);
+
+// Form state
+const [pdaTitle, setPdaTitle] = useState('');
+const [pdaCategory, setPdaCategory] = useState('');
+const [pdaDescription, setPdaDescription] = useState('');
+const [pdaContext, setPdaContext] = useState('');
+const [pdaSourceUrl, setPdaSourceUrl] = useState('');
+
+// Add this constant for categories
+const pdaCategories = [
+  { code: 'POL', name: 'Politician' },
+  { code: 'CEL', name: 'Celebrity' },
+  { code: 'INF', name: 'Influencer' },
+  { code: 'PUB', name: 'Public Figure' },
+  { code: 'OTH', name: 'Other' }
+];
 
   useEffect(() => {
     if (!user) {
@@ -607,6 +631,116 @@ export default function DeepfakeReportPage() {
     );
   };
 
+  // Add this function to handle the form submission
+const handleSubmitToPDA = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!pdaTitle || !pdaCategory) {
+    setSubmitError('Title and Category are required fields');
+    return;
+  }
+  
+  setSubmitting(true);
+  setSubmitError(null);
+  
+  try {
+    // Get the access token from cookies
+    let accessToken = Cookies.get('accessToken');
+    
+    if (!accessToken) {
+      setSubmitError('Please login to submit to the Public Deepfake Archive');
+      setSubmitting(false);
+      return;
+    }
+    
+    const submitData = {
+      submission_identifier: analysisResult.analysis_report.file_id || router.query.submission_identifier,
+      title: pdaTitle,
+      category: pdaCategory,
+      description: pdaDescription,
+      context: pdaContext,
+      source_url: pdaSourceUrl
+    };
+    
+    try {
+      const response = await axios.post(
+        'http://127.0.0.1:8000/api/pda/submit/',
+        submitData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        }
+      );
+      
+      setSubmitSuccess(true);
+      // Reset form
+      setPdaTitle('');
+      setPdaCategory('');
+      setPdaDescription('');
+      setPdaContext('');
+      setPdaSourceUrl('');
+      
+    } catch (error) {
+      if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+        // Access token is expired, refresh the token
+        const refreshToken = Cookies.get('refreshToken');
+        
+        if (refreshToken) {
+          // Get a new access token using the refresh token
+          try {
+            const refreshResponse = await axios.post(
+              'http://127.0.0.1:8000/api/auth/refresh_token/',
+              { refresh: refreshToken }
+            );
+            
+            accessToken = refreshResponse.data.access;
+            
+            // Store the new access token in cookies
+            if (accessToken) {
+              Cookies.set('accessToken', accessToken);
+              
+              // Retry the submission with the new access token
+              const submitResponse = await axios.post(
+                'http://127.0.0.1:8000/api/pda/submit/',
+                submitData,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`
+                  }
+                }
+              );
+              
+              setSubmitSuccess(true);
+              // Reset form
+              setPdaTitle('');
+              setPdaCategory('');
+              setPdaDescription('');
+              setPdaContext('');
+              setPdaSourceUrl('');
+              
+            } else {
+              setSubmitError('Authentication failed. Please log in again.');
+            }
+          } catch (refreshError) {
+            setSubmitError('Failed to refresh authentication. Please log in again.');
+          }
+        } else {
+          setSubmitError('Please log in to submit to the Public Deepfake Archive.');
+        }
+      } else {
+        setSubmitError('Failed to submit to PDA. Please try again later.');
+        console.error('PDA submission error:', error);
+      }
+    }
+  } catch (error) {
+    setSubmitError('An unexpected error occurred. Please try again.');
+    console.error('Error in PDA submission process:', error);
+  } finally {
+    setSubmitting(false);
+  }
+};
+
   return (
     <Layout>
       <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8 bg-background">
@@ -672,6 +806,128 @@ export default function DeepfakeReportPage() {
               )}
             </motion.div>
           </motion.div>
+
+          {/* Add Submit to PDA Button */}
+<motion.div
+  className="mt-4"
+  variants={itemVariants}
+>
+  {!submitSuccess ? (
+    <>
+      <Button 
+        onClick={() => setShowSubmitForm(!showSubmitForm)} 
+        className="w-full"
+        variant="secondary"
+      >
+        {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
+      </Button>
+      
+      {showSubmitForm && (
+        <motion.div
+          className="mt-4 border rounded-lg p-4 shadow-md"
+          initial={{ opacity: 0, height: 0 }}
+          animate={{ opacity: 1, height: 'auto' }}
+          transition={{ duration: 0.3 }}
+        >
+          <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
+          <p className="text-muted-foreground mb-4">
+            Your submission will be reviewed before being added to the public archive.
+            Please provide accurate information.
+          </p>
+          
+          {submitError && (
+            <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
+              {submitError}
+            </div>
+          )}
+          
+          <form onSubmit={handleSubmitToPDA} className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
+              <Input
+                value={pdaTitle}
+                onChange={(e) => setPdaTitle(e.target.value)}
+                placeholder="E.g., Political Figure Deepfake"
+                required
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
+              <Select value={pdaCategory} onValueChange={setPdaCategory}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select a category" />
+                </SelectTrigger>
+                <SelectContent>
+                  {pdaCategories.map((category) => (
+                    <SelectItem key={category.code} value={category.code}>
+                      {category.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Description</label>
+              <textarea
+                value={pdaDescription}
+                onChange={(e) => setPdaDescription(e.target.value)}
+                placeholder="Describe the deepfake content"
+                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Context</label>
+              <textarea
+                value={pdaContext}
+                onChange={(e) => setPdaContext(e.target.value)}
+                placeholder="Provide additional context about the deepfake"
+                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+              />
+            </div>
+            
+            <div>
+              <label className="block text-sm font-medium mb-1">Source URL</label>
+              <Input
+                value={pdaSourceUrl}
+                onChange={(e) => setPdaSourceUrl(e.target.value)}
+                placeholder="https://example.com/source"
+                type="url"
+              />
+            </div>
+            
+            <div className="flex justify-end">
+              <Button
+                type="submit"
+                disabled={submitting}
+              >
+                {submitting ? "Submitting..." : "Submit"}
+              </Button>
+            </div>
+          </form>
+        </motion.div>
+      )}
+    </>
+  ) : (
+    <motion.div
+      className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      transition={{ duration: 0.5 }}
+    >
+      <div className="flex items-center">
+        <CheckCircle className="h-5 w-5 mr-2" />
+        <h3 className="font-semibold">Submission Successful</h3>
+      </div>
+      <p className="mt-2">
+        Thank you for your submission to the Public Deepfake Archive. 
+        Your submission is now under review. If approved, it will be listed in the PDA.
+      </p>
+    </motion.div>
+  )}
+</motion.div>
 
           {/* Right Side - Analysis Results */}
           <motion.div 

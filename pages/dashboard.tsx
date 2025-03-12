@@ -276,9 +276,9 @@ export default function Dashboard() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3 }}
-              className="mt-8 shadow-xl"
+              className="mt-8 "
             >
-              <Card>
+              <Card className = "glass-card">
                 {/* Existing profile tab content */}
                 <CardHeader>
                   <CardTitle>Profile Settings</CardTitle>
@@ -395,7 +395,7 @@ export default function Dashboard() {
               transition={{ duration: 0.3 }}
               className="mt-8"
             >
-              <Card>
+              <Card className = "glass-card">
                 {/* Existing history tab content */}
                 <CardHeader>
                   <div className="flex justify-between items-center">
