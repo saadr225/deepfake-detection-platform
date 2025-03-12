@@ -1119,14 +1119,22 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                         currentPage={heatmapPage}
                         onPageChange={setHeatmapPage}
                       />
+                      
                     </div>
                   )}
+                  
                 </div>
+                
               </motion.div>
             </motion.div>
           </motion.div>
         </motion.div>
       </div>
+      {analysisResult.metadata && (
+        <div className="max-w-6xl mx-auto px-4 pb-12 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
+          {renderMetadata(analysisResult.metadata)}
+        </div>
+      )}
 
       {/* Modal */}
       {enlargedImage && currentSliderType && (
@@ -1158,13 +1166,6 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
     }}
   />
 )}
-
-      {analysisResult.metadata && (
-        <div className="max-w-6xl mx-auto px-4 pb-12">
-          {renderMetadata(analysisResult.metadata)}
-        </div>
-      )}
-
     </Layout>
   );
 }

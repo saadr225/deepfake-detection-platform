@@ -394,6 +394,7 @@ export default function AIContentReportPage() {
             disabled={currentPage === 0}
             className="carousel-button prev"
           >
+            ◀
           </button>
 
           <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -405,6 +406,7 @@ export default function AIContentReportPage() {
             disabled={currentPage === totalPages - 1}
             className="carousel-button next"
           >
+            ▶
           </button>
         </div>
       </div>
@@ -500,13 +502,13 @@ export default function AIContentReportPage() {
           </button>
 
           <div className="main-carousel">
-            <button onClick={handleMainPrev} className="carousel-button prev"></button>
+            <button onClick={handleMainPrev} className="carousel-button prev"> ◀ </button>
             <img
               src={frames[currentSlide]}
               alt={`View ${currentSlide + 1}`}
               className="main-image"
             />
-            <button onClick={handleMainNext} className="carousel-button next"></button>
+            <button onClick={handleMainNext} className="carousel-button next"> ▶ </button>
           </div>
 
           <div className="thumbnail-carousel">
@@ -515,6 +517,7 @@ export default function AIContentReportPage() {
               className="carousel-button prev"
               disabled={thumbnailStart === 0}
             >
+              ◀
             </button>
             <div className="thumbnails">
               {visibleThumbnails.map((frame, index) => {
@@ -534,7 +537,9 @@ export default function AIContentReportPage() {
               onClick={handleThumbnailNext}
               className="carousel-button next"
               disabled={thumbnailStart + THUMBNAIL_LIMIT >= frames.length}
-            ></button>
+            >
+              ▶
+            </button>
           </div>
 
           <div className="text-center text-white mt-2 space-y-1">
@@ -561,7 +566,7 @@ export default function AIContentReportPage() {
     });
 
     return (
-      <div className="metadata-container mt-8 space-y-6 bg-background border rounded-lg p-6 shadow-md">
+      <div className="metadata-container space-y-6 glass-card bg-background border rounded-lg p-6 shadow-md">
         <h2 className="text-2xl font-bold mb-4">File Metadata</h2>
         {Object.entries(groupedMetadata).map(([category, fields]) => (
           <div key={category} className="metadata-category mb-6">
@@ -641,7 +646,7 @@ export default function AIContentReportPage() {
           {/* Right Section: Detection result, confidence, ELA, GradCam */}
           <motion.div className="col-span-12 md:col-span-5 space-y-6" variants={itemVariants}>
             {/* Detection Result Summary */}
-            <motion.div className="bg-background border rounded-lg p-6 shadow-md" variants={itemVariants}>
+            <motion.div className=" glass-card border rounded-lg p-6 shadow-md" variants={itemVariants}>
               <div className="flex items-center justify-between">
                 <h2 className="text-xl font-semibold">Detection Result</h2>
                 <motion.div
@@ -667,7 +672,7 @@ export default function AIContentReportPage() {
               </div>
             </motion.div>
 
-            <motion.div className="border rounded-lg p-4 bg-background shadow-md" variants={itemVariants}>
+            <motion.div className="border rounded-lg p-4 glass-card shadow-md" variants={itemVariants}>
               <h3 className="text-lg font-semibold mb-2">Gradcam Heatmap</h3>
               <img
                 src={analysisResult.analysis_report.gradcam_path}
@@ -693,7 +698,7 @@ export default function AIContentReportPage() {
       )}
 
       {analysisResult.metadata && (
-        <div className="max-w-6xl mx-auto px-4 pb-12">
+        <div className="max-w-6xl mx-auto px-4 pb-12 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
           {renderMetadata(analysisResult.metadata)}
         </div>
       )}

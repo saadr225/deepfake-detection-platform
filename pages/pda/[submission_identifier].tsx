@@ -808,40 +808,91 @@ const renderMetadata = (metadata: Record<string, string>) => {
       {/* Original Frames */}
       <div className="glass-card border rounded-lg p-4 shadow-md">
         <h3 className="text-lg font-semibold mb-4">Original Frames</h3>
-        <SmallCarousel
-          frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.frame_path)}
-          onImageClick={handleImageClick}
-          type="original"
-          currentIndex={currentOriginalFrameSlide}
-          currentPage={originalFramePage}
-          onPageChange={setOriginalFramePage}
-        />
+        {submission.file_type === "Image" ? (
+          // For images, show a single centered image
+          <div className="flex justify-center">
+            <img
+              src={submission.detection_result.analysis_report.frame_results[0].frame_path}
+              alt="Original Frame"
+              className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+              onClick={() => handleImageClick(
+                submission.detection_result.analysis_report.frame_results[0].frame_path,
+                'original',
+                0
+              )}
+            />
+          </div>
+        ) : (
+          // For videos, show the carousel
+          <SmallCarousel
+            frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.frame_path)}
+            onImageClick={handleImageClick}
+            type="original"
+            currentIndex={currentOriginalFrameSlide}
+            currentPage={originalFramePage}
+            onPageChange={setOriginalFramePage}
+          />
+        )}
       </div>
 
       {/* Error Level Analysis */}
       <div className="glass-card border rounded-lg p-4 shadow-md">
         <h3 className="text-lg font-semibold mb-4">Error Level Analysis</h3>
-        <SmallCarousel
-          frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.ela_path)}
-          onImageClick={handleImageClick}
-          type="error"
-          currentIndex={currentErrorLevelSlide}
-          currentPage={errorLevelPage}
-          onPageChange={setErrorLevelPage}
-        />
+        {submission.file_type === "Image" ? (
+          // For images, show a single centered image
+          <div className="flex justify-center">
+            <img
+              src={submission.detection_result.analysis_report.frame_results[0].ela_path}
+              alt="Error Level Analysis"
+              className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+              onClick={() => handleImageClick(
+                submission.detection_result.analysis_report.frame_results[0].ela_path,
+                'error',
+                0
+              )}
+            />
+          </div>
+        ) : (
+          // For videos, show the carousel
+          <SmallCarousel
+            frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.ela_path)}
+            onImageClick={handleImageClick}
+            type="error"
+            currentIndex={currentErrorLevelSlide}
+            currentPage={errorLevelPage}
+            onPageChange={setErrorLevelPage}
+          />
+        )}
       </div>
 
       {/* Gradcam Heatmap */}
       <div className="glass-card border rounded-lg p-4 shadow-md">
         <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
-        <SmallCarousel
-          frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.gradcam_path)}
-          onImageClick={handleImageClick}
-          type="heatmap"
-          currentIndex={currentHeatmapSlide}
-          currentPage={heatmapPage}
-          onPageChange={setHeatmapPage}
-        />
+        {submission.file_type === "Image" ? (
+          // For images, show a single centered image
+          <div className="flex justify-center">
+            <img
+              src={submission.detection_result.analysis_report.frame_results[0].gradcam_path}
+              alt="Gradcam Heatmap"
+              className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+              onClick={() => handleImageClick(
+                submission.detection_result.analysis_report.frame_results[0].gradcam_path,
+                'heatmap',
+                0
+              )}
+            />
+          </div>
+        ) : (
+          // For videos, show the carousel
+          <SmallCarousel
+            frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.gradcam_path)}
+            onImageClick={handleImageClick}
+            type="heatmap"
+            currentIndex={currentHeatmapSlide}
+            currentPage={heatmapPage}
+            onPageChange={setHeatmapPage}
+          />
+        )}
       </div>
     </div>
   </div>

@@ -329,9 +329,7 @@ export default function DetectPage() {
                 {isAnalyzing ? "Analyzing..." : "Detect"}
               </Button>
             </div>
-          </div>
-
-          {/* Progress indicator during analysis */}
+            {/* Progress indicator during analysis */}
           {isAnalyzing && (
             <motion.div
               className="mt-6 mb-6"
@@ -345,6 +343,9 @@ export default function DetectPage() {
               </p>
             </motion.div>
           )}
+          </div>
+
+          
 
           {/* Three Steps Section */}
           <div className="bg-card rounded-2xl p-6 mb-8 shadow-md">
