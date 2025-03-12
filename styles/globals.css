@@ -331,7 +331,7 @@
   }
 
   /* Add navigation button content */
-  .carousel-button.prev::before {
+  /* .carousel-button.prev::before {
     content: "‹";
     font-size: 24px;
     line-height: 1;
@@ -341,7 +341,7 @@
     content: "›";
     font-size: 24px;
     line-height: 1;
-  }
+  } */
 
   .carousel-button:not(:disabled):hover {
     background-color: #5d52c7;

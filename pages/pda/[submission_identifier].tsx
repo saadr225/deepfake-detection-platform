@@ -92,6 +92,15 @@ export default function PDASubmissionDetailsPage() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState("media")
+  // Add these state variables at the top with your other useState declarations
+const [enlargedImage, setEnlargedImage] = useState<string | null>(null);
+const [currentSliderType, setCurrentSliderType] = useState<'error' | 'heatmap' | 'original' | null>(null);
+const [currentErrorLevelSlide, setCurrentErrorLevelSlide] = useState(0);
+const [heatmapPage, setHeatmapPage] = useState(0);
+const [currentHeatmapSlide, setCurrentHeatmapSlide] = useState(0);
+const [errorLevelPage, setErrorLevelPage] = useState(0);
+const [currentOriginalFrameSlide, setCurrentOriginalFrameSlide] = useState(0);
+const [originalFramePage, setOriginalFramePage] = useState(0);
 
   // Fetch submission details from API
   useEffect(() => {
@@ -178,6 +187,271 @@ export default function PDASubmissionDetailsPage() {
       alert("Link copied to clipboard!")
     }
   }
+
+  // Handle image click to show enlarged view
+const handleImageClick = (image: string, type: 'error' | 'heatmap' | 'original', index: number) => {
+  setEnlargedImage(image);
+  setCurrentSliderType(type);
+  document.body.style.overflow = 'hidden';
+  if (type === 'error') {
+    setCurrentErrorLevelSlide(index);
+  } else if (type === 'heatmap') {
+    setCurrentHeatmapSlide(index);
+  } else {
+    setCurrentOriginalFrameSlide(index);
+  }
+};
+
+// Handle closing the modal
+const handleCloseModal = () => {
+  setEnlargedImage(null);
+  setCurrentSliderType(null);
+  document.body.style.overflow = 'auto';
+};
+
+// Small carousel component for the frames
+const SmallCarousel = ({
+  frames,
+  onImageClick,
+  type,
+  currentIndex,
+  currentPage,
+  onPageChange,
+}: {
+  frames: string[];
+  onImageClick: (image: string, type: 'error' | 'heatmap' | 'original', index: number) => void;
+  type: 'error' | 'heatmap' | 'original';
+  currentIndex: number;
+  currentPage: number;
+  onPageChange: (page: number) => void;
+}) => {
+  const imagesPerPage = 3;
+  const totalPages = Math.ceil(frames.length / imagesPerPage);
+
+  const handlePrevPage = () => {
+    const newPage = Math.max(0, currentPage - 1);
+    onPageChange(newPage);
+  };
+
+  const handleNextPage = () => {
+    const newPage = Math.min(totalPages - 1, currentPage + 1);
+    onPageChange(newPage);
+  };
+
+  const startIndex = currentPage * imagesPerPage;
+  const visibleFrames = frames.slice(startIndex, startIndex + imagesPerPage);
+
+  return (
+    <div className="space-y-4">
+      {/* Image Container */}
+      <div className="grid grid-cols-3 gap-2">
+        {visibleFrames.map((frame, index) => {
+          const actualIndex = startIndex + index;
+          return (
+            <div 
+              key={actualIndex} 
+              className="relative aspect-video"
+            >
+              <img
+                src={frame}
+                alt={`Frame ${actualIndex + 1}`}
+                className="w-full h-[100px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                onClick={() => onImageClick(frame, type, actualIndex)}
+                loading="lazy"
+              />
+            </div>
+          );
+        })}
+      </div>
+
+      {/* Navigation */}
+      <div className="flex items-center justify-between px-2">
+        <button
+          onClick={handlePrevPage}
+          disabled={currentPage === 0}
+          className={`carousel-button prev
+            ${currentPage === 0 
+              ? 'text-gray-900 cursor-not-allowed' 
+              : 'text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+        >
+          ◀
+        </button>
+
+        <span className="text-sm text-gray-600 dark:text-gray-400">
+          Page {currentPage + 1} of {totalPages}
+        </span>
+
+        <button
+          onClick={handleNextPage}
+          disabled={currentPage === totalPages - 1}
+          className={`carousel-button next
+            ${currentPage === totalPages - 1
+              ? 'text-gray-900 cursor-not-allowed'
+              : 'text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+        >
+          ▶
+        </button>
+      </div>
+    </div>
+  );
+};
+
+// Image Modal component for enlarged view
+const ImageModal = ({ 
+  image, 
+  onClose, 
+  sliderType,
+  frames,
+  currentSlide,
+  onSlideChange,
+}: { 
+  image: string;
+  onClose: () => void;
+  sliderType: 'error' | 'heatmap' | 'original';
+  frames: string[];
+  currentSlide: number;
+  onSlideChange: (index: number) => void;
+}) => {
+  const THUMBNAIL_LIMIT = 10;
+  
+  const initialThumbnailStart = Math.floor(currentSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+  const [thumbnailStart, setThumbnailStart] = useState(initialThumbnailStart);
+
+  useEffect(() => {
+    const targetPage = Math.floor(currentSlide / THUMBNAIL_LIMIT);
+    const targetStart = targetPage * THUMBNAIL_LIMIT;
+    setThumbnailStart(targetStart);
+  }, [currentSlide, THUMBNAIL_LIMIT]);
+
+  const handleMainNext = () => {
+    const nextSlide = (currentSlide + 1) % frames.length;
+    const nextPageStart = Math.floor(nextSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+    if (nextPageStart !== thumbnailStart) {
+      setThumbnailStart(nextPageStart);
+    }
+    onSlideChange(nextSlide);
+  };
+
+  const handleMainPrev = () => {
+    const prevSlide = (currentSlide - 1 + frames.length) % frames.length;
+    const prevPageStart = Math.floor(prevSlide / THUMBNAIL_LIMIT) * THUMBNAIL_LIMIT;
+    if (prevPageStart !== thumbnailStart) {
+      setThumbnailStart(prevPageStart);
+    }
+    onSlideChange(prevSlide);
+  };
+
+  const handleThumbnailNext = () => {
+    const nextStart = thumbnailStart + THUMBNAIL_LIMIT;
+    if (nextStart < frames.length) {
+      setThumbnailStart(nextStart);
+      onSlideChange(nextStart);
+    }
+  };
+
+  const handleThumbnailPrev = () => {
+    const prevStart = thumbnailStart - THUMBNAIL_LIMIT;
+    if (prevStart >= 0) {
+      setThumbnailStart(prevStart);
+      onSlideChange(prevStart);
+    }
+  };
+
+  const totalPages = Math.ceil(frames.length / THUMBNAIL_LIMIT);
+  const currentPage = Math.floor(thumbnailStart / THUMBNAIL_LIMIT) + 1;
+  
+  const visibleThumbnails = frames.slice(
+    thumbnailStart,
+    thumbnailStart + THUMBNAIL_LIMIT
+  );
+
+  return (
+    <div className="fixed inset-0 bg-black/90 z-50 flex flex-col items-center justify-center p-4">
+      <div className="relative w-full max-w-6xl mx-auto carousel-container">
+        {/* Close button */}
+        <button
+          onClick={onClose}
+          className="absolute -top-2 right-0 text-white hover:text-gray-300 z-50 p-2"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <path d="M18 6L6 18M6 6l12 12"/>
+          </svg>
+        </button>
+
+        {/* Main Carousel */}
+        <div className="main-carousel">
+          <button 
+            onClick={handleMainPrev}
+            className="carousel-button prev"
+          >
+            ◀
+          </button>
+          <img
+            src={frames[currentSlide]}
+            alt={`View ${currentSlide + 1}`}
+            className="main-image"
+          />
+          <button 
+            onClick={handleMainNext}
+            className="carousel-button next"
+          >
+            ▶
+          </button>
+        </div>
+
+        {/* Thumbnail Navigation */}
+        <div className="thumbnail-carousel">
+          <button
+            onClick={handleThumbnailPrev}
+            className="carousel-button prev"
+            disabled={thumbnailStart === 0}
+          >
+            ◀
+          </button>
+          <div className="thumbnails">
+            {visibleThumbnails.map((frame, index) => {
+              const realIndex = thumbnailStart + index;
+              return (
+                <img
+                  key={realIndex}
+                  src={frame}
+                  alt={`Thumbnail ${realIndex + 1}`}
+                  className={`thumbnail ${realIndex === currentSlide ? 'active' : ''}`}
+                  onClick={() => onSlideChange(realIndex)}
+                />
+              );
+            })}
+          </div>
+          <button
+            onClick={handleThumbnailNext}
+            className="carousel-button next"
+            disabled={thumbnailStart + THUMBNAIL_LIMIT >= frames.length}
+          >
+            ▶
+          </button>
+        </div>
+
+        {/* Image counter and page information */}
+        <div className="text-center text-white mt-2 space-y-1">
+          <div>Image {currentSlide + 1} of {frames.length}</div>
+          <div className="text-sm text-gray-400">
+            Page {currentPage} of {totalPages}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
 
   // Add a function to render metadata
 const renderMetadata = (metadata: Record<string, string>) => {
@@ -409,6 +683,7 @@ const renderMetadata = (metadata: Record<string, string>) => {
     </div>
 </TabsContent>
                   </Tabs>
+                  
                 </div>
 
                 {/* Right column - Detection results and info */}
@@ -525,13 +800,98 @@ const renderMetadata = (metadata: Record<string, string>) => {
             </div>
           ) : null}
         </motion.div>
+        {/* Add this new section for frames analysis containers right after the Tabs component */}
+{submission && submission.detection_result.analysis_report.frame_results && submission.detection_result.analysis_report.frame_results.length > 0 && (
+  <div className="mt-8 max-w-7xl mx-auto">
+    <h2 className="text-2xl font-bold mb-6">Visual Analysis</h2>
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+      {/* Original Frames */}
+      <div className="glass-card border rounded-lg p-4 shadow-md">
+        <h3 className="text-lg font-semibold mb-4">Original Frames</h3>
+        <SmallCarousel
+          frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.frame_path)}
+          onImageClick={handleImageClick}
+          type="original"
+          currentIndex={currentOriginalFrameSlide}
+          currentPage={originalFramePage}
+          onPageChange={setOriginalFramePage}
+        />
       </div>
+
+      {/* Error Level Analysis */}
+      <div className="glass-card border rounded-lg p-4 shadow-md">
+        <h3 className="text-lg font-semibold mb-4">Error Level Analysis</h3>
+        <SmallCarousel
+          frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.ela_path)}
+          onImageClick={handleImageClick}
+          type="error"
+          currentIndex={currentErrorLevelSlide}
+          currentPage={errorLevelPage}
+          onPageChange={setErrorLevelPage}
+        />
+      </div>
+
+      {/* Gradcam Heatmap */}
+      <div className="glass-card border rounded-lg p-4 shadow-md">
+        <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
+        <SmallCarousel
+          frames={submission.detection_result.analysis_report.frame_results.map(frame => frame.gradcam_path)}
+          onImageClick={handleImageClick}
+          type="heatmap"
+          currentIndex={currentHeatmapSlide}
+          currentPage={heatmapPage}
+          onPageChange={setHeatmapPage}
+        />
+      </div>
+    </div>
+  </div>
+)}
+
       {/* Add metadata section if available */}
-{submission && submission.metadata && (
+      {submission && submission.metadata && (
   <div className="mt-8 max-w-7xl mx-auto">
     {renderMetadata(submission.metadata)}
   </div>
 )}
+
+      </div>
+      {/* Image Modal */}
+{enlargedImage && currentSliderType && submission && (
+  <ImageModal
+    image={enlargedImage}
+    onClose={handleCloseModal}
+    sliderType={currentSliderType}
+    frames={currentSliderType === 'error'
+      ? submission.detection_result.analysis_report.frame_results.map(frame => frame.ela_path)
+      : currentSliderType === 'heatmap'
+        ? submission.detection_result.analysis_report.frame_results.map(frame => frame.gradcam_path)
+        : submission.detection_result.analysis_report.frame_results.map(frame => frame.frame_path)
+    }
+    currentSlide={currentSliderType === 'error' 
+      ? currentErrorLevelSlide 
+      : currentSliderType === 'heatmap' 
+        ? currentHeatmapSlide 
+        : currentOriginalFrameSlide}
+    onSlideChange={(index) => {
+      if (currentSliderType === 'error') {
+        setCurrentErrorLevelSlide(index);
+      } else if (currentSliderType === 'heatmap') {
+        setCurrentHeatmapSlide(index);
+      } else {
+        setCurrentOriginalFrameSlide(index);
+      }
+      if (submission) {
+        setEnlargedImage(currentSliderType === 'error'
+          ? submission.detection_result.analysis_report.frame_results[index].ela_path
+          : currentSliderType === 'heatmap'
+            ? submission.detection_result.analysis_report.frame_results[index].gradcam_path
+            : submission.detection_result.analysis_report.frame_results[index].frame_path
+        );
+      }
+    }}
+  />
+)}
+
     </Layout>
   )
 }

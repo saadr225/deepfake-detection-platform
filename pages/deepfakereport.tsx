@@ -416,8 +416,9 @@ const pdaCategories = [
             className={`carousel-button prev
               ${currentPage === 0 
                 ? 'text-gray-900 cursor-not-allowed' 
-                : 'text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+                : 'text-white hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
           >
+            ◀
           </button>
   
           <span className="text-sm text-gray-600 dark:text-gray-400">
@@ -430,8 +431,9 @@ const pdaCategories = [
             className={`carousel-button next
               ${currentPage === totalPages - 1
                 ? 'text-gray-900 cursor-not-allowed'
-                : 'text-gray-300 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
+                : 'text-white hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-700'}`}
           >
+            ▶
           </button>
         </div>
       </div>
@@ -535,6 +537,7 @@ const pdaCategories = [
               onClick={handleMainPrev}
               className="carousel-button prev"
             >
+              ◀
             </button>
             <img
               src={frames[currentSlide]}
@@ -545,6 +548,7 @@ const pdaCategories = [
               onClick={handleMainNext}
               className="carousel-button next"
             >
+              ▶
             </button>
           </div>
   
@@ -555,6 +559,7 @@ const pdaCategories = [
               className="carousel-button prev"
               disabled={thumbnailStart === 0}
             >
+              ◀
             </button>
             <div className="thumbnails">
               {visibleThumbnails.map((frame, index) => {
@@ -575,6 +580,7 @@ const pdaCategories = [
               className="carousel-button next"
               disabled={thumbnailStart + THUMBNAIL_LIMIT >= frames.length}
             >
+              ▶
             </button>
           </div>
   
