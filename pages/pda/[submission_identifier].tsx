@@ -69,51 +69,52 @@ export default function PDASubmissionDetailsPage() {
   // Fetch submission details from API
   useEffect(() => {
     const fetchSubmissionDetails = async () => {
-      if (!submission_identifier) return;
-    
-      setIsLoading(true);
-      setError(null);
-    
-      try {
-        // Step 1: Get basic submission details
-        const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`);
-        
-        if (!submissionResponse.ok) {
-          throw new Error(`API request failed with status ${submissionResponse.status}`);
-        }
-        
-        const submissionData = await submissionResponse.json();
-        const submissionDetails = submissionData.data;
-        
-        // Step 2: Get detection results from authenticated API
+        if (!submission_identifier) return;
+      
+        setIsLoading(true);
+        setError(null);
+      
         try {
-          // Get the access token from cookies
-          let accessToken = Cookies.get('accessToken');
+          // Step 1: Get basic submission details
+          // The submission_identifier from the URL is actually the pda_submission_identifier
+          const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`);
           
-          if (accessToken) {
-            try {
-              const detectionResponse = await axios.get(
-                `http://127.0.0.1:8000/api/user/submissions/${submissionDetails.submission_identifier}/`,
-                {
-                  headers: {
-                    Authorization: `Bearer ${accessToken}`
+          if (!submissionResponse.ok) {
+            throw new Error(`API request failed with status ${submissionResponse.status}`);
+          }
+          
+          const submissionData = await submissionResponse.json();
+          const submissionDetails = submissionData.data;
+          
+          // Step 2: Get detection results from authenticated API using the actual submission_identifier
+          try {
+            // Get the access token from cookies
+            let accessToken = Cookies.get('accessToken');
+            
+            if (accessToken) {
+              try {
+                const detectionResponse = await axios.get(
+                  `http://127.0.0.1:8000/api/user/submissions/${submissionDetails.submission_identifier}/`,
+                  {
+                    headers: {
+                      Authorization: `Bearer ${accessToken}`
+                    }
                   }
-                }
-              );
-              
-              // Combine both responses
-              setSubmission({
-                ...submissionDetails,
-                detection_result: {
-                  is_deepfake: detectionResponse.data.data.data.is_deepfake,
-                  confidence_score: detectionResponse.data.data.data.confidence_score,
-                  frames_analyzed: detectionResponse.data.data.data.frames_analyzed,
-                  fake_frames: detectionResponse.data.data.data.fake_frames
-                },
-                metadata: detectionResponse.data.data.metadata
-              });
-              
-            } catch (error) {
+                );
+                
+                // Combine both responses
+                setSubmission({
+                  ...submissionDetails,
+                  detection_result: {
+                    is_deepfake: detectionResponse.data.data.data.is_deepfake,
+                    confidence_score: detectionResponse.data.data.data.confidence_score,
+                    frames_analyzed: detectionResponse.data.data.data.frames_analyzed,
+                    fake_frames: detectionResponse.data.data.data.fake_frames
+                  },
+                  metadata: detectionResponse.data.data.metadata
+                });
+                
+              } catch (error) {
               if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
                 // Access token is expired, refresh the token
                 const refreshToken = Cookies.get('refreshToken');
@@ -428,7 +429,7 @@ const renderMetadata = (metadata: Record<string, string>) => {
                       )}
                     </TabsContent>
 
-                    // Update the Analysis tab content to handle cases where detection_result may not exist
+                    
                     <TabsContent value="analysis" className="bg-card rounded-xl p-6 shadow-sm">
   <h3 className="text-xl font-semibold mb-4">Technical Analysis</h3>
 

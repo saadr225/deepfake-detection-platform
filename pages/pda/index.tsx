@@ -43,6 +43,7 @@ interface Category {
     category: string
     category_display: string
     submission_identifier: string
+    pda_submission_identifier: string  // Add this field
     description: string
     context: string
     source_url: string
@@ -124,8 +125,9 @@ const fetchSubmissions = async () => {
   }
 
   // Handle view details click
-  const handleViewDetails = (submissionId: string) => {
-    router.push(`/pda/${submissionId}`)
+  // Handle view details click - updated to use pda_submission_identifier
+const handleViewDetails = (submission: PDASubmission) => {
+    router.push(`/pda/${submission.pda_submission_identifier}`)
   }
 
   // Generate pagination items
@@ -390,10 +392,10 @@ const fetchSubmissions = async () => {
                           </div>
                         </div>
 
-                        <Button className="w-full" onClick={() => handleViewDetails(submission.submission_identifier)}>
-                          <Eye className="mr-2 h-4 w-4" />
-                          View Details
-                        </Button>
+                        <Button className="w-full" onClick={() => handleViewDetails(submission)}>
+  <Eye className="mr-2 h-4 w-4" />
+  View Details
+</Button>
                       </div>
                     </CardContent>
                   </Card>
