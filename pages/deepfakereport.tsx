@@ -751,180 +751,183 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
           variants={containerVariants}
         >
           {/* Left Side - Deepfake Detection Report Header & Media */}
-          <motion.div 
-            className="col-span-12 md:col-span-7 space-y-6"
-            variants={itemVariants}
-          >
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-primary">
-                Deepfake Detection Report
-              </h1>
-              <div className="flex space-x-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleDownloadReport}
-                >
-                  <Download className="mr-2 h-4 w-4" /> Download
-                </Button>
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={handleShareReport}
-                  disabled
-                >
-                  <Share2 className="mr-2 h-4 w-4" /> Share
-                </Button>
-              </div>
-            </div>
-            
-            {/* Analyzed Media */}
-            <motion.div 
-              className="border rounded-lg overflow-hidden shadow-md"
-              variants={itemVariants}
-            >
-              {mediaType === 'image' && (
-                <img 
-                  src={analysisResult.analysis_report.media_path} 
-                  alt="Analyzed Media" 
-                  className="w-full max-h-[500px] object-contain"
-                />
-              )}
-              
-              {mediaType === 'video' && (
-                <video
-                  src={analysisResult.analysis_report.media_path}
-                  controls
-                  className="w-full max-h-[500px] object-contain"
-                />
-              )}
-              
-              {mediaType === 'unknown' && (
-                <div className="w-full max-h-[500px] flex items-center justify-center">
-                  Unsupported media type
-                </div>
-              )}
-            </motion.div>
-          </motion.div>
-
-          {/* Add Submit to PDA Button */}
-<motion.div
-  className="mt-4"
+          {/* Analyzed Media section - add button inside the left column, right after the media */}
+<motion.div 
+  className="col-span-12 md:col-span-7 space-y-6"
   variants={itemVariants}
 >
-  {!submitSuccess ? (
-    <>
+  <div className="flex justify-between items-center">
+    <h1 className="text-3xl font-bold text-primary">
+      Deepfake Detection Report
+    </h1>
+    <div className="flex space-x-2">
       <Button 
-        onClick={() => setShowSubmitForm(!showSubmitForm)} 
-        className="w-full"
-        variant="secondary"
+        variant="outline" 
+        size="sm" 
+        onClick={handleDownloadReport}
       >
-        {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
+        <Download className="mr-2 h-4 w-4" /> Download
       </Button>
-      
-      {showSubmitForm && (
-        <motion.div
-          className="mt-4 border rounded-lg p-4 shadow-md"
-          initial={{ opacity: 0, height: 0 }}
-          animate={{ opacity: 1, height: 'auto' }}
-          transition={{ duration: 0.3 }}
-        >
-          <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
-          <p className="text-muted-foreground mb-4">
-            Your submission will be reviewed before being added to the public archive.
-            Please provide accurate information.
-          </p>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        onClick={handleShareReport}
+        disabled
+      >
+        <Share2 className="mr-2 h-4 w-4" /> Share
+      </Button>
+    </div>
+  </div>
+  
+  {/* Analyzed Media */}
+  <motion.div 
+    className="border rounded-lg overflow-hidden shadow-md"
+    variants={itemVariants}
+  >
+    {mediaType === 'image' && (
+      <img 
+        src={analysisResult.analysis_report.media_path} 
+        alt="Analyzed Media" 
+        className="w-full max-h-[500px] object-contain"
+      />
+    )}
+    
+    {mediaType === 'video' && (
+      <video
+        src={analysisResult.analysis_report.media_path}
+        controls
+        className="w-full max-h-[500px] object-contain"
+      />
+    )}
+    
+    {mediaType === 'unknown' && (
+      <div className="w-full max-h-[500px] flex items-center justify-center">
+        Unsupported media type
+      </div>
+    )}
+  </motion.div>
+
+  {/* Submit to PDA Button - Only show for deepfakes */}
+  {analysisResult.is_deepfake && (
+    <motion.div
+      className="mt-4"
+      variants={itemVariants}
+    >
+      {!submitSuccess ? (
+        <>
+          <Button 
+            onClick={() => setShowSubmitForm(!showSubmitForm)} 
+            className="w-full"
+            variant="default"
+          >
+            {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
+          </Button>
           
-          {submitError && (
-            <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
-              {submitError}
-            </div>
+          {showSubmitForm && (
+            <motion.div
+              className="mt-4 border glass-card rounded-lg p-4 shadow-md"
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
+              <p className="text-muted-foreground mb-4">
+                Your submission will be reviewed before being added to the public archive.
+                Please provide accurate information.
+              </p>
+              
+              {submitError && (
+                <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
+                  {submitError}
+                </div>
+              )}
+              
+              <form onSubmit={handleSubmitToPDA} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
+                  <Input
+                    value={pdaTitle}
+                    onChange={(e) => setPdaTitle(e.target.value)}
+                    placeholder="E.g., Political Figure Deepfake"
+                    required
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
+                  <Select value={pdaCategory} onValueChange={setPdaCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pdaCategories.map((category) => (
+                        <SelectItem key={category.code} value={category.code}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    value={pdaDescription}
+                    onChange={(e) => setPdaDescription(e.target.value)}
+                    placeholder="Describe the deepfake content"
+                    className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Context</label>
+                  <textarea
+                    value={pdaContext}
+                    onChange={(e) => setPdaContext(e.target.value)}
+                    placeholder="Provide additional context about the deepfake"
+                    className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+                  />
+                </div>
+                
+                <div>
+                  <label className="block text-sm font-medium mb-1">Source URL</label>
+                  <Input
+                    value={pdaSourceUrl}
+                    onChange={(e) => setPdaSourceUrl(e.target.value)}
+                    placeholder="https://example.com/source"
+                    type="url"
+                  />
+                </div>
+                
+                <div className="flex justify-end">
+                  <Button
+                    type="submit"
+                    disabled={submitting}
+                  >
+                    {submitting ? "Submitting..." : "Submit"}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
           )}
-          
-          <form onSubmit={handleSubmitToPDA} className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
-              <Input
-                value={pdaTitle}
-                onChange={(e) => setPdaTitle(e.target.value)}
-                placeholder="E.g., Political Figure Deepfake"
-                required
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
-              <Select value={pdaCategory} onValueChange={setPdaCategory}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select a category" />
-                </SelectTrigger>
-                <SelectContent>
-                  {pdaCategories.map((category) => (
-                    <SelectItem key={category.code} value={category.code}>
-                      {category.name}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Description</label>
-              <textarea
-                value={pdaDescription}
-                onChange={(e) => setPdaDescription(e.target.value)}
-                placeholder="Describe the deepfake content"
-                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Context</label>
-              <textarea
-                value={pdaContext}
-                onChange={(e) => setPdaContext(e.target.value)}
-                placeholder="Provide additional context about the deepfake"
-                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
-              />
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-1">Source URL</label>
-              <Input
-                value={pdaSourceUrl}
-                onChange={(e) => setPdaSourceUrl(e.target.value)}
-                placeholder="https://example.com/source"
-                type="url"
-              />
-            </div>
-            
-            <div className="flex justify-end">
-              <Button
-                type="submit"
-                disabled={submitting}
-              >
-                {submitting ? "Submitting..." : "Submit"}
-              </Button>
-            </div>
-          </form>
+        </>
+      ) : (
+        <motion.div
+          className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            <h3 className="font-semibold">Submission Successful</h3>
+          </div>
+          <p className="mt-2">
+            Thank you for your submission to the Public Deepfake Archive. 
+            Your submission is now under review. If approved, it will be listed in the PDA.
+          </p>
         </motion.div>
       )}
-    </>
-  ) : (
-    <motion.div
-      className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.5 }}
-    >
-      <div className="flex items-center">
-        <CheckCircle className="h-5 w-5 mr-2" />
-        <h3 className="font-semibold">Submission Successful</h3>
-      </div>
-      <p className="mt-2">
-        Thank you for your submission to the Public Deepfake Archive. 
-        Your submission is now under review. If approved, it will be listed in the PDA.
-      </p>
     </motion.div>
   )}
 </motion.div>
