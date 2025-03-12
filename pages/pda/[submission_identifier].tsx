@@ -325,6 +325,7 @@ const renderMetadata = (metadata: Record<string, string>) => {
                           src={submission.file_url || "/placeholder.svg"}
                           alt={submission.title}
                           className="w-full h-auto max-h-[500px] object-contain"
+                          style={{ width: '100%', height: '100%' }}
                           onError={(e) => {
                             ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=500&width=800"
                           }}
@@ -459,7 +460,7 @@ const renderMetadata = (metadata: Record<string, string>) => {
                             />
                           </div>
 
-                          {submission.detection_result.frames_analyzed > 1 && (
+                          {submission.detection_result.frames_analyzed >= 1 && (
                             <div>
                               <div className="flex justify-between mb-1">
                                 <span className="text-sm font-medium">Fake Frames</span>

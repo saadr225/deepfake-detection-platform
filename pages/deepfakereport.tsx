@@ -49,6 +49,7 @@ interface AnalysisReport {
 
 interface DetectionResult {
   id: number;
+  submission_identifier: string;
   media_upload: number;
   is_deepfake: boolean;
   confidence_score: number;
@@ -65,6 +66,7 @@ export default function DeepfakeReportPage() {
   const [mediaType, setMediaType] = useState<'image' | 'video' | 'unknown'>('unknown');
   const [analysisResult, setAnalysisResult] = useState<DetectionResult>({
     id: 0,
+    submission_identifier: '',
     media_upload: 0,
     is_deepfake: false,
     confidence_score: 0,
@@ -168,6 +170,7 @@ const pdaCategories = [
 
             setAnalysisResult({
               id: response.data.data.id,
+              submission_identifier: response.data.data.submission_identifier,
               media_upload: response.data.data.id,
               is_deepfake: response.data.data.data.is_deepfake,
               confidence_score: response.data.data.data.confidence_score,
@@ -209,6 +212,7 @@ const pdaCategories = [
 
                   setAnalysisResult({
                     id: response.data.data.id,
+                    submission_identifier: response.data.data.submission_identifier,
                     media_upload: response.data.data.id,
                     is_deepfake: response.data.data.data.is_deepfake,
                     confidence_score: response.data.data.data.confidence_score,
@@ -632,6 +636,7 @@ const pdaCategories = [
   };
 
   // Add this function to handle the form submission
+// Add this function to handle the form submission
 const handleSubmitToPDA = async (e: React.FormEvent) => {
   e.preventDefault();
   
@@ -653,14 +658,17 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
       return;
     }
     
+    // Use the correct submission identifier directly from the analysisResult
     const submitData = {
-      submission_identifier: analysisResult.analysis_report.file_id || router.query.submission_identifier,
+      submission_identifier: analysisResult.submission_identifier,
       title: pdaTitle,
       category: pdaCategory,
       description: pdaDescription,
       context: pdaContext,
       source_url: pdaSourceUrl
     };
+    
+    console.log("Submitting with identifier:", submitData.submission_identifier);
     
     try {
       const response = await axios.post(
@@ -672,6 +680,8 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
           }
         }
       );
+      
+      // Rest of the function remains the same...
       
       setSubmitSuccess(true);
       // Reset form

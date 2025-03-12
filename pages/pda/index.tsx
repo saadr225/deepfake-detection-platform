@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search, Filter, Calendar, Eye, AlertTriangle, CheckCircle } from "lucide-react"
+import { Search, Filter, Calendar, Eye, AlertTriangle, CheckCircle, FileText } from "lucide-react"
 import { motion } from "framer-motion"
 
 // Types for PDA submissions
@@ -322,7 +322,9 @@ const handleViewDetails = (submission: PDASubmission) => {
               </Button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              
               {submissions.map((submission) => (
                 <motion.div
                   key={submission.id}
@@ -332,38 +334,58 @@ const handleViewDetails = (submission: PDASubmission) => {
                   whileHover={{ y: -5 }}
                   className="h-full"
                 >
+                  
                   <Card className="overflow-hidden h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
-                    <div className="relative h-48 bg-muted">
-                      <img
-                        src={submission.file_url || "/placeholder.svg"}
-                        alt={submission.title}
-                        className="w-full h-full object-contain"
-                        onError={(e) => {
-                          // Fallback for broken images
-                          ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=192&width=384"
-                        }}
-                      />
-                      <div className="absolute top-2 right-2">
-                        <Badge className={submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}>
-                          {submission.detection_result.is_deepfake ? (
-                            <div className="flex items-center">
-                              <AlertTriangle className="h-3 w-3 mr-1" />
-                              Deepfake
-                            </div>
-                          ) : (
-                            <div className="flex items-center">
-                              <CheckCircle className="h-3 w-3 mr-1" />
-                              Authentic
-                            </div>
-                          )}
-                        </Badge>
-                      </div>
-                      <div className="absolute top-2 left-2">
-                        <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
-                          {submission.file_type}
-                        </Badge>
-                      </div>
-                    </div>
+                  <div className="relative h-48 bg-muted overflow-hidden">
+  {submission.file_type && submission.file_type.toLowerCase().includes('image') ? (
+    <img
+      src={submission.file_url || "/placeholder.svg"}
+      alt={submission.title}
+      className="w-full h-full object-cover"
+      style={{ width: '100%', height: '100%' }}
+      onError={(e) => {
+        // Fallback for broken images
+        ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=192&width=384"
+      }}
+    />
+  ) : submission.file_type && submission.file_type.toLowerCase().includes('video') ? (
+    <video
+      src={submission.file_url}
+      className="w-full h-full object-cover"
+      style={{ pointerEvents: 'none' }}
+      muted
+      playsInline
+      disablePictureInPicture
+      disableRemotePlayback
+    >
+      Your browser does not support the video tag.
+    </video>
+  ) : (
+    <div className="w-full h-full flex items-center justify-center bg-muted">
+      <FileText className="h-12 w-12 text-muted-foreground" />
+    </div>
+  )}
+  <div className="absolute top-2 right-2">
+    <Badge className={submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}>
+      {submission.detection_result.is_deepfake ? (
+        <div className="flex items-center">
+          <AlertTriangle className="h-3 w-3 mr-1" />
+          Deepfake
+        </div>
+      ) : (
+        <div className="flex items-center">
+          <CheckCircle className="h-3 w-3 mr-1" />
+          Authentic
+        </div>
+      )}
+    </Badge>
+  </div>
+  <div className="absolute top-2 left-2">
+    <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
+      {submission.file_type}
+    </Badge>
+  </div>
+</div>
 
                     <CardContent className="p-4 flex-1 flex flex-col">
                       <div className="mb-2 flex items-center justify-between">

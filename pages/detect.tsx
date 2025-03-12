@@ -331,6 +331,21 @@ export default function DetectPage() {
             </div>
           </div>
 
+          {/* Progress indicator during analysis */}
+          {isAnalyzing && (
+            <motion.div
+              className="mt-6 mb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Progress value={analysisProgress} className="w-full h-2" />
+              <p className="text-center text-sm text-muted-foreground mt-2">
+                Analyzing your media... {analysisProgress}%
+              </p>
+            </motion.div>
+          )}
+
           {/* Three Steps Section */}
           <div className="bg-card rounded-2xl p-6 mb-8 shadow-md">
             <h2 className="text-xl font-bold mb-6">Three Steps to Detect Deepfakes</h2>
@@ -410,21 +425,6 @@ export default function DetectPage() {
               </div>
             </div>
           </div>
-
-          {/* Progress indicator during analysis */}
-          {isAnalyzing && (
-            <motion.div
-              className="mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Progress value={analysisProgress} className="w-full h-2" />
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                Analyzing your media... {analysisProgress}%
-              </p>
-            </motion.div>
-          )}
         </motion.div>
       </div>
 
