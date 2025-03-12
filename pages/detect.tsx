@@ -404,7 +404,7 @@ export default function DetectPage() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-semibold mb-1">Meta data analysis</h3>
+                  <h3 className="font-semibold mb-1">Metadata analysis</h3>
                   <p className="text-muted-foreground text-sm">Detailed examination of file metadata to uncover hidden manipulation traces.</p>
                 </div>
               </div>
