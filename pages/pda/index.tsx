@@ -83,36 +83,39 @@ export default function PublicDeepfakeArchive() {
   const totalPages = Math.ceil(totalItems / itemsPerPage)
 
   // Fetch submissions from API
-  const fetchSubmissions = async () => {
-    setIsLoading(true)
-    setError(null)
-
+  // Replace the fetchSubmissions function with this real API call
+const fetchSubmissions = async () => {
+    setIsLoading(true);
+    setError(null);
+  
     try {
       // Build query parameters
-      const params = new URLSearchParams()
-      if (searchQuery) params.append("q", searchQuery)
-      if (selectedCategory) params.append("category", selectedCategory)
-      params.append("page", currentPage.toString())
-      params.append("limit", itemsPerPage.toString())
-
-      // In a real app, this would be the actual API endpoint
-      // For now, we'll simulate a response
-      // const response = await axios.get<PDAResponse>(`http://127.0.0.1:8000/api/pda/search/?${params.toString()}`)
-
-      // Simulate API response for demonstration
-      const mockResponse = generateMockResponse(searchQuery, selectedCategory, currentPage, itemsPerPage)
-
+      const params = new URLSearchParams();
+      if (searchQuery) params.append("q", searchQuery);
+      if (selectedCategory) params.append("category", selectedCategory);
+      params.append("page", currentPage.toString());
+      params.append("limit", itemsPerPage.toString());
+  
+      // Make the actual API call
+      const response = await fetch(`http://127.0.0.1:8000/api/pda/search/?${params.toString()}`);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
       // Update state with response data
-      setSubmissions(mockResponse.data.results)
-      setCategories(mockResponse.data.categories)
-      setTotalItems(mockResponse.data.total)
+      setSubmissions(data.data.results);
+      setCategories(data.data.categories);
+      setTotalItems(data.data.total);
     } catch (err) {
-      console.error("Error fetching PDA submissions:", err)
-      setError("Failed to load submissions. Please try again later.")
+      console.error("Error fetching PDA submissions:", err);
+      setError("Failed to load submissions. Please try again later.");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   // Fetch data when search params change
   useEffect(() => {
@@ -262,7 +265,7 @@ export default function PublicDeepfakeArchive() {
                     </div>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">All Categories</SelectItem>
+                    <SelectItem>All Categories</SelectItem>
                     {categories.map((category) => (
                       <SelectItem key={category.code} value={category.code}>
                         {category.name}
@@ -449,85 +452,85 @@ export default function PublicDeepfakeArchive() {
 }
 
 // Mock data generator for demonstration
-function generateMockResponse(query: string, category: string, page: number, limit: number): PDAResponse {
-  const categories: Category[] = [
-    { code: "POL", name: "Politics" },
-    { code: "ENT", name: "Entertainment" },
-    { code: "MIS", name: "Misinformation" },
-    { code: "EDU", name: "Educational" },
-  ]
+// function generateMockResponse(query: string, category: string, page: number, limit: number): PDAResponse {
+//   const categories: Category[] = [
+//     { code: "POL", name: "Politics" },
+//     { code: "ENT", name: "Entertainment" },
+//     { code: "MIS", name: "Misinformation" },
+//     { code: "EDU", name: "Educational" },
+//   ]
 
-  // Generate 50 mock submissions
-  const allSubmissions: PDASubmission[] = Array.from({ length: 50 }).map((_, index) => {
-    const id = index + 1
-    const categoryIndex = id % categories.length
-    const isDeepfake = id % 3 !== 0 // 2/3 of items are deepfakes
+//   // Generate 50 mock submissions
+//   const allSubmissions: PDASubmission[] = Array.from({ length: 50 }).map((_, index) => {
+//     const id = index + 1
+//     const categoryIndex = id % categories.length
+//     const isDeepfake = id % 3 !== 0 // 2/3 of items are deepfakes
 
-    return {
-      id,
-      title: `${categories[categoryIndex].name} Deepfake Example ${id}`,
-      category: categories[categoryIndex].code,
-      category_display: categories[categoryIndex].name,
-      submission_identifier: `pda-${id}-${Date.now()}`,
-      description: `This is a ${isDeepfake ? "deepfake" : "authentic"} video showing ${
-        categoryIndex === 0
-          ? "a political figure making false statements"
-          : categoryIndex === 1
-            ? "a celebrity in a movie scene they never appeared in"
-            : categoryIndex === 2
-              ? "misleading content about current events"
-              : "educational content about deepfake technology"
-      }. Created for research and educational purposes.`,
-      context: `This ${isDeepfake ? "deepfake" : "authentic media"} was ${
-        isDeepfake ? "created" : "verified"
-      } by our research team to demonstrate the capabilities and limitations of current deepfake technology.`,
-      source_url: "https://example.com/source",
-      file_type: id % 5 === 0 ? "Image" : "Video",
-      submission_date: new Date(Date.now() - id * 86400000).toISOString(), // Spread out over past days
-      file_url:
-        id % 5 === 0
-          ? `/placeholder.svg?height=400&width=600&text=Deepfake+${id}`
-          : `/placeholder.svg?height=400&width=600&text=Deepfake+Video+${id}`,
-      detection_result: {
-        is_deepfake: isDeepfake,
-        confidence_score: isDeepfake ? 0.7 + Math.random() * 0.25 : 0.65 + Math.random() * 0.3,
-        frames_analyzed: id % 5 === 0 ? 1 : 50 + (id % 100),
-        fake_frames: isDeepfake ? (id % 5 === 0 ? 1 : 45 + (id % 50)) : 0,
-      },
-    }
-  })
+//     return {
+//       id,
+//       title: `${categories[categoryIndex].name} Deepfake Example ${id}`,
+//       category: categories[categoryIndex].code,
+//       category_display: categories[categoryIndex].name,
+//       submission_identifier: `pda-${id}-${Date.now()}`,
+//       description: `This is a ${isDeepfake ? "deepfake" : "authentic"} video showing ${
+//         categoryIndex === 0
+//           ? "a political figure making false statements"
+//           : categoryIndex === 1
+//             ? "a celebrity in a movie scene they never appeared in"
+//             : categoryIndex === 2
+//               ? "misleading content about current events"
+//               : "educational content about deepfake technology"
+//       }. Created for research and educational purposes.`,
+//       context: `This ${isDeepfake ? "deepfake" : "authentic media"} was ${
+//         isDeepfake ? "created" : "verified"
+//       } by our research team to demonstrate the capabilities and limitations of current deepfake technology.`,
+//       source_url: "https://example.com/source",
+//       file_type: id % 5 === 0 ? "Image" : "Video",
+//       submission_date: new Date(Date.now() - id * 86400000).toISOString(), // Spread out over past days
+//       file_url:
+//         id % 5 === 0
+//           ? `/placeholder.svg?height=400&width=600&text=Deepfake+${id}`
+//           : `/placeholder.svg?height=400&width=600&text=Deepfake+Video+${id}`,
+//       detection_result: {
+//         is_deepfake: isDeepfake,
+//         confidence_score: isDeepfake ? 0.7 + Math.random() * 0.25 : 0.65 + Math.random() * 0.3,
+//         frames_analyzed: id % 5 === 0 ? 1 : 50 + (id % 100),
+//         fake_frames: isDeepfake ? (id % 5 === 0 ? 1 : 45 + (id % 50)) : 0,
+//       },
+//     }
+//   })
 
-  // Filter by search query
-  let filteredSubmissions = allSubmissions
-  if (query) {
-    const lowerQuery = query.toLowerCase()
-    filteredSubmissions = filteredSubmissions.filter(
-      (sub) =>
-        sub.title.toLowerCase().includes(lowerQuery) ||
-        sub.description.toLowerCase().includes(lowerQuery) ||
-        sub.context.toLowerCase().includes(lowerQuery),
-    )
-  }
+//   // Filter by search query
+//   let filteredSubmissions = allSubmissions
+//   if (query) {
+//     const lowerQuery = query.toLowerCase()
+//     filteredSubmissions = filteredSubmissions.filter(
+//       (sub) =>
+//         sub.title.toLowerCase().includes(lowerQuery) ||
+//         sub.description.toLowerCase().includes(lowerQuery) ||
+//         sub.context.toLowerCase().includes(lowerQuery),
+//     )
+//   }
 
-  // Filter by category
-  if (category) {
-    filteredSubmissions = filteredSubmissions.filter((sub) => sub.category === category)
-  }
+//   // Filter by category
+//   if (category) {
+//     filteredSubmissions = filteredSubmissions.filter((sub) => sub.category === category)
+//   }
 
-  // Paginate results
-  const startIndex = (page - 1) * limit
-  const paginatedSubmissions = filteredSubmissions.slice(startIndex, startIndex + limit)
+//   // Paginate results
+//   const startIndex = (page - 1) * limit
+//   const paginatedSubmissions = filteredSubmissions.slice(startIndex, startIndex + limit)
 
-  return {
-    code: "S01",
-    message: "Success",
-    data: {
-      results: paginatedSubmissions,
-      total: filteredSubmissions.length,
-      page,
-      limit,
-      categories,
-    },
-  }
-}
+//   return {
+//     code: "S01",
+//     message: "Success",
+//     data: {
+//       results: paginatedSubmissions,
+//       total: filteredSubmissions.length,
+//       page,
+//       limit,
+//       categories,
+//     },
+//   }
+// }
 

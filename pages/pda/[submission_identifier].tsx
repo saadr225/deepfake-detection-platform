@@ -75,32 +75,32 @@ export default function PDASubmissionDetailsPage() {
 
   // Fetch submission details from API
   useEffect(() => {
-    const fetchSubmissionDetails = async () => {
-      if (!submission_identifier) return
-
-      setIsLoading(true)
-      setError(null)
-
-      try {
-        // In a real app, this would be the actual API endpoint
-        // const response = await axios.get<PDADetailsResponse>(
-        //   `http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`
-        // )
-
-        // Simulate API response for demonstration
-        const mockResponse = generateMockSubmissionDetails(submission_identifier as string)
-
-        // Add a small delay to simulate network request
-        await new Promise((resolve) => setTimeout(resolve, 800))
-
-        setSubmission(mockResponse.data)
-      } catch (err) {
-        console.error("Error fetching PDA submission details:", err)
-        setError("Failed to load submission details. Please try again later.")
-      } finally {
-        setIsLoading(false)
+    // Replace the fetchSubmissionDetails function with this real API call
+const fetchSubmissionDetails = async () => {
+    if (!submission_identifier) return;
+  
+    setIsLoading(true);
+    setError(null);
+  
+    try {
+      // Make the actual API call to get submission details
+      const response = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`);
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
       }
+      
+      const data = await response.json();
+      
+      // Update state with response data
+      setSubmission(data.data);
+    } catch (err) {
+      console.error("Error fetching PDA submission details:", err);
+      setError("Failed to load submission details. Please try again later.");
+    } finally {
+      setIsLoading(false);
     }
+  };
 
     fetchSubmissionDetails()
   }, [submission_identifier])
@@ -301,92 +301,66 @@ export default function PDASubmissionDetailsPage() {
                       )}
                     </TabsContent>
 
-                    <TabsContent value="analysis" className="bg-card rounded-xl p-6 shadow-sm">
-                      <h3 className="text-xl font-semibold mb-4">Technical Analysis</h3>
+                    // Update the Analysis tab content to handle cases where detection_result may not exist
+<TabsContent value="analysis" className="bg-card rounded-xl p-6 shadow-sm">
+  <h3 className="text-xl font-semibold mb-4">Technical Analysis</h3>
 
-                      {submission.analysis_report ? (
-                        <div className="space-y-4">
-                          <p className="text-muted-foreground mb-4">
-                            This media was analyzed using our advanced deepfake detection algorithms. Below are the
-                            technical details of the analysis.
-                          </p>
+  {submission.detection_result ? (
+    <div className="space-y-4">
+      <p className="text-muted-foreground mb-4">
+        This media was analyzed using our advanced deepfake detection algorithms. Below are the
+        technical details of the analysis.
+      </p>
 
-                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                            <div className="bg-muted/30 p-4 rounded-lg">
-                              <h4 className="font-medium mb-2">Media Type</h4>
-                              <p>{submission.analysis_report.media_type}</p>
-                            </div>
+      {/* File type information */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="bg-muted/30 p-4 rounded-lg">
+          <h4 className="font-medium mb-2">Media Type</h4>
+          <p>{submission.file_type}</p>
+        </div>
 
-                            <div className="bg-muted/30 p-4 rounded-lg">
-                              <h4 className="font-medium mb-2">File ID</h4>
-                              <p className="font-mono text-sm">{submission.analysis_report.file_id}</p>
-                            </div>
-                          </div>
+        <div className="bg-muted/30 p-4 rounded-lg">
+          <h4 className="font-medium mb-2">File ID</h4>
+          <p className="font-mono text-sm">{submission.submission_identifier}</p>
+        </div>
+      </div>
 
-                          {submission.detection_result && (
-                            <div className="mt-4">
-                              <h4 className="font-medium mb-2">Analysis Results</h4>
-                              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                <div className="bg-muted/30 p-4 rounded-lg">
-                                  <div className="text-sm mb-1">Frames Analyzed</div>
-                                  <div className="text-2xl font-bold">
-                                    {submission.detection_result.frames_analyzed}
-                                  </div>
-                                </div>
+      {/* Detection result stats */}
+      <div className="mt-4">
+        <h4 className="font-medium mb-2">Analysis Results</h4>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="bg-muted/30 p-4 rounded-lg">
+            <div className="text-sm mb-1">Frames Analyzed</div>
+            <div className="text-2xl font-bold">
+              {submission.detection_result.frames_analyzed}
+            </div>
+          </div>
 
-                                <div className="bg-muted/30 p-4 rounded-lg">
-                                  <div className="text-sm mb-1">Fake Frames Detected</div>
-                                  <div className="text-2xl font-bold">{submission.detection_result.fake_frames}</div>
-                                </div>
-                              </div>
-                            </div>
-                          )}
-
-                          {submission.analysis_report.frame_results &&
-                            submission.analysis_report.frame_results.length > 0 && (
-                              <div className="mt-6">
-                                <h4 className="font-medium mb-4">Analysis Visualizations</h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                  <div>
-                                    <h5 className="text-sm font-medium mb-2">Error Level Analysis</h5>
-                                    <img
-                                      src={submission.analysis_report.frame_results[0].ela_path || "/placeholder.svg"}
-                                      alt="Error Level Analysis"
-                                      className="w-full h-auto rounded-lg border"
-                                    />
-                                  </div>
-                                  <div>
-                                    <h5 className="text-sm font-medium mb-2">Gradcam Heatmap</h5>
-                                    <img
-                                      src={
-                                        submission.analysis_report.frame_results[0].gradcam_path || "/placeholder.svg"
-                                      }
-                                      alt="Gradcam Heatmap"
-                                      className="w-full h-auto rounded-lg border"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                        </div>
-                      ) : (
-                        <div className="flex items-center justify-center p-8 text-muted-foreground">
-                          <Info className="h-5 w-5 mr-2" />
-                          Detailed analysis data not available for this submission
-                        </div>
-                      )}
-                    </TabsContent>
+          <div className="bg-muted/30 p-4 rounded-lg">
+            <div className="text-sm mb-1">Fake Frames Detected</div>
+            <div className="text-2xl font-bold">{submission.detection_result.fake_frames}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  ) : (
+    <div className="flex items-center justify-center p-8 text-muted-foreground">
+      <Info className="h-5 w-5 mr-2" />
+      Detailed analysis data not available for this submission
+    </div>
+  )}
+</TabsContent>
                   </Tabs>
                 </div>
 
                 {/* Right column - Detection results and info */}
                 <div className="space-y-6">
                   {/* Detection Result Card */}
-                  {submission.detection_result && (
-                    <Card className="overflow-hidden">
-                      <CardHeader className="pb-2">
-                        <CardTitle>Detection Result</CardTitle>
-                      </CardHeader>
+                  {submission.detection_result ? (
+  <Card className="overflow-hidden">
+    <CardHeader className="pb-2">
+      <CardTitle>Detection Result</CardTitle>
+    </CardHeader>
                       <CardContent>
                         <div className="flex flex-col items-center text-center mb-4">
                           <div
@@ -450,7 +424,7 @@ export default function PDASubmissionDetailsPage() {
                         </div>
                       </CardContent>
                     </Card>
-                  )}
+                  ) : null}
 
                   {/* Submission Info Card */}
                   <Card>
@@ -490,7 +464,7 @@ export default function PDASubmissionDetailsPage() {
                   </Card>
 
                   {/* Educational Resources Card */}
-                  <Card>
+                  {/* <Card>
                     <CardHeader className="pb-2">
                       <CardTitle>Educational Resources</CardTitle>
                     </CardHeader>
@@ -527,7 +501,7 @@ export default function PDASubmissionDetailsPage() {
                         ))}
                       </div>
                     </CardContent>
-                  </Card>
+                  </Card> */}
                 </div>
               </div>
             </div>
@@ -539,94 +513,94 @@ export default function PDASubmissionDetailsPage() {
 }
 
 // Mock data generator for demonstration
-function generateMockSubmissionDetails(submissionId: string): { data: PDASubmissionDetails } {
-  // Extract ID from submission identifier
-  const idMatch = submissionId.match(/pda-(\d+)-/)
-  const id = idMatch ? Number.parseInt(idMatch[1]) : 1
+// function generateMockSubmissionDetails(submissionId: string): { data: PDASubmissionDetails } {
+//   // Extract ID from submission identifier
+//   const idMatch = submissionId.match(/pda-(\d+)-/)
+//   const id = idMatch ? Number.parseInt(idMatch[1]) : 1
 
-  // Determine category based on ID
-  const categories = [
-    { code: "POL", name: "Politics" },
-    { code: "ENT", name: "Entertainment" },
-    { code: "MIS", name: "Misinformation" },
-    { code: "EDU", name: "Educational" },
-  ]
-  const categoryIndex = id % categories.length
+//   // Determine category based on ID
+//   const categories = [
+//     { code: "POL", name: "Politics" },
+//     { code: "ENT", name: "Entertainment" },
+//     { code: "MIS", name: "Misinformation" },
+//     { code: "EDU", name: "Educational" },
+//   ]
+//   const categoryIndex = id % categories.length
 
-  // Determine if deepfake based on ID
-  const isDeepfake = id % 3 !== 0 // 2/3 of items are deepfakes
+//   // Determine if deepfake based on ID
+//   const isDeepfake = id % 3 !== 0 // 2/3 of items are deepfakes
 
-  // Generate mock submission details
-  return {
-    data: {
-      id,
-      title: `${categories[categoryIndex].name} Deepfake Example ${id}`,
-      category: categories[categoryIndex].code,
-      category_display: categories[categoryIndex].name,
-      submission_identifier: submissionId,
-      original_submission_identifier: `orig-${id}-${Date.now()}`,
-      description: `This is a ${isDeepfake ? "deepfake" : "authentic"} video showing ${
-        categoryIndex === 0
-          ? "a political figure making false statements that they never actually made. The video has been manipulated to show the person saying things they never said, with their facial expressions and mouth movements altered to match the fake audio."
-          : categoryIndex === 1
-            ? "a celebrity in a movie scene they never appeared in. Advanced AI technology was used to replace the original actor's face with this celebrity's face, creating a convincing but entirely fabricated performance."
-            : categoryIndex === 2
-              ? "misleading content about current events. This media was created to spread misinformation by showing events that never actually occurred, manipulated to appear authentic to casual viewers."
-              : "educational content about deepfake technology. This example was created specifically to demonstrate how deepfakes work and how they can be detected through careful analysis."
-      }`,
-      context: `This ${isDeepfake ? "deepfake" : "authentic media"} was ${
-        isDeepfake ? "created" : "verified"
-      } by our research team to demonstrate the capabilities and limitations of current deepfake technology. ${
-        isDeepfake
-          ? "It was generated using a combination of GANs (Generative Adversarial Networks) and face-swapping techniques. The creation process involved training AI models on thousands of images of the subject to learn their facial features and expressions."
-          : "It has been thoroughly analyzed using multiple detection techniques and confirmed to be unaltered original content. We include it in our archive as a control sample to help researchers understand the differences between authentic and manipulated media."
-      }
+//   // Generate mock submission details
+//   return {
+//     data: {
+//       id,
+//       title: `${categories[categoryIndex].name} Deepfake Example ${id}`,
+//       category: categories[categoryIndex].code,
+//       category_display: categories[categoryIndex].name,
+//       submission_identifier: submissionId,
+//       original_submission_identifier: `orig-${id}-${Date.now()}`,
+//       description: `This is a ${isDeepfake ? "deepfake" : "authentic"} video showing ${
+//         categoryIndex === 0
+//           ? "a political figure making false statements that they never actually made. The video has been manipulated to show the person saying things they never said, with their facial expressions and mouth movements altered to match the fake audio."
+//           : categoryIndex === 1
+//             ? "a celebrity in a movie scene they never appeared in. Advanced AI technology was used to replace the original actor's face with this celebrity's face, creating a convincing but entirely fabricated performance."
+//             : categoryIndex === 2
+//               ? "misleading content about current events. This media was created to spread misinformation by showing events that never actually occurred, manipulated to appear authentic to casual viewers."
+//               : "educational content about deepfake technology. This example was created specifically to demonstrate how deepfakes work and how they can be detected through careful analysis."
+//       }`,
+//       context: `This ${isDeepfake ? "deepfake" : "authentic media"} was ${
+//         isDeepfake ? "created" : "verified"
+//       } by our research team to demonstrate the capabilities and limitations of current deepfake technology. ${
+//         isDeepfake
+//           ? "It was generated using a combination of GANs (Generative Adversarial Networks) and face-swapping techniques. The creation process involved training AI models on thousands of images of the subject to learn their facial features and expressions."
+//           : "It has been thoroughly analyzed using multiple detection techniques and confirmed to be unaltered original content. We include it in our archive as a control sample to help researchers understand the differences between authentic and manipulated media."
+//       }
       
-      ${
-        categoryIndex === 0
-          ? "Political deepfakes are particularly concerning as they can be used to manipulate public opinion and interfere with democratic processes. This example demonstrates how political figures can be depicted saying or doing things they never actually did."
-          : categoryIndex === 1
-            ? "Entertainment deepfakes, while often created for humor or artistic purposes, raise important questions about consent, image rights, and the future of digital performance. This example shows how convincingly a person can be inserted into content they were never part of."
-            : categoryIndex === 2
-              ? "Misinformation deepfakes are designed to deceive viewers and spread false information. This example demonstrates techniques commonly used to create convincing but entirely fabricated content that purports to document real events."
-              : "Educational deepfakes serve an important purpose in helping researchers, students, and the public understand this technology. This example was created specifically to highlight both the capabilities and the telltale signs of synthetic media."
-      }`,
-      source_url: "https://example.com/source",
-      file_type: id % 5 === 0 ? "Image" : "Video",
-      submission_date: new Date(Date.now() - id * 86400000).toISOString(),
-      file_url:
-        id % 5 === 0
-          ? `/placeholder.svg?height=400&width=600&text=Deepfake+${id}`
-          : `/placeholder.svg?height=400&width=600&text=Deepfake+Video+${id}`,
-      detection_result: {
-        is_deepfake: isDeepfake,
-        confidence_score: isDeepfake ? 0.7 + Math.random() * 0.25 : 0.65 + Math.random() * 0.3,
-        frames_analyzed: id % 5 === 0 ? 1 : 50 + (id % 100),
-        fake_frames: isDeepfake ? (id % 5 === 0 ? 1 : 45 + (id % 50)) : 0,
-      },
-      analysis_report: {
-        media_path:
-          id % 5 === 0
-            ? `/placeholder.svg?height=400&width=600&text=Deepfake+${id}`
-            : `/placeholder.svg?height=400&width=600&text=Deepfake+Video+${id}`,
-        media_type: id % 5 === 0 ? "Image" : "Video",
-        file_id: `file-${id}-${Date.now()}`,
-        frame_results: [
-          {
-            frame_id: `frame-1-${id}`,
-            frame_path: `/placeholder.svg?height=300&width=400&text=Frame+1`,
-            ela_path: `/placeholder.svg?height=300&width=400&text=ELA+Analysis`,
-            gradcam_path: `/placeholder.svg?height=300&width=400&text=Gradcam+Heatmap`,
-          },
-          {
-            frame_id: `frame-2-${id}`,
-            frame_path: `/placeholder.svg?height=300&width=400&text=Frame+2`,
-            ela_path: `/placeholder.svg?height=300&width=400&text=ELA+Analysis`,
-            gradcam_path: `/placeholder.svg?height=300&width=400&text=Gradcam+Heatmap`,
-          },
-        ],
-      },
-    },
-  }
-}
+//       ${
+//         categoryIndex === 0
+//           ? "Political deepfakes are particularly concerning as they can be used to manipulate public opinion and interfere with democratic processes. This example demonstrates how political figures can be depicted saying or doing things they never actually did."
+//           : categoryIndex === 1
+//             ? "Entertainment deepfakes, while often created for humor or artistic purposes, raise important questions about consent, image rights, and the future of digital performance. This example shows how convincingly a person can be inserted into content they were never part of."
+//             : categoryIndex === 2
+//               ? "Misinformation deepfakes are designed to deceive viewers and spread false information. This example demonstrates techniques commonly used to create convincing but entirely fabricated content that purports to document real events."
+//               : "Educational deepfakes serve an important purpose in helping researchers, students, and the public understand this technology. This example was created specifically to highlight both the capabilities and the telltale signs of synthetic media."
+//       }`,
+//       source_url: "https://example.com/source",
+//       file_type: id % 5 === 0 ? "Image" : "Video",
+//       submission_date: new Date(Date.now() - id * 86400000).toISOString(),
+//       file_url:
+//         id % 5 === 0
+//           ? `/placeholder.svg?height=400&width=600&text=Deepfake+${id}`
+//           : `/placeholder.svg?height=400&width=600&text=Deepfake+Video+${id}`,
+//       detection_result: {
+//         is_deepfake: isDeepfake,
+//         confidence_score: isDeepfake ? 0.7 + Math.random() * 0.25 : 0.65 + Math.random() * 0.3,
+//         frames_analyzed: id % 5 === 0 ? 1 : 50 + (id % 100),
+//         fake_frames: isDeepfake ? (id % 5 === 0 ? 1 : 45 + (id % 50)) : 0,
+//       },
+//       analysis_report: {
+//         media_path:
+//           id % 5 === 0
+//             ? `/placeholder.svg?height=400&width=600&text=Deepfake+${id}`
+//             : `/placeholder.svg?height=400&width=600&text=Deepfake+Video+${id}`,
+//         media_type: id % 5 === 0 ? "Image" : "Video",
+//         file_id: `file-${id}-${Date.now()}`,
+//         frame_results: [
+//           {
+//             frame_id: `frame-1-${id}`,
+//             frame_path: `/placeholder.svg?height=300&width=400&text=Frame+1`,
+//             ela_path: `/placeholder.svg?height=300&width=400&text=ELA+Analysis`,
+//             gradcam_path: `/placeholder.svg?height=300&width=400&text=Gradcam+Heatmap`,
+//           },
+//           {
+//             frame_id: `frame-2-${id}`,
+//             frame_path: `/placeholder.svg?height=300&width=400&text=Frame+2`,
+//             ela_path: `/placeholder.svg?height=300&width=400&text=ELA+Analysis`,
+//             gradcam_path: `/placeholder.svg?height=300&width=400&text=Gradcam+Heatmap`,
+//           },
+//         ],
+//       },
+//     },
+//   }
+// }
 
