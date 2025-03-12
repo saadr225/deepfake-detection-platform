@@ -22,6 +22,8 @@ import {
   Share2,
 } from "lucide-react"
 import { motion } from "framer-motion"
+import Cookies from 'js-cookie';
+import axios from 'axios';
 
 // Types for PDA submission details
 interface DetectionResult {
@@ -32,31 +34,22 @@ interface DetectionResult {
 }
 
 interface PDASubmissionDetails {
-  id: number
-  title: string
-  category: string
-  category_display: string
-  submission_identifier: string
-  original_submission_identifier?: string
-  description: string
-  context: string
-  source_url: string
-  file_type: string
-  submission_date: string
-  file_url: string
-  detection_result?: DetectionResult
-  analysis_report?: {
-    media_path: string
-    media_type: string
-    file_id: string
-    frame_results: Array<{
-      frame_id: string
-      frame_path: string
-      ela_path: string
-      gradcam_path: string
-    }>
+    id: number;
+    title: string;
+    category: string;
+    category_display: string;
+    submission_identifier: string;
+    original_submission_identifier?: string;
+    description: string;
+    context: string;
+    source_url: string;
+    file_type: string;
+    submission_date: string;
+    file_url: string;
+    detection_result?: DetectionResult;
+    // Remove analysis_report
+    metadata?: Record<string, string>; // Add metadata field
   }
-}
 
 interface PDADetailsResponse {
   code: string
@@ -75,35 +68,123 @@ export default function PDASubmissionDetailsPage() {
 
   // Fetch submission details from API
   useEffect(() => {
-    // Replace the fetchSubmissionDetails function with this real API call
-const fetchSubmissionDetails = async () => {
-    if (!submission_identifier) return;
-  
-    setIsLoading(true);
-    setError(null);
-  
-    try {
-      // Make the actual API call to get submission details
-      const response = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`);
-      
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+    const fetchSubmissionDetails = async () => {
+      if (!submission_identifier) return;
+    
+      setIsLoading(true);
+      setError(null);
+    
+      try {
+        // Step 1: Get basic submission details
+        const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`);
+        
+        if (!submissionResponse.ok) {
+          throw new Error(`API request failed with status ${submissionResponse.status}`);
+        }
+        
+        const submissionData = await submissionResponse.json();
+        const submissionDetails = submissionData.data;
+        
+        // Step 2: Get detection results from authenticated API
+        try {
+          // Get the access token from cookies
+          let accessToken = Cookies.get('accessToken');
+          
+          if (accessToken) {
+            try {
+              const detectionResponse = await axios.get(
+                `http://127.0.0.1:8000/api/user/submissions/${submissionDetails.submission_identifier}/`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`
+                  }
+                }
+              );
+              
+              // Combine both responses
+              setSubmission({
+                ...submissionDetails,
+                detection_result: {
+                  is_deepfake: detectionResponse.data.data.data.is_deepfake,
+                  confidence_score: detectionResponse.data.data.data.confidence_score,
+                  frames_analyzed: detectionResponse.data.data.data.frames_analyzed,
+                  fake_frames: detectionResponse.data.data.data.fake_frames
+                },
+                metadata: detectionResponse.data.data.metadata
+              });
+              
+            } catch (error) {
+              if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+                // Access token is expired, refresh the token
+                const refreshToken = Cookies.get('refreshToken');
+                
+                if (refreshToken) {
+                  // Get a new access token using the refresh token
+                  const refreshResponse = await axios.post(
+                    'http://127.0.0.1:8000/api/auth/refresh_token/',
+                    { refresh: refreshToken }
+                  );
+                  
+                  accessToken = refreshResponse.data.access;
+                  
+                  // Store the new access token in cookies
+                  if (accessToken) {
+                    Cookies.set('accessToken', accessToken);
+                    
+                    // Retry the fetch with the new access token
+                    const detectionResponse = await axios.get(
+                      `http://127.0.0.1:8000/api/user/submissions/${submissionDetails.submission_identifier}/`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${accessToken}`
+                        }
+                      }
+                    );
+                    
+                    // Combine both responses
+                    setSubmission({
+                      ...submissionDetails,
+                      detection_result: {
+                        is_deepfake: detectionResponse.data.data.data.is_deepfake,
+                        confidence_score: detectionResponse.data.data.data.confidence_score,
+                        frames_analyzed: detectionResponse.data.data.data.frames_analyzed,
+                        fake_frames: detectionResponse.data.data.data.fake_frames
+                      },
+                      metadata: detectionResponse.data.data.metadata
+                    });
+                  } else {
+                    // If no new token is received, just use the basic submission details
+                    setSubmission(submissionDetails);
+                  }
+                } else {
+                  // If no refresh token, just use the basic submission details
+                  setSubmission(submissionDetails);
+                }
+              } else {
+                // For other errors, just use the basic submission details
+                setSubmission(submissionDetails);
+              }
+            }
+          } else {
+            // No access token, just use the basic submission details
+            setSubmission(submissionDetails);
+          }
+        } catch (error) {
+          // If authentication fails, just use the basic submission details
+          console.error('Failed to fetch detection results:', error);
+          setSubmission(submissionDetails);
+        }
+        
+      } catch (err) {
+        console.error('Error fetching PDA submission details:', err);
+        setError('Failed to load submission details. Please try again later.');
+      } finally {
+        setIsLoading(false);
       }
-      
-      const data = await response.json();
-      
-      // Update state with response data
-      setSubmission(data.data);
-    } catch (err) {
-      console.error("Error fetching PDA submission details:", err);
-      setError("Failed to load submission details. Please try again later.");
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-    fetchSubmissionDetails()
-  }, [submission_identifier])
+    };
+  
+    fetchSubmissionDetails();
+  }, [submission_identifier]);
 
   // Format date for display
   const formatDate = (dateString: string) => {
@@ -159,6 +240,52 @@ const fetchSubmissionDetails = async () => {
       alert("Link copied to clipboard!")
     }
   }
+
+  // Add a function to render metadata
+const renderMetadata = (metadata: Record<string, string>) => {
+    const groupedMetadata: Record<string, Record<string, string>> = {};
+  
+    // Group metadata by category
+    Object.entries(metadata).forEach(([key, value]) => {
+      const [category, field] = key.split(':');
+      if (!groupedMetadata[category]) {
+        groupedMetadata[category] = {};
+      }
+      groupedMetadata[category][field] = value;
+    });
+  
+    return (
+      <div className="metadata-container mt-8 space-y-6 bg-card border rounded-lg p-6 shadow-md">
+        <h2 className="text-2xl font-bold mb-4">File Metadata</h2>
+        {Object.entries(groupedMetadata).map(([category, fields]) => (
+          <div key={category} className="metadata-category mb-6">
+            <h3 className="text-lg font-semibold border-b pb-2 mb-3">{category}</h3>
+            <table className="w-full text-sm">
+              <tbody>
+                {Object.entries(fields).map(([field, value]) => (
+                  <tr key={field} className="border-b border-gray-100 dark:border-gray-800">
+                    <td className="pr-4 py-2 font-medium w-1/3">{field}</td>
+                    <td className="py-2">
+                      {typeof value === 'string' && value.startsWith('base64:') ? (
+                        <button
+                          onClick={() => navigator.clipboard.writeText(value)}
+                          className="text-blue-500 hover:text-blue-700 underline"
+                        >
+                          Copy Base64
+                        </button>
+                      ) : (
+                        value
+                      )}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ))}
+      </div>
+    );
+  };
 
   return (
     <Layout>
@@ -302,7 +429,7 @@ const fetchSubmissionDetails = async () => {
                     </TabsContent>
 
                     // Update the Analysis tab content to handle cases where detection_result may not exist
-<TabsContent value="analysis" className="bg-card rounded-xl p-6 shadow-sm">
+                    <TabsContent value="analysis" className="bg-card rounded-xl p-6 shadow-sm">
   <h3 className="text-xl font-semibold mb-4">Technical Analysis</h3>
 
   {submission.detection_result ? (
@@ -344,9 +471,16 @@ const fetchSubmissionDetails = async () => {
       </div>
     </div>
   ) : (
-    <div className="flex items-center justify-center p-8 text-muted-foreground">
-      <Info className="h-5 w-5 mr-2" />
-      Detailed analysis data not available for this submission
+    <div>
+      <div className="flex items-center justify-center p-8 text-muted-foreground">
+        <Info className="h-5 w-5 mr-2" />
+        Detailed analysis requires authentication
+      </div>
+      <div className="flex justify-center mt-4">
+        <Button onClick={() => router.push('/login')} variant="outline">
+          Log In to View Details
+        </Button>
+      </div>
     </div>
   )}
 </TabsContent>
@@ -508,6 +642,12 @@ const fetchSubmissionDetails = async () => {
           ) : null}
         </motion.div>
       </div>
+      {/* Add metadata section if available */}
+{submission && submission.metadata && (
+  <div className="mt-8 max-w-7xl mx-auto">
+    {renderMetadata(submission.metadata)}
+  </div>
+)}
     </Layout>
   )
 }

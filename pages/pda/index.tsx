@@ -24,44 +24,33 @@ import { Search, Filter, Calendar, Eye, AlertTriangle, CheckCircle } from "lucid
 import { motion } from "framer-motion"
 
 // Types for PDA submissions
+// Types for PDA submissions - update to match API response
 interface Category {
-  code: string
-  name: string
-}
-
-interface DetectionResult {
-  is_deepfake: boolean
-  confidence_score: number
-  frames_analyzed: number
-  fake_frames: number
-}
-
-interface PDASubmission {
-  id: number
-  title: string
-  category: string
-  category_display: string
-  submission_identifier: string
-  description: string
-  context: string
-  source_url: string
-  file_type: string
-  submission_date: string
-  file_url: string
-  detection_result: DetectionResult
-}
-
-interface PDAResponse {
-  code: string
-  message: string
-  data: {
-    results: PDASubmission[]
-    total: number
-    page: number
-    limit: number
-    categories: Category[]
+    code: string
+    name: string
   }
-}
+  
+  interface DetectionResult {
+    is_deepfake: boolean
+    confidence_score: number
+    frames_analyzed: number
+    fake_frames: number
+  }
+  
+  interface PDASubmission {
+    id: number
+    title: string
+    category: string
+    category_display: string
+    submission_identifier: string
+    description: string
+    context: string
+    source_url: string
+    file_type: string
+    submission_date: string
+    file_url: string
+    detection_result: DetectionResult
+  }
 
 export default function PublicDeepfakeArchive() {
   const router = useRouter()
