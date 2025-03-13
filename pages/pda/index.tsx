@@ -234,7 +234,7 @@ const handleViewDetails = (submission: PDASubmission) => {
           </p>
 
           {/* Search and Filter Section */}
-          <div className="bg-card rounded-2xl p-6 shadow-md mb-8">
+          <div className="bg-card glass-card rounded-2xl p-6 shadow-md mb-8">
             <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-6">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
@@ -335,7 +335,7 @@ const handleViewDetails = (submission: PDASubmission) => {
                   className="h-full"
                 >
                   
-                  <Card className="overflow-hidden h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
+                  <Card className="overflow-hidden glass-card h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
                   <div className="relative h-48 bg-muted overflow-hidden">
   {submission.file_type && submission.file_type.toLowerCase().includes('image') ? (
     <img

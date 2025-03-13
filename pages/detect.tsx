@@ -265,7 +265,7 @@ export default function DetectPage() {
           
 
           {/* Detection Area */}
-          <div className="bg-card rounded-2xl p-6 shadow-md mb-8">
+          <div className="bg-card glass-card rounded-2xl p-6 shadow-md mb-8">
             <h2 className="text-xl font-bold mb-4">Upload Media</h2>
             <p className="text-muted-foreground mb-4">JPEG, PNG, MP4 Supported (Max: 10MB)</p>
             
@@ -348,7 +348,7 @@ export default function DetectPage() {
           
 
           {/* Three Steps Section */}
-          <div className="bg-card rounded-2xl p-6 mb-8 shadow-md">
+          <div className="bg-card glass-card rounded-2xl p-6 mb-8 shadow-md">
             <h2 className="text-xl font-bold mb-6">Three Steps to Detect Deepfakes</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               <div className="flex flex-col items-center text-center">
@@ -373,10 +373,10 @@ export default function DetectPage() {
           </div>
 
           {/* Features Section */}
-          <div className="bg-card rounded-2xl p-6 shadow-md">
+          <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
             <h2 className="text-xl font-bold mb-6">Features of Deepfake Detection Module</h2>
             <div className="space-y-4">
-              <div className="feature-card">
+              <div className="feature-card glass-card">
                 <div className="feature-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M22 15.01L21.999 3.00101C21.999 2.4487 21.552 2.00101 21 2.00101L9 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -391,7 +391,7 @@ export default function DetectPage() {
                 </div>
               </div>
               
-              <div className="feature-card">
+              <div className="feature-card glass-card">
                 <div className="feature-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
@@ -405,7 +405,7 @@ export default function DetectPage() {
                 </div>
               </div>
               
-              <div className="feature-card">
+              <div className="feature-card glass-card">
                 <div className="feature-icon">
                   <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                     <path d="M12 2V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>

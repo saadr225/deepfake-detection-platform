@@ -17,6 +17,7 @@ import {
 import Layout from "../components/Layout"
 import { motion } from "framer-motion"
 import Image from "next/image"
+import Link from "next/link"
 
 const services = [
   {
@@ -111,10 +112,12 @@ export default function Home() {
                 industry-leading accuracy.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
-                  Try it now
-                  <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
+              <Link href="/detect">
+                  <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
+                    Try it now
+                    <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
               </div>
             </motion.div>
           </div>
@@ -125,10 +128,10 @@ export default function Home() {
         <section className="mb-12 animate-fadeInUp">
           <div className="flex items-center justify-between mb-5">
             <Button
-              variant="secondary"
-              size="sm"
+              variant="default"
+              size="icon"
               onClick={scrollLeft}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-white hover:text-foreground"
             >
               <ChevronLeft className="h-5 w-5" />
             </Button>
@@ -136,10 +139,10 @@ export default function Home() {
               Our Services
             </h2>
             <Button
-              variant="secondary"
-              size="sm"
+              variant="default"
+              size="icon"
               onClick={scrollRight}
-              className="text-muted-foreground hover:text-foreground"
+              className="text-white hover:text-foreground"
             >
               <ChevronRight className="h-5 w-5" />
             </Button>
@@ -210,7 +213,7 @@ export default function Home() {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
                 >
-                  <div className="relative z-20 rounded-xl bg-card p-6 pl-16 shadow-md">
+                  <div className="relative z-20 rounded-xl glass-card bg-card p-6 pl-16 shadow-md">
                     <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
                       <span className="text-xl font-bold text-white">{item.step}</span>
                     </div>
@@ -260,10 +263,12 @@ export default function Home() {
             <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
               Join thousands of users who trust our platform for reliable AI content detection
             </p>
-            <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
-              Get Started Free
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
+            <Link href="/aicontentdetection">
+              <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
+                Get Started Free
+                <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            </Link>
           </motion.div>
         </section>
       </main>

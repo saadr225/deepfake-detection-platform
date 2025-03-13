@@ -366,7 +366,7 @@ export default function AIContentDetectionPage() {
               className="space-y-8"
             >
               {/* Upload Section */}
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <h2 className="text-xl font-bold mb-4">Upload Media</h2>
                 <p className="text-muted-foreground mb-4">JPEG, PNG Supported (Max: 5MB)</p>
                 
@@ -459,7 +459,7 @@ export default function AIContentDetectionPage() {
               </div>
 
               {/* Three Steps Section */}
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <h2 className="text-xl font-bold mb-6">Three Steps to Detect AI</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="flex flex-col items-center text-center">
@@ -493,7 +493,7 @@ export default function AIContentDetectionPage() {
               transition={{ duration: 0.3 }}
               className="space-y-8"
             >
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <h2 className="text-xl font-bold mb-4">Text Analysis</h2>
                 <textarea
                   placeholder="Enter text here..."
@@ -513,10 +513,24 @@ export default function AIContentDetectionPage() {
                     {isAnalyzing ? "Analyzing..." : "Analyze Text"}
                   </Button>
                 </div>
+                {/* Analysis progress indicator */}
+          {isAnalyzing && (
+            <motion.div
+              className="mt-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Progress value={analysisProgress} className="w-full h-2" />
+              <p className="text-center text-sm text-muted-foreground mt-2">
+                Analyzing your content... {analysisProgress}%
+              </p>
+            </motion.div>
+          )}
               </div>
 
               {/* Three Steps Section */}
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <h2 className="text-xl font-bold mb-6">Three Steps to Detect AI</h2>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                   <div className="flex flex-col items-center text-center">
@@ -554,7 +568,7 @@ export default function AIContentDetectionPage() {
               <h2 className="text-2xl font-bold mb-4">AI Text Detection Results</h2>
 
               {/* Source Prediction */}
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <div className="flex items-center gap-2 mb-4">
                   <h3 className="text-xl font-semibold">Primary Source Prediction:</h3>
                   <Badge
@@ -585,11 +599,11 @@ export default function AIContentDetectionPage() {
               </div>
 
               {/* Confidence Scores */}
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <h3 className="text-xl font-semibold mb-4">Confidence Scores</h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   {Object.entries(textResults.confidence_scores || {}).map(([source, score]) => (
-                    <div key={source} className="bg-card rounded-xl p-4 shadow-sm border">
+                    <div key={source} className="bg-card glass-card rounded-xl p-4 shadow-sm border">
                       <div className="font-semibold mb-2">{source}</div>
                       <div className="text-2xl font-bold">{formatPercentage(score as number)}</div>
                       <Progress
@@ -608,7 +622,7 @@ export default function AIContentDetectionPage() {
               </div>
 
               {/* Analyzed Text with Highlights */}
-              <div className="bg-card rounded-2xl p-6 shadow-md">
+              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
                 <h3 className="text-xl font-semibold mb-2">Analyzed Text</h3>
                 <p className="text-sm text-muted-foreground mb-4">Highlighted portions indicate AI-generated content</p>
                 {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}

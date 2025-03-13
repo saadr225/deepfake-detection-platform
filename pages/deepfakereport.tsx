@@ -745,7 +745,21 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
           setSubmitError('Please log in to submit to the Public Deepfake Archive.');
         }
       } else {
-        setSubmitError('Failed to submit to PDA. Please try again later.');
+        // Display the specific error from the server response instead of a generic message
+        if (axios.isAxiosError(error) && error.response && error.response.data) {
+          const errorData = error.response.data;
+          // Check if we have a message in the response
+          if (errorData.error) {
+            setSubmitError(errorData.error);
+          } else if (errorData.message) {
+            setSubmitError(errorData.message);
+          } else {
+            // Fallback to default message
+            setSubmitError('Failed to submit to PDA. Please try again later.');
+          }
+        } else {
+          setSubmitError('Failed to submit to PDA. Please try again later.');
+        }
         console.error('PDA submission error:', error);
       }
     }
