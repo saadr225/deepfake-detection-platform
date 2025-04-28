@@ -60,6 +60,7 @@ interface Category {
     file_type: string
     submission_date: string
     file_url: string
+    user_owned?: boolean;
     detection_result: DetectionResult
   }
 
@@ -101,38 +102,50 @@ const [faceMatchError, setFaceMatchError] = useState<string | null>(null)
 
   // Fetch submissions from API
   // Replace the fetchSubmissions function with this real API call
+// Update the fetchSubmissions function to include Authorization header
 const fetchSubmissions = async () => {
-    setIsLoading(true);
-    setError(null);
-  
-    try {
-      // Build query parameters
-      const params = new URLSearchParams();
-      if (searchQuery) params.append("q", searchQuery);
-      if (selectedCategory) params.append("category", selectedCategory);
-      params.append("page", currentPage.toString());
-      params.append("limit", itemsPerPage.toString());
-  
-      // Make the actual API call
-      const response = await fetch(`http://127.0.0.1:8000/api/pda/search/?${params.toString()}`);
-      
-      if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-      }
-      
-      const data = await response.json();
-      
-      // Update state with response data
-      setSubmissions(data.data.results);
-      setCategories(data.data.categories);
-      setTotalItems(data.data.total);
-    } catch (err) {
-      console.error("Error fetching PDA submissions:", err);
-      setError("Failed to load submissions. Please try again later.");
-    } finally {
-      setIsLoading(false);
+  setIsLoading(true);
+  setError(null);
+
+  try {
+    // Build query parameters
+    const params = new URLSearchParams();
+    if (searchQuery) params.append("q", searchQuery);
+    if (selectedCategory) params.append("category", selectedCategory);
+    params.append("page", currentPage.toString());
+    params.append("limit", itemsPerPage.toString());
+
+    // Get access token
+    const accessToken = Cookies.get("accessToken");
+    
+    // Headers with conditional Authorization
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
     }
-  };
+
+    // Make the actual API call
+    const response = await fetch(`http://127.0.0.1:8000/api/pda/search/?${params.toString()}`, {
+      headers
+    });
+    
+    if (!response.ok) {
+      throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Update state with response data
+    setSubmissions(data.data.results);
+    setCategories(data.data.categories);
+    setTotalItems(data.data.total);
+  } catch (err) {
+    console.error("Error fetching PDA submissions:", err);
+    setError("Failed to load submissions. Please try again later.");
+  } finally {
+    setIsLoading(false);
+  }
+};
 
   // Fetch data when search params change
   useEffect(() => {
@@ -403,6 +416,7 @@ const handleViewDetails = (submission: PDASubmission) => {
   }
 
   // Add this function to fetch face match history
+// Update this function to preserve the user_owned flag
 const fetchFaceMatchHistory = async () => {
   setIsFetchingFaceMatches(true)
   setFaceMatchError(null)
@@ -441,9 +455,16 @@ const fetchFaceMatchHistory = async () => {
     // For each match, fetch the full submission details
     for (const submissionId of matchedSubmissionIds) {
       try {
-        const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submissionId}/`)
+        // Make sure to include authorization header here too
+        const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submissionId}/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        })
+        
         if (submissionResponse.ok) {
           const data = await submissionResponse.json()
+          // The data includes user_owned from the API, so we don't need to modify it
           matchedSubmissions.push(data.data)
         }
       } catch (error) {
@@ -730,21 +751,33 @@ const handleFaceMatchToggle = (checked: boolean) => {
                 <FileText className="h-12 w-12 text-muted-foreground" />
               </div>
             )}
-            <div className="absolute top-2 right-2">
-              <Badge className={submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}>
-                {submission.detection_result.is_deepfake ? (
-                  <div className="flex items-center">
-                    <AlertTriangle className="h-3 w-3 mr-1" />
-                    Deepfake
-                  </div>
-                ) : (
-                  <div className="flex items-center">
-                    <CheckCircle className="h-3 w-3 mr-1" />
-                    Authentic
-                  </div>
-                )}
-              </Badge>
-            </div>
+            {/* Add this right after the deepfake/authentic badge in the top-right corner */}
+            <div className="absolute top-2 right-2 flex flex-col items-end gap-1">
+  {/* Deepfake/Authentic Badge */}
+  <Badge className={submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}>
+    {submission.detection_result.is_deepfake ? (
+      <div className="flex items-center">
+        <AlertTriangle className="h-3 w-3 mr-1" />
+        Deepfake
+      </div>
+    ) : (
+      <div className="flex items-center">
+        <CheckCircle className="h-3 w-3 mr-1" />
+        Authentic
+      </div>
+    )}
+  </Badge>
+  
+  {/* Owned Badge - now will appear below */}
+  {submission.user_owned && (
+    <Badge className="bg-green-500">
+      <div className="flex items-center">
+        <UserCircle className="h-3 w-3 mr-1" />
+        Owned
+      </div>
+    </Badge>
+  )}
+</div>
             <div className="absolute top-2 left-2">
               <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
                 {submission.file_type}

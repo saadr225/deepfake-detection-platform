@@ -20,6 +20,7 @@ import {
   BarChart2,
   Download,
   Share2,
+  Trash,
 } from "lucide-react"
 import { motion } from "framer-motion"
 import Cookies from 'js-cookie';
@@ -80,6 +81,7 @@ interface PDASubmissionDetails {
   file_type: string;
   submission_date: string;
   file_url: string;
+  user_owned?: boolean;
   detection_result: DetectionResult; // Now required, not optional
   metadata: Record<string, string>; // Now required, not optional
 }
@@ -104,15 +106,27 @@ const [originalFramePage, setOriginalFramePage] = useState(0);
 
   // Fetch submission details from API
   useEffect(() => {
-    const fetchSubmissionDetails = async () => {
+    // Update the fetchSubmissionDetails function to include Authorization header
+const fetchSubmissionDetails = async () => {
   if (!submission_identifier) return;
   
   setIsLoading(true);
   setError(null);
   
   try {
-    // Make a single API call to get all details - this now includes detection results and metadata
-    const response = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`);
+    // Get access token
+    const accessToken = Cookies.get("accessToken");
+    
+    // Headers with conditional Authorization
+    const headers: HeadersInit = {};
+    if (accessToken) {
+      headers["Authorization"] = `Bearer ${accessToken}`;
+    }
+    
+    // Make a single API call to get all details
+    const response = await fetch(`http://127.0.0.1:8000/api/pda/details/${submission_identifier}/`, {
+      headers
+    });
     
     if (!response.ok) {
       throw new Error(`API request failed with status ${response.status}`);
@@ -120,7 +134,7 @@ const [originalFramePage, setOriginalFramePage] = useState(0);
     
     const data = await response.json();
     
-    // Set submission with all data - detection_result and metadata are already included
+    // Set submission with all data
     setSubmission(data.data);
   } catch (err) {
     console.error('Error fetching PDA submission details:', err);
@@ -187,6 +201,43 @@ const [originalFramePage, setOriginalFramePage] = useState(0);
       alert("Link copied to clipboard!")
     }
   }
+
+  // Add this new function to handle submission deletion
+const handleDeleteSubmission = async () => {
+  // Confirm before deletion
+  if (!window.confirm("Are you sure you want to delete this submission? This action cannot be undone.")) {
+    return;
+  }
+  
+  try {
+    const accessToken = Cookies.get("accessToken");
+    if (!accessToken) {
+      setError("You must be logged in to delete submissions");
+      return;
+    }
+    
+    const response = await fetch(`http://127.0.0.1:8000/api/pda/submission/${submission_identifier}`, {
+      method: 'DELETE',
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Failed to delete submission (${response.status})`);
+    }
+    
+    const data = await response.json();
+    alert(data.message || "Submission deleted successfully");
+    
+    // Redirect back to the main PDA page
+    router.push("/pda");
+    
+  } catch (error) {
+    console.error("Error deleting submission:", error);
+    alert("Failed to delete submission");
+  }
+};
 
   // Handle image click to show enlarged view
 const handleImageClick = (image: string, type: 'error' | 'heatmap' | 'original', index: number) => {
@@ -568,16 +619,26 @@ const renderMetadata = (metadata: Record<string, string>) => {
                   </div>
                 </div>
 
-                <div className="flex gap-2">
-                  <Button variant="outline" onClick={handleDownloadReport}>
-                    <Download className="mr-2 h-4 w-4" />
-                    Download Report
-                  </Button>
-                  <Button variant="outline" onClick={handleShareReport}>
-                    <Share2 className="mr-2 h-4 w-4" />
-                    Share
-                  </Button>
-                </div>
+                {/* Update the buttons section to include Delete button for owned submissions */}
+<div className="flex gap-2">
+  {submission.user_owned && (
+    <Button 
+      variant="destructive" 
+      onClick={handleDeleteSubmission}
+    >
+      <Trash className="mr-2 h-4 w-4" />
+      Delete Submission
+    </Button>
+  )}
+  <Button variant="outline" onClick={handleDownloadReport}>
+    <Download className="mr-2 h-4 w-4" />
+    Download Report
+  </Button>
+  <Button variant="outline" onClick={handleShareReport}>
+    <Share2 className="mr-2 h-4 w-4" />
+    Share
+  </Button>
+</div>
               </div>
 
               {/* Main content grid */}
