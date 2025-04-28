@@ -20,9 +20,19 @@ import {
 } from "@/components/ui/pagination"
 import { Badge } from "@/components/ui/badge"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Search, Filter, Calendar, Eye, AlertTriangle, CheckCircle, FileText } from "lucide-react"
+import { Search, Filter, Calendar, Eye, AlertTriangle, CheckCircle, FileText, UserCircle, XCircle, AlertCircle } from "lucide-react"
 import { motion } from "framer-motion"
-
+import Cookies from "js-cookie"
+import axios from "axios"
+// Add this to your imports at the top of the file
+import { 
+  Dialog, 
+  DialogContent, 
+  DialogHeader, 
+  DialogTitle 
+} from "@/components/ui/dialog"
+// Add this import for the Switch component
+import { Switch } from "@/components/ui/switch"
 // Types for PDA submissions
 // Types for PDA submissions - update to match API response
 interface Category {
@@ -69,6 +79,23 @@ export default function PublicDeepfakeArchive() {
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
+  // Add after other state declarations
+const [isUserLoggedIn, setIsUserLoggedIn] = useState(false)
+const [isFaceRegistered, setIsFaceRegistered] = useState(false)
+const [faceRegStatus, setFaceRegStatus] = useState("")
+const [isRegistering, setIsRegistering] = useState(false)
+const [isRemoving, setIsRemoving] = useState(false)
+const [statusLoading, setStatusLoading] = useState(true)
+const [faceUploadModalOpen, setFaceUploadModalOpen] = useState(false)
+const [selectedFaceImage, setSelectedFaceImage] = useState<File | null>(null)
+const [registrationError, setRegistrationError] = useState<string | null>(null)
+
+// Add these state variables after your other state declarations
+const [isFaceMatchEnabled, setIsFaceMatchEnabled] = useState(false)
+const [isFetchingFaceMatches, setIsFetchingFaceMatches] = useState(false)
+const [faceMatchSubmissions, setFaceMatchSubmissions] = useState<PDASubmission[]>([])
+const [faceMatchError, setFaceMatchError] = useState<string | null>(null)
+
   // Calculate total pages
   const totalPages = Math.ceil(totalItems / itemsPerPage)
 
@@ -111,6 +138,162 @@ const fetchSubmissions = async () => {
   useEffect(() => {
     fetchSubmissions()
   }, [searchQuery, selectedCategory, currentPage, itemsPerPage])
+
+  // Add a useEffect hook to check user login status and face registration status
+// Place this with other useEffect hooks
+useEffect(() => {
+  // Check if user is logged in
+  const accessToken = Cookies.get("accessToken")
+  setIsUserLoggedIn(!!accessToken)
+  
+  // If logged in, check face registration status
+  if (accessToken) {
+    checkFaceRegistrationStatus(accessToken)
+  } else {
+    setStatusLoading(false)
+  }
+}, [])
+
+// Add this useEffect to fetch face match history when toggle is enabled
+useEffect(() => {
+  if (isFaceMatchEnabled) {
+    fetchFaceMatchHistory()
+  }
+}, [isFaceMatchEnabled])
+
+// Add these functions to handle face registration functionality
+// Place these with other functions in the component
+
+// Function to check face registration status
+const checkFaceRegistrationStatus = async (token: string) => {
+  setStatusLoading(true)
+  try {
+    const response = await axios.get("http://127.0.0.1:8000/api/facial-watch/status/", {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    
+    if (response.data.data) {
+      setIsFaceRegistered(response.data.data.is_registered)
+      setFaceRegStatus(response.data.data.is_registered ? 
+        "Your face is registered in the system" : 
+        "Your face is not registered in the system")
+    }
+  } catch (error) {
+    console.error("Error checking face registration status:", error)
+    setFaceRegStatus("Unable to check registration status")
+    setIsFaceRegistered(false)
+  } finally {
+    setStatusLoading(false)
+  }
+}
+
+// Function to register face
+const registerFace = async () => {
+  if (!selectedFaceImage) {
+    setRegistrationError("Please select an image first")
+    return
+  }
+  
+  setIsRegistering(true)
+  setRegistrationError(null)
+  
+  try {
+    // Get the access token from cookies
+    let accessToken = Cookies.get("accessToken")
+    
+    if (!accessToken) {
+      setRegistrationError("Please login first to register your face")
+      setIsRegistering(false)
+      return
+    }
+    
+    // Create form data
+    const formData = new FormData()
+    formData.append("file", selectedFaceImage)
+    
+    // Make API call
+    const response = await axios.post("http://127.0.0.1:8000/api/facial-watch/register/", formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "multipart/form-data"
+      }
+    })
+    
+    // Update state upon successful registration
+    setIsFaceRegistered(true)
+    setFaceRegStatus("Your face is registered in the system")
+    setFaceUploadModalOpen(false)
+    setSelectedFaceImage(null)
+    
+  } catch (error) {
+    console.error("Error registering face:", error)
+    if (axios.isAxiosError(error) && error.response) {
+      setRegistrationError(error.response.data.message || "Failed to register face")
+    } else {
+      setRegistrationError("An error occurred during face registration")
+    }
+  } finally {
+    setIsRegistering(false)
+  }
+}
+
+// Function to remove face registration
+const removeFaceRegistration = async () => {
+  setIsRemoving(true)
+  
+  try {
+    // Get the access token from cookies
+    let accessToken = Cookies.get("accessToken")
+    
+    if (!accessToken) {
+      alert("Please login first to remove your face registration")
+      setIsRemoving(false)
+      return
+    }
+    
+    // Make API call to remove face registration
+    const response = await axios.delete("http://127.0.0.1:8000/api/facial-watch/remove/", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+    
+    // Update state upon successful removal
+    setIsFaceRegistered(false)
+    setFaceRegStatus("Your face is not registered in the system")
+    
+  } catch (error) {
+    console.error("Error removing face registration:", error)
+    alert("Failed to remove face registration")
+  } finally {
+    setIsRemoving(false)
+  }
+}
+
+// Handle face image selection
+const handleFaceImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files && e.target.files.length > 0) {
+    const file = e.target.files[0]
+    
+    // Check if file is an image
+    if (!file.type.startsWith("image/")) {
+      setRegistrationError("Please select an image file")
+      return
+    }
+    
+    // Check file size (limit to 5MB)
+    const maxSize = 5 * 1024 * 1024
+    if (file.size > maxSize) {
+      setRegistrationError("Image size should not exceed 5MB")
+      return
+    }
+    
+    setSelectedFaceImage(file)
+    setRegistrationError(null)
+  }
+}
 
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
@@ -219,6 +402,77 @@ const handleViewDetails = (submission: PDASubmission) => {
     })
   }
 
+  // Add this function to fetch face match history
+const fetchFaceMatchHistory = async () => {
+  setIsFetchingFaceMatches(true)
+  setFaceMatchError(null)
+  
+  try {
+    // Get the access token from cookies
+    const accessToken = Cookies.get("accessToken")
+    
+    if (!accessToken) {
+      setFaceMatchError("Please login to view face matches")
+      setIsFetchingFaceMatches(false)
+      return
+    }
+    
+    // Fetch face match history
+    const response = await axios.get("http://127.0.0.1:8000/api/facial-watch/history/", {
+      headers: {
+        Authorization: `Bearer ${accessToken}`
+      }
+    })
+    
+    // Extract submission identifiers from the response
+    const matchedSubmissionIds = response.data.data.map(
+      (match: any) => match.media_upload.submission_identifier
+    )
+    
+    if (matchedSubmissionIds.length === 0) {
+      setFaceMatchSubmissions([])
+      setIsFetchingFaceMatches(false)
+      return
+    }
+    
+    // Fetch the actual submissions using the identifiers
+    const matchedSubmissions: PDASubmission[] = []
+    
+    // For each match, fetch the full submission details
+    for (const submissionId of matchedSubmissionIds) {
+      try {
+        const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submissionId}/`)
+        if (submissionResponse.ok) {
+          const data = await submissionResponse.json()
+          matchedSubmissions.push(data.data)
+        }
+      } catch (error) {
+        console.error(`Error fetching details for submission ${submissionId}:`, error)
+      }
+    }
+    
+    setFaceMatchSubmissions(matchedSubmissions)
+  } catch (error) {
+    console.error("Error fetching face match history:", error)
+    setFaceMatchError("Failed to fetch face match history")
+  } finally {
+    setIsFetchingFaceMatches(false)
+  }
+}
+
+// Add this handler function for the toggle
+const handleFaceMatchToggle = (checked: boolean) => {
+  setIsFaceMatchEnabled(checked)
+  
+  // Reset the current page when toggling
+  setCurrentPage(1)
+  
+  // If turning off face match filter, refresh normal submissions
+  if (!checked) {
+    fetchSubmissions()
+  }
+}
+
   return (
     <Layout>
       <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -235,231 +489,423 @@ const handleViewDetails = (submission: PDASubmission) => {
 
           {/* Search and Filter Section */}
           <div className="bg-card glass-card rounded-2xl p-6 shadow-md mb-8">
-            <form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-6">
-              <div className="relative flex-1">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-                <Input
-                  type="text"
-                  placeholder="Search by title, description or context..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
+            {/* Modify the search form to be disabled when face match filter is active */}
+<form onSubmit={handleSearch} className="flex flex-col md:flex-row gap-4 mb-6">
+  <div className="relative flex-1">
+    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+    <Input
+      type="text"
+      placeholder={isFaceMatchEnabled ? "Face match filter is active" : "Search by title, description or context..."}
+      value={searchQuery}
+      onChange={(e) => setSearchQuery(e.target.value)}
+      className="pl-10"
+      disabled={isFaceMatchEnabled}
+    />
+  </div>
 
-              <div className="w-full md:w-64">
-                <Select value={selectedCategory} onValueChange={handleCategoryChange}>
-                  <SelectTrigger>
-                    <div className="flex items-center">
-                      <Filter className="mr-2 h-4 w-4" />
-                      <SelectValue placeholder="All Categories" />
-                    </div>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem>All Categories</SelectItem>
-                    {categories.map((category) => (
-                      <SelectItem key={category.code} value={category.code}>
-                        {category.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+  <div className="w-full md:w-64">
+    <Select 
+      value={selectedCategory} 
+      onValueChange={handleCategoryChange}
+      disabled={isFaceMatchEnabled}
+    >
+      <SelectTrigger>
+        <div className="flex items-center">
+          <Filter className="mr-2 h-4 w-4" />
+          <SelectValue placeholder="All Categories" />
+        </div>
+      </SelectTrigger>
+      <SelectContent>
+        <SelectItem>All Categories</SelectItem>
+        {categories.map((category) => (
+          <SelectItem key={category.code} value={category.code}>
+            {category.name}
+          </SelectItem>
+        ))}
+      </SelectContent>
+    </Select>
+  </div>
 
-              <Button type="submit" className="md:w-auto">
-                Search
-              </Button>
-            </form>
+  <Button type="submit" className="md:w-auto" disabled={isFaceMatchEnabled}>
+    Search
+  </Button>
+</form>
 
             {/* Results count */}
-            <div className="text-sm text-muted-foreground">
-              Showing {submissions.length} of {totalItems} results
-              {selectedCategory &&
-                categories.find((c) => c.code === selectedCategory) &&
-                ` in ${categories.find((c) => c.code === selectedCategory)?.name}`}
-              {searchQuery && ` matching "${searchQuery}"`}
-            </div>
+            {/* Update the results count display */}
+<div className="text-sm text-muted-foreground">
+  {isFaceMatchEnabled ? (
+    <>
+      Showing {faceMatchSubmissions.length} submissions matching your face
+      {faceMatchError && (
+        <span className="text-destructive ml-2">({faceMatchError})</span>
+      )}
+    </>
+  ) : (
+    <>
+      Showing {submissions.length} of {totalItems} results
+      {selectedCategory &&
+        categories.find((c) => c.code === selectedCategory) &&
+        ` in ${categories.find((c) => c.code === selectedCategory)?.name}`}
+      {searchQuery && ` matching "${searchQuery}"`}
+    </>
+  )}
+</div>
+
+            {/* Add this right after the search and filter form */}
+{/* This should be placed inside the "bg-card glass-card rounded-2xl p-6 shadow-md mb-8" div */}
+{/* Add after the results count div */}
+
+{isUserLoggedIn && (
+  <div className="mt-4 pt-4 border-t border-border">
+    <div className="flex flex-col md:flex-row items-center justify-between gap-3">
+      <div className="flex items-center gap-2">
+        <span className="text-sm font-medium">Face Registration:</span>
+        {statusLoading ? (
+          <Badge variant="outline" className="animate-pulse">
+            <span className="flex items-center">
+              <AlertCircle className="h-3 w-3 mr-1" />
+              Checking...
+            </span>
+          </Badge>
+        ) : isFaceRegistered ? (
+          <Badge variant="outline" className="bg-green-500/10 text-green-500 border-green-500/20">
+            <span className="flex items-center">
+              <CheckCircle className="h-3 w-3 mr-1" />
+              Registered
+            </span>
+          </Badge>
+        ) : (
+          <Badge variant="outline" className="bg-amber-500/10 text-amber-500 border-amber-500/20">
+            <span className="flex items-center">
+              <XCircle className="h-3 w-3 mr-1" />
+              Not Registered
+            </span>
+          </Badge>
+        )}
+        <span className="text-xs text-muted-foreground ml-2">{faceRegStatus}</span>
+      </div>
+      
+      <div className="flex items-center gap-3">
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center"
+          onClick={() => setFaceUploadModalOpen(true)}
+          disabled={isRegistering || isFaceRegistered}
+        >
+          <UserCircle className="mr-1 h-4 w-4" />
+          Register Face
+        </Button>
+        
+        <Button 
+          variant="outline" 
+          size="sm" 
+          className="flex items-center text-destructive border-destructive/20 hover:bg-destructive/10"
+          onClick={removeFaceRegistration}
+          disabled={isRemoving || !isFaceRegistered}
+        >
+          <XCircle className="mr-1 h-4 w-4" />
+          Remove Registration
+        </Button>
+      </div>
+    </div>
+    {/* Add this toggle switch below the existing face registration UI */}
+    <div className="mt-3 flex items-center justify-between">
+      <div className="flex items-center space-x-2">
+        <Switch 
+          checked={isFaceMatchEnabled} 
+          onCheckedChange={handleFaceMatchToggle}
+          disabled={!isFaceRegistered || isFetchingFaceMatches} 
+        />
+        <span className="text-sm font-medium">
+          {isFaceMatchEnabled ? "Showing only matches with your face" : "Show matches with my face"}
+        </span>
+      </div>
+      
+      {isFetchingFaceMatches && (
+        <div className="text-xs text-muted-foreground animate-pulse">
+          Fetching matches...
+        </div>
+      )}
+    </div>
+  </div>
+)}
           </div>
 
           {/* Results Grid */}
-          {isLoading ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {Array.from({ length: 6 }).map((_, index) => (
-                <Card key={index} className="overflow-hidden">
-                  <CardContent className="p-0">
-                    <Skeleton className="h-48 w-full" />
-                    <div className="p-4">
-                      <Skeleton className="h-6 w-3/4 mb-2" />
-                      <Skeleton className="h-4 w-1/4 mb-4" />
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-full mb-2" />
-                      <Skeleton className="h-4 w-2/3 mb-4" />
-                      <Skeleton className="h-10 w-full rounded-md" />
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : error ? (
-            <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
-              <p>{error}</p>
-              <Button variant="outline" onClick={fetchSubmissions} className="mt-2">
-                Try Again
-              </Button>
-            </div>
-          ) : submissions.length === 0 ? (
-            <div className="text-center py-12">
-              <p className="text-xl font-semibold mb-2">No results found</p>
-              <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setSearchQuery("")
-                  setSelectedCategory("")
-                }}
-              >
-                Clear Filters
-              </Button>
-            </div>
-          ) : (
-            
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-              
-              {submissions.map((submission) => (
-                <motion.div
-                  key={submission.id}
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3 }}
-                  whileHover={{ y: -5 }}
-                  className="h-full"
-                >
-                  
-                  <Card className="overflow-hidden glass-card h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
-                  <div className="relative h-48 bg-muted overflow-hidden">
-  {submission.file_type && submission.file_type.toLowerCase().includes('image') ? (
-    <img
-      src={submission.file_url || "/placeholder.svg"}
-      alt={submission.title}
-      className="w-full h-full object-cover"
-      style={{ width: '100%', height: '100%' }}
-      onError={(e) => {
-        // Fallback for broken images
-        ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=192&width=384"
-      }}
-    />
-  ) : submission.file_type && submission.file_type.toLowerCase().includes('video') ? (
-    <video
-      src={submission.file_url}
-      className="w-full h-full object-cover"
-      style={{ pointerEvents: 'none' }}
-      muted
-      playsInline
-      disablePictureInPicture
-      disableRemotePlayback
+{isLoading || isFetchingFaceMatches ? (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+    {Array.from({ length: 6 }).map((_, index) => (
+      <Card key={index} className="overflow-hidden">
+        <CardContent className="p-0">
+          <Skeleton className="h-48 w-full" />
+          <div className="p-4">
+            <Skeleton className="h-6 w-3/4 mb-2" />
+            <Skeleton className="h-4 w-1/4 mb-4" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-full mb-2" />
+            <Skeleton className="h-4 w-2/3 mb-4" />
+            <Skeleton className="h-10 w-full rounded-md" />
+          </div>
+        </CardContent>
+      </Card>
+    ))}
+  </div>
+) : error || (isFaceMatchEnabled && faceMatchError) ? (
+  <div className="bg-destructive/10 text-destructive p-4 rounded-lg">
+    <p>{isFaceMatchEnabled ? faceMatchError : error}</p>
+    <Button 
+      variant="outline" 
+      onClick={isFaceMatchEnabled ? fetchFaceMatchHistory : fetchSubmissions} 
+      className="mt-2"
     >
-      Your browser does not support the video tag.
-    </video>
-  ) : (
-    <div className="w-full h-full flex items-center justify-center bg-muted">
-      <FileText className="h-12 w-12 text-muted-foreground" />
-    </div>
-  )}
-  <div className="absolute top-2 right-2">
-    <Badge className={submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}>
-      {submission.detection_result.is_deepfake ? (
-        <div className="flex items-center">
-          <AlertTriangle className="h-3 w-3 mr-1" />
-          Deepfake
-        </div>
-      ) : (
-        <div className="flex items-center">
-          <CheckCircle className="h-3 w-3 mr-1" />
-          Authentic
-        </div>
-      )}
-    </Badge>
+      Try Again
+    </Button>
   </div>
-  <div className="absolute top-2 left-2">
-    <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
-      {submission.file_type}
-    </Badge>
+) : (isFaceMatchEnabled && faceMatchSubmissions.length === 0) ? (
+  <div className="text-center py-12">
+    <p className="text-xl font-semibold mb-2">No face matches found</p>
+    <p className="text-muted-foreground mb-4">No submissions were found that match your registered face</p>
+    <Button
+      variant="outline"
+      onClick={() => setIsFaceMatchEnabled(false)}
+    >
+      Show All Submissions
+    </Button>
   </div>
-</div>
-
-                    <CardContent className="p-4 flex-1 flex flex-col">
-                      <div className="mb-2 flex items-center justify-between">
-                        <Badge variant="secondary">{submission.category_display}</Badge>
-                        <div className="flex items-center text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3 mr-1" />
-                          {formatDate(submission.submission_date)}
-                        </div>
-                      </div>
-
-                      <h3 className="text-lg font-semibold mb-2 line-clamp-1">{submission.title}</h3>
-
-                      <p className="text-muted-foreground text-sm mb-3 line-clamp-3">{submission.description}</p>
-
-                      <div className="mt-auto">
-                        <div className="mb-3">
-                          <div className="text-sm font-medium mb-1 flex justify-between">
-                            <span>Confidence Score</span>
-                            <span>{(submission.detection_result.confidence_score * 100).toFixed(1)}%</span>
-                          </div>
-                          <div className="h-2 bg-muted rounded-full overflow-hidden">
-                            <div
-                              className={`h-full ${submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}`}
-                              style={{ width: `${submission.detection_result.confidence_score * 100}%` }}
-                            />
-                          </div>
-                        </div>
-
-                        <Button className="w-full" onClick={() => handleViewDetails(submission)}>
-  <Eye className="mr-2 h-4 w-4" />
-  View Details
-</Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
+) : (!isFaceMatchEnabled && submissions.length === 0) ? (
+  <div className="text-center py-12">
+    <p className="text-xl font-semibold mb-2">No results found</p>
+    <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
+    <Button
+      variant="outline"
+      onClick={() => {
+        setSearchQuery("")
+        setSelectedCategory("")
+      }}
+    >
+      Clear Filters
+    </Button>
+  </div>
+) : (
+  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    {/* Use either face match submissions or regular submissions depending on toggle state */}
+    {(isFaceMatchEnabled ? faceMatchSubmissions : submissions).map((submission) => (
+      <motion.div
+        key={submission.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.3 }}
+        whileHover={{ y: -5 }}
+        className="h-full"
+      >
+        <Card className="overflow-hidden glass-card h-full flex flex-col shadow-md hover:shadow-lg transition-shadow">
+          <div className="relative h-48 bg-muted overflow-hidden">
+            {submission.file_type && submission.file_type.toLowerCase().includes('image') ? (
+              <img
+                src={submission.file_url || "/placeholder.svg"}
+                alt={submission.title}
+                className="w-full h-full object-cover"
+                style={{ width: '100%', height: '100%' }}
+                onError={(e) => {
+                  // Fallback for broken images
+                  ;(e.target as HTMLImageElement).src = "/placeholder.svg?height=192&width=384"
+                }}
+              />
+            ) : submission.file_type && submission.file_type.toLowerCase().includes('video') ? (
+              <video
+                src={submission.file_url}
+                className="w-full h-full object-cover"
+                style={{ pointerEvents: 'none' }}
+                muted
+                playsInline
+                disablePictureInPicture
+                disableRemotePlayback
+              >
+                Your browser does not support the video tag.
+              </video>
+            ) : (
+              <div className="w-full h-full flex items-center justify-center bg-muted">
+                <FileText className="h-12 w-12 text-muted-foreground" />
+              </div>
+            )}
+            <div className="absolute top-2 right-2">
+              <Badge className={submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}>
+                {submission.detection_result.is_deepfake ? (
+                  <div className="flex items-center">
+                    <AlertTriangle className="h-3 w-3 mr-1" />
+                    Deepfake
+                  </div>
+                ) : (
+                  <div className="flex items-center">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Authentic
+                  </div>
+                )}
+              </Badge>
             </div>
-          )}
-
-          {/* Pagination */}
-          {!isLoading && !error && totalPages > 0 && (
-            <div className="mt-8">
-              <Pagination>
-                <PaginationContent>
-                  <PaginationItem>
-                    <PaginationPrevious
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        if (currentPage > 1) setCurrentPage(currentPage - 1)
-                      }}
-                      className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-
-                  {renderPaginationItems()}
-
-                  <PaginationItem>
-                    <PaginationNext
-                      href="#"
-                      onClick={(e) => {
-                        e.preventDefault()
-                        if (currentPage < totalPages) setCurrentPage(currentPage + 1)
-                      }}
-                      className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                    />
-                  </PaginationItem>
-                </PaginationContent>
-              </Pagination>
+            <div className="absolute top-2 left-2">
+              <Badge variant="outline" className="bg-background/80 backdrop-blur-sm">
+                {submission.file_type}
+              </Badge>
             </div>
-          )}
+          </div>
+
+          <CardContent className="p-4 flex-1 flex flex-col">
+            <div className="mb-2 flex items-center justify-between">
+              <Badge variant="secondary">{submission.category_display}</Badge>
+              <div className="flex items-center text-sm text-muted-foreground">
+                <Calendar className="h-3 w-3 mr-1" />
+                {formatDate(submission.submission_date)}
+              </div>
+            </div>
+
+            <h3 className="text-lg font-semibold mb-2 line-clamp-1">{submission.title}</h3>
+
+            <p className="text-muted-foreground text-sm mb-3 line-clamp-3">{submission.description}</p>
+
+            <div className="mt-auto">
+              <div className="mb-3">
+                <div className="text-sm font-medium mb-1 flex justify-between">
+                  <span>Confidence Score</span>
+                  <span>{(submission.detection_result.confidence_score * 100).toFixed(1)}%</span>
+                </div>
+                <div className="h-2 bg-muted rounded-full overflow-hidden">
+                  <div
+                    className={`h-full ${submission.detection_result.is_deepfake ? "bg-red-500" : "bg-green-500"}`}
+                    style={{ width: `${submission.detection_result.confidence_score * 100}%` }}
+                  />
+                </div>
+              </div>
+
+              <Button className="w-full" onClick={() => handleViewDetails(submission)}>
+                <Eye className="mr-2 h-4 w-4" />
+                View Details
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      </motion.div>
+    ))}
+  </div>
+)}
+
+{/* Pagination - only show for regular search, not for face matches */}
+{!isLoading && !error && !isFaceMatchEnabled && totalPages > 0 && (
+  <div className="mt-8">
+    <Pagination>
+      <PaginationContent>
+        <PaginationItem>
+          <PaginationPrevious
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              if (currentPage > 1) setCurrentPage(currentPage - 1)
+            }}
+            className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+          />
+        </PaginationItem>
+
+        {renderPaginationItems()}
+
+        <PaginationItem>
+          <PaginationNext
+            href="#"
+            onClick={(e) => {
+              e.preventDefault()
+              if (currentPage < totalPages) setCurrentPage(currentPage + 1)
+            }}
+            className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+          />
+        </PaginationItem>
+      </PaginationContent>
+    </Pagination>
+  </div>
+)}
         </motion.div>
       </div>
+      {/* Add this at the bottom of the component, right before the closing Layout tag */}
+
+{/* Face Upload Modal */}
+<Dialog open={faceUploadModalOpen && isUserLoggedIn} onOpenChange={setFaceUploadModalOpen}>
+  <DialogContent className="bg-card rounded-2xl">
+    <DialogHeader>
+      <DialogTitle>Register Your Face</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Please upload a clear photo of your face. This will be used to alert you if deepfakes of your face are detected.
+      </p>
+      
+      <div className="border-2 border-dashed rounded-xl p-6 text-center">
+        {selectedFaceImage ? (
+          <div className="flex flex-col items-center">
+            <img 
+              src={URL.createObjectURL(selectedFaceImage)} 
+              alt="Selected face" 
+              className="max-h-[200px] max-w-full object-contain mb-3 rounded-lg" 
+            />
+            <p className="text-sm">{selectedFaceImage.name}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+              onClick={() => setSelectedFaceImage(null)}
+            >
+              Change Image
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <UserCircle className="h-16 w-16 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground mb-2">
+              Click to select or drag and drop an image
+            </p>
+            <input
+              type="file"
+              id="faceUpload"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFaceImageSelect}
+            />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => document.getElementById("faceUpload")?.click()}
+            >
+              Select Image
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {registrationError && (
+        <p className="text-sm text-destructive">{registrationError}</p>
+      )}
+      
+      <div className="flex justify-end gap-2">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            setFaceUploadModalOpen(false)
+            setSelectedFaceImage(null)
+            setRegistrationError(null)
+          }}
+          disabled={isRegistering}
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={registerFace}
+          disabled={!selectedFaceImage || isRegistering}
+        >
+          {isRegistering ? "Registering..." : "Register Face"}
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
     </Layout>
   )
 }
