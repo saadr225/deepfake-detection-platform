@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [passwordUpdateSuccess, setPasswordUpdateSuccess] = useState<string | null>(null);
   const [isChangingPassword, setIsChangingPassword] = useState(false);
   const [activeTab, setActiveTab] = useState("profile");
+  const [historyLoaded, setHistoryLoaded] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -51,8 +52,13 @@ export default function Dashboard() {
   }, [user, router]);
 
   useEffect(() => {
-    fetchDetectionHistory();
-  }, [fetchDetectionHistory]);
+    // Only fetch detection history when the component mounts
+    // This ensures we fetch data only once when the page initially loads
+    if (!historyLoaded && user) {
+      fetchDetectionHistory();
+      setHistoryLoaded(true);
+    }
+  }, [fetchDetectionHistory, historyLoaded, user]);
 
   // Handle view detection details
   const handleViewDetectionDetails = useCallback((entry: DetectionEntry) => {
@@ -250,24 +256,31 @@ export default function Dashboard() {
 
           {/* Replace Tabs component with custom tab buttons */}
           <div className="tab-container mb-8">
-            <button 
-              className={`tab-button ${activeTab === "profile" ? "tab-button-active" : "tab-button-inactive"}`}
-              onClick={() => setActiveTab("profile")}
-            >
-              <div className="flex items-center justify-center">
-                <User className="mr-2 h-5 w-5" />
-                <span>Profile Settings</span>
-              </div>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === "history" ? "tab-button-active" : "tab-button-inactive"}`}
-              onClick={() => setActiveTab("history")}
-            >
-              <div className="flex items-center justify-center">
-                <History className="mr-2 h-5 w-5" />
-                <span>Detection History</span>
-              </div>
-            </button>
+          <button 
+  className={`tab-button ${activeTab === "profile" ? "tab-button-active" : "tab-button-inactive"}`}
+  onClick={() => setActiveTab("profile")}
+>
+  <div className="flex items-center justify-center">
+    <User className="mr-2 h-5 w-5" />
+    <span>Profile Settings</span>
+  </div>
+</button>
+<button 
+  className={`tab-button ${activeTab === "history" ? "tab-button-active" : "tab-button-inactive"}`}
+  onClick={() => {
+    // If we're not already on the history tab, fetch the data
+    // This prevents refetching when the button is clicked multiple times while already on the tab
+    if (activeTab !== "history") {
+      fetchDetectionHistory();
+    }
+    setActiveTab("history");
+  }}
+>
+  <div className="flex items-center justify-center">
+    <History className="mr-2 h-5 w-5" />
+    <span>Detection History</span>
+  </div>
+</button>
           </div>
 
           {/* Profile Settings Tab Content */}
