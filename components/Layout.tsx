@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useUser } from "../contexts/UserContext"
 import Sidebar from "./Sidebar"
 import type React from "react"
@@ -16,6 +16,15 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     }
     return false
   })
+  
+  // Track if sidebar has been toggled by user
+  const hasToggledRef = useRef(false);
+  
+  // Custom function to handle toggling that tracks user interaction
+  const handleToggleCollapse = (value: boolean) => {
+    hasToggledRef.current = true;
+    setIsCollapsed(value);
+  }
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -32,7 +41,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
   if (!authInitialized || isLoading) {
     return (
       <div className="flex min-h-screen h-full bg-background overflow-x-hidden">
-        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
+        <Sidebar isCollapsed={isCollapsed} setIsCollapsed={handleToggleCollapse} />
         <div className="flex items-center justify-center w-full">
           <div className="spinner"></div>
         </div>
@@ -42,9 +51,14 @@ export default function Layout({ children }: { children: React.ReactNode }) {
 
   return (
     <div className="flex min-h-screen h-full bg-background overflow-x-hidden">
-      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={setIsCollapsed} />
-      <div className={`flex-1 min-h-screen overflow-x-hidden ${isCollapsed ? "ml-24" : "ml-72"}`}>
-        {/* <main className="p-4 md:p-8">{children}</main> */}
+      <Sidebar isCollapsed={isCollapsed} setIsCollapsed={handleToggleCollapse} />
+      <div 
+        className="flex-1 min-h-screen overflow-x-hidden"
+        style={{ 
+          marginLeft: isCollapsed ? '6rem' : '18rem',
+          transition: hasToggledRef.current ? 'margin-left 300ms ease' : 'none'
+        }}
+      >
         <main className="">{children}</main>
         <footer className="border-t border-gray-200 dark:border-gray-700 bg-card">
           <div className="container mx-auto px-4 py-10">
@@ -94,4 +108,3 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     </div>
   )
 }
-
