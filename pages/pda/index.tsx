@@ -97,6 +97,12 @@ const [isFetchingFaceMatches, setIsFetchingFaceMatches] = useState(false)
 const [faceMatchSubmissions, setFaceMatchSubmissions] = useState<PDASubmission[]>([])
 const [faceMatchError, setFaceMatchError] = useState<string | null>(null)
 
+// Add these state variables after the other state declarations
+const [isFaceSearchModalOpen, setIsFaceSearchModalOpen] = useState(false);
+const [faceSearchImage, setFaceSearchImage] = useState<File | null>(null);
+const [isFaceSearching, setIsFaceSearching] = useState(false);
+const [faceSearchError, setFaceSearchError] = useState<string | null>(null);
+
   // Calculate total pages
   const totalPages = Math.ceil(totalItems / itemsPerPage)
 
@@ -494,6 +500,113 @@ const handleFaceMatchToggle = (checked: boolean) => {
   }
 }
 
+// Add this function to handle face image selection for search
+const handleFaceSearchImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  if (e.target.files && e.target.files.length > 0) {
+    const file = e.target.files[0];
+    
+    // Check if file is an image
+    if (!file.type.startsWith("image/")) {
+      setFaceSearchError("Please select an image file");
+      return;
+    }
+    
+    // Check file size (limit to 5MB)
+    const maxSize = 5 * 1024 * 1024;
+    if (file.size > maxSize) {
+      setFaceSearchError("Image size should not exceed 5MB");
+      return;
+    }
+    
+    setFaceSearchImage(file);
+    setFaceSearchError(null);
+  }
+};
+
+// Add this function to perform the face search
+const performFaceSearch = async () => {
+  if (!faceSearchImage) {
+    setFaceSearchError("Please select an image first");
+    return;
+  }
+  
+  setIsFaceSearching(true);
+  setFaceSearchError(null);
+  
+  try {
+    // Get the access token from cookies
+    const accessToken = Cookies.get("accessToken");
+    
+    if (!accessToken) {
+      setFaceSearchError("Please login to use face search");
+      setIsFaceSearching(false);
+      return;
+    }
+    
+    // Create form data
+    const formData = new FormData();
+    formData.append("file", faceSearchImage);
+    
+    // Make API call to search for faces
+    const response = await axios.post("http://127.0.0.1:8000/api/facial-watch/search", formData, {
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        "Content-Type": "multipart/form-data"
+      }
+    });
+    
+    // Extract submission identifiers from the response
+    const matchedSubmissionIds = response.data.data.matches.map(
+      (match: any) => match.submission_identifier
+    );
+    
+    if (matchedSubmissionIds.length === 0) {
+      setSubmissions([]);
+      setTotalItems(0);
+      setIsFaceSearchModalOpen(false);
+      setIsFaceSearching(false);
+      return;
+    }
+    
+    // Fetch the actual submissions using the identifiers
+    const matchedSubmissions: PDASubmission[] = [];
+    
+    // For each match, fetch the full submission details
+    for (const submissionId of matchedSubmissionIds) {
+      try {
+        // Make sure to include authorization header
+        const submissionResponse = await fetch(`http://127.0.0.1:8000/api/pda/details/${submissionId}/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`
+          }
+        });
+        
+        if (submissionResponse.ok) {
+          const data = await submissionResponse.json();
+          matchedSubmissions.push(data.data);
+        }
+      } catch (error) {
+        console.error(`Error fetching details for submission ${submissionId}:`, error);
+      }
+    }
+    
+    // Update the state with matched submissions
+    setSubmissions(matchedSubmissions);
+    setTotalItems(matchedSubmissions.length);
+    setIsFaceSearchModalOpen(false);
+    
+  } catch (error) {
+    console.error("Error performing face search:", error);
+    if (axios.isAxiosError(error) && error.response) {
+      setFaceSearchError(error.response.data.message || "Failed to perform face search");
+    } else {
+      setFaceSearchError("An error occurred during face search");
+    }
+  } finally {
+    setIsFaceSearching(false);
+  }
+};
+
   return (
     <Layout>
       <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
@@ -547,19 +660,38 @@ const handleFaceMatchToggle = (checked: boolean) => {
     </Select>
   </div>
 
-  <Button type="submit" className="md:w-auto" disabled={isFaceMatchEnabled}>
-    Search
-  </Button>
+  {/* Replace the original Search button with this */}
+  <div className="flex gap-2">
+    
+    <Button 
+      type="button" 
+      onClick={() => setIsFaceSearchModalOpen(true)} 
+      className="md:w-auto"
+      disabled={isFaceMatchEnabled}
+      // variant="secondary"
+    >
+      <UserCircle className="mr-2 h-4 w-4" />
+      Face Search
+    </Button>
+  </div>
 </form>
 
             {/* Results count */}
             {/* Update the results count display */}
+{/* Update the results count display */}
 <div className="text-sm text-muted-foreground">
   {isFaceMatchEnabled ? (
     <>
       Showing {faceMatchSubmissions.length} submissions matching your face
       {faceMatchError && (
         <span className="text-destructive ml-2">({faceMatchError})</span>
+      )}
+    </>
+  ) : faceSearchImage ? (
+    <>
+      Showing {submissions.length} submissions
+      {faceSearchError && (
+        <span className="text-destructive ml-2">({faceSearchError})</span>
       )}
     </>
   ) : (
@@ -934,6 +1066,93 @@ const handleFaceMatchToggle = (checked: boolean) => {
           disabled={!selectedFaceImage || isRegistering}
         >
           {isRegistering ? "Registering..." : "Register Face"}
+        </Button>
+      </div>
+    </div>
+  </DialogContent>
+</Dialog>
+{/* Add this at the bottom of the component, right before the closing Layout tag */}
+{/* Face Search Modal */}
+<Dialog open={isFaceSearchModalOpen} onOpenChange={setIsFaceSearchModalOpen}>
+  <DialogContent className="bg-card rounded-2xl">
+    <DialogHeader>
+      <DialogTitle>Search by Face</DialogTitle>
+    </DialogHeader>
+    <div className="space-y-4">
+      <p className="text-sm text-muted-foreground">
+        Upload a photo containing a face to search for similar faces in our deepfake database.
+      </p>
+      
+      <div className="border-2 border-dashed rounded-xl p-6 text-center">
+        {faceSearchImage ? (
+          <div className="flex flex-col items-center">
+            <img 
+              src={URL.createObjectURL(faceSearchImage)} 
+              alt="Selected face" 
+              className="max-h-[200px] max-w-full object-contain mb-3 rounded-lg" 
+            />
+            <p className="text-sm">{faceSearchImage.name}</p>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              className="mt-2"
+              onClick={() => setFaceSearchImage(null)}
+            >
+              Change Image
+            </Button>
+          </div>
+        ) : (
+          <div className="flex flex-col items-center">
+            <UserCircle className="h-16 w-16 text-muted-foreground mb-2" />
+            <p className="text-sm text-muted-foreground mb-2">
+              Click to select or drag and drop an image containing a face
+            </p>
+            <input
+              type="file"
+              id="faceSearchUpload"
+              className="hidden"
+              accept="image/*"
+              onChange={handleFaceSearchImageSelect}
+            />
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => document.getElementById("faceSearchUpload")?.click()}
+            >
+              Select Image
+            </Button>
+          </div>
+        )}
+      </div>
+      
+      {faceSearchError && (
+        <p className="text-sm text-destructive">{faceSearchError}</p>
+      )}
+      
+      <div className="flex justify-end gap-2">
+        <Button 
+          variant="outline" 
+          onClick={() => {
+            setIsFaceSearchModalOpen(false);
+            setFaceSearchImage(null);
+            setFaceSearchError(null);
+          }}
+          disabled={isFaceSearching}
+        >
+          Cancel
+        </Button>
+        <Button 
+          onClick={performFaceSearch}
+          disabled={!faceSearchImage || isFaceSearching}
+        >
+          {isFaceSearching ? (
+            <>
+              <span className="mr-2 h-4 w-4 animate-spin">⏳</span>
+              Searching...
+            </>
+          ) : (
+            "Search"
+          )}
         </Button>
       </div>
     </div>
