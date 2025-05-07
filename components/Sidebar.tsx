@@ -13,6 +13,9 @@ import {
   ArrowRight,
   FileText,
   Archive,
+  BookOpen,
+  Code,
+  Heart,
 } from "lucide-react"
 import { useRouter } from "next/router"
 import { useUser } from "../contexts/UserContext"
@@ -32,7 +35,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
     { href: "/detect", label: "Deepfake Detection", icon: ShieldAlert },
     { href: "/aicontentdetection", label: "AI Content Detection", icon: FileText },
     { href: "/pda", label: "Public Deepfake Archive", icon: Archive },
-    { href: "/forum", label: "Forum", icon: MessageSquare },
+    { href: "/forum", label: "Community Forum", icon: MessageSquare },
+    { href: "/knowledge-base", label: "Knowledge Base", icon: BookOpen },
+    { href: "/api-services", label: "API Services", icon: Code },
+    { href: "/donate", label: "Donate", icon: Heart },
     { href: "/dashboard", label: "Dashboard", icon: User, auth: true },
   ]
 

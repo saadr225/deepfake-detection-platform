@@ -696,3 +696,29 @@
 .tab-button-inactive {
   @apply bg-card text-foreground hover:bg-accent;
 }
+
+/* Add custom styles for API Services page */
+pre {
+  white-space: pre-wrap;
+  word-break: keep-all;
+}
+
+.animate-in {
+  animation-duration: 0.5s;
+  animation-fill-mode: both;
+}
+
+.fade-in-50 {
+  animation-name: fadeIn50;
+}
+
+@keyframes fadeIn50 {
+  from {
+    opacity: 0.5;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

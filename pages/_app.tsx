@@ -3,6 +3,7 @@ import type { AppProps } from 'next/app'
 import { UserProvider } from '../contexts/UserContext'
 import { ThemeProvider } from 'next-themes'
 import { DetectionHistoryProvider } from '../contexts/DetectionHistoryContext'
+import { Toaster } from '../components/Toaster'
 
 function MyApp({ Component, pageProps }: AppProps) {
   return (
@@ -11,6 +12,7 @@ function MyApp({ Component, pageProps }: AppProps) {
         <DetectionHistoryProvider>
           <Component {...pageProps} />
         </DetectionHistoryProvider>
+        <Toaster />
       </UserProvider>
     </ThemeProvider>
   )
