@@ -353,7 +353,7 @@ export default function ForumPage() {
           >
             <div className="inline-flex items-center justify-center mb-6 relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
-              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-black/60 text-sm font-medium">
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-black/80 border border-primary/30 text-white text-sm font-medium">
                 <MessageSquare className="h-4 w-4 mr-2" />
                 Community Knowledge Hub
               </span>
@@ -368,16 +368,16 @@ export default function ForumPage() {
               share insights, and stay informed about the latest developments
             </p>
 
-            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-black/80 dark:text-white/90 mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
                 <span>{FORUM_METRICS.totalThreads.toLocaleString()}+ Active Threads</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
                 <span>{FORUM_METRICS.activeUsers.toLocaleString()}+ Community Members</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
                 <span>Expert Moderation</span>
               </div>
@@ -393,62 +393,6 @@ export default function ForumPage() {
           transition={{ duration: 0.5 }}
         >
           <div className="lg:grid lg:grid-cols-12 lg:gap-8">
-            {/* Left sidebar (topics) */}
-            <div className="hidden lg:block lg:col-span-3">
-              <div className="sticky top-24">
-                {/* Topics section */}
-                <Card className="mb-6">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-xl">Topics</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      {MOCK_TOPICS.map(topic => (
-                        <div key={topic.id} className="flex items-center justify-between hover:bg-accent/30 px-2 py-1.5 rounded-md">
-                          <Link href={`/forum?topic=${topic.name}`} className="flex-1">
-                            <div className="font-medium">{topic.name}</div>
-                            <div className="text-xs text-muted-foreground">{topic.members.toLocaleString()} members</div>
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                  <CardFooter>
-                    <Button variant="ghost" size="sm" className="w-full">
-                      View All Topics
-                    </Button>
-                  </CardFooter>
-                </Card>
-
-                {/* Forum stats */}
-                <Card>
-                  <CardHeader className="pb-3">
-                    <CardTitle className="text-xl">Forum Stats</CardTitle>
-                  </CardHeader>
-                  <CardContent className="pt-0">
-                    <div className="space-y-2">
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Threads:</span>
-                        <span className="font-medium">{FORUM_METRICS.totalThreads.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Replies:</span>
-                        <span className="font-medium">{FORUM_METRICS.totalReplies.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">Active Users:</span>
-                        <span className="font-medium">{FORUM_METRICS.activeUsers.toLocaleString()}</span>
-                      </div>
-                      <div className="flex justify-between">
-                        <span className="text-muted-foreground">New Today:</span>
-                        <span className="font-medium">{FORUM_METRICS.newThreadsToday.toLocaleString()}</span>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-            
             {/* Main content area */}
             <div className="lg:col-span-9">
               <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -829,6 +773,62 @@ export default function ForumPage() {
                   <Button variant="outline">Load More</Button>
                 </div>
               )}
+            </div>
+            
+            {/* Right sidebar (topics) - moved from left to right */}
+            <div className="hidden lg:block lg:col-span-3">
+              <div className="sticky top-24">
+                {/* Topics section */}
+                <Card className="mb-6">
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-xl">Topics</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-3">
+                      {MOCK_TOPICS.map(topic => (
+                        <div key={topic.id} className="flex items-center justify-between hover:bg-accent/30 px-2 py-1.5 rounded-md">
+                          <Link href={`/forum?topic=${topic.name}`} className="flex-1">
+                            <div className="font-medium">{topic.name}</div>
+                            <div className="text-xs text-muted-foreground">{topic.members.toLocaleString()} members</div>
+                          </Link>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                  <CardFooter>
+                    <Button variant="ghost" size="sm" className="w-full">
+                      View All Topics
+                    </Button>
+                  </CardFooter>
+                </Card>
+
+                {/* Forum stats
+                <Card>
+                  <CardHeader className="pb-3">
+                    <CardTitle className="text-xl">Forum Stats</CardTitle>
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="space-y-2">
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Threads:</span>
+                        <span className="font-medium">{FORUM_METRICS.totalThreads.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Replies:</span>
+                        <span className="font-medium">{FORUM_METRICS.totalReplies.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">Active Users:</span>
+                        <span className="font-medium">{FORUM_METRICS.activeUsers.toLocaleString()}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span className="text-muted-foreground">New Today:</span>
+                        <span className="font-medium">{FORUM_METRICS.newThreadsToday.toLocaleString()}</span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card> */}
+              </div>
             </div>
           </div>
         </motion.div>

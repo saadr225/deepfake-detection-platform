@@ -198,7 +198,7 @@ export default function APIServices() {
           >
             <div className="inline-flex items-center justify-center mb-6 relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
-              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-black/60 text-sm font-medium">
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-black/80 border border-primary/30 text-white text-sm font-medium">
                 <Code className="h-4 w-4 mr-2" />
                 Developer Resources
               </span>
@@ -213,16 +213,16 @@ export default function APIServices() {
               applications with our powerful and easy-to-use APIs
             </p>
 
-            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-black/80 dark:text-white/90 mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
                 <span>3 Detection Services</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <Server className="h-4 w-4 text-primary" /> 
                 <span>Fast & Scalable</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <Lock className="h-4 w-4 text-primary" /> 
                 <span>Secure Implementation</span>
               </div>

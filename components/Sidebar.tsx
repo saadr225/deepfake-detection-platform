@@ -47,7 +47,8 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
 
   return (
     <div
-      className={`fixed left-0 top-0 bottom-0 h-screen bg-gradient-to-b from-primary-600 to-primary-700 text-white flex flex-col z-50 ${
+      // className={`fixed left-0 top-0 bottom-0 h-screen bg-gradient-to-b from-primary-600 to-primary-700 text-white flex flex-col z-50 ${
+      className={`fixed left-0 top-0 bottom-0 h-screen bg-gradient-to-b from-primary-700 to-primary-900 text-white flex flex-col z-50 ${  
         isCollapsed ? "w-[6.5rem]" : "w-72"
       } transition-all duration-300 shadow-elevation`}
     >

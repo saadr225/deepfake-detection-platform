@@ -793,7 +793,7 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
           >
             <div className="inline-flex items-center justify-center mb-6 relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
-              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-primary text-sm font-medium">
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-black/80 border border-primary/30 text-white text-sm font-medium">
                 <CheckCircle className="h-4 w-4 mr-2" />
                 Analysis Complete
               </span>
@@ -808,16 +808,16 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
               visual evidence, and technical metrics to verify content authenticity
             </p>
 
-            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-black/80 dark:text-white/90 mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle className="h-4 w-4 text-primary" /> 
                 <span>Error Level Analysis</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle className="h-4 w-4 text-primary" /> 
                 <span>Facial Recognition</span>
               </div>
-              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle className="h-4 w-4 text-primary" /> 
                 <span>Metadata Verification</span>
               </div>

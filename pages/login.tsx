@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button"
 import { Label } from "@/components/ui/label"
 import { useUser } from "../contexts/UserContext"
 import { useRouter } from "next/router"
+import { Shield, KeyRound, MailIcon, AlertCircle, LogIn, UserPlus } from "lucide-react"
 
 export default function Login() {
   const [email, setEmail] = useState("")
@@ -45,87 +46,116 @@ export default function Login() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="max-w-md w-full space-y-8 glass-card p-10 rounded-xl shadow-xl"
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div>
-            <h2 className="mt-6 text-center text-3xl font-bold text-gradient">Sign in to your account</h2>
-
-            {/* Error Message */}
-            {loginError && <div className="mt-4 text-center text-red-500">{loginError}</div>}
-          </div>
-
-          <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
-            <div className="rounded-md shadow-sm -space-y-px">
-              <div className="mb-4">
-                <Label htmlFor="email-address" className="sr-only">
-                  Email address
-                </Label>
-                <Input
-                  id="email-address"
-                  name="email"
-                  type="email"
-                  autoComplete="email"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input bg-card placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                  placeholder="Email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  disabled={isLoading}
-                />
+      {/* Header Section with Background and Gradient */}
+      <div className="relative min-h-screen flex flex-col">
+        {/* Background with visible gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        <div className="flex-grow flex items-center justify-center px-4 sm:px-6 relative z-10">
+          <motion.div
+            className="max-w-md w-full glass-card-elevated p-10 rounded-2xl shadow-elevation"
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+          >
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center mb-6 relative">
+                <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+                <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-black/80 border border-primary/30 text-white text-sm font-medium">
+                  <Shield className="h-4 w-4 mr-2" />
+                  Secure Login
+                </span>
               </div>
-              <div>
-                <Label htmlFor="password" className="sr-only">
-                  Password
-                </Label>
-                <Input
-                  id="password"
-                  name="password"
-                  type="password"
-                  autoComplete="current-password"
-                  required
-                  className="appearance-none rounded-md relative block w-full px-3 py-2 border border-input bg-card placeholder-muted-foreground text-foreground focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm"
-                  placeholder="Password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  disabled={isLoading}
-                />
-              </div>
+              <h2 className="text-3xl font-bold mb-6">
+                Welcome <span className="gradient-text">Back</span>
+              </h2>
+
+              {/* Error Message */}
+              {loginError && (
+                <div className="mt-4 mb-6 bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center justify-center">
+                  <AlertCircle size={16} className="mr-2" />
+                  {loginError}
+                </div>
+              )}
             </div>
 
-            <div className="flex items-center justify-between">
-              <div className="text-sm">
-                <Link
-                  href="/forgot-password"
-                  className="font-medium text-primary hover:text-primary/80 transition-colors"
-                >
-                  Forgot your password?
-                </Link>
+            <form className="space-y-5" onSubmit={handleSubmit}>
+              <div className="space-y-4">
+                <div>
+                  <Label htmlFor="email-address" className="block text-sm font-medium text-foreground mb-1.5 ml-0.5">
+                    Email address
+                  </Label>
+                  <div className="relative">
+                    <MailIcon className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="email-address"
+                      name="email"
+                      type="email"
+                      autoComplete="email"
+                      required
+                      className="pl-10 focus:border-primary"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
+                <div>
+                  <div className="flex items-center justify-between mb-1.5">
+                    <Label htmlFor="password" className="block text-sm font-medium text-foreground ml-0.5">
+                      Password
+                    </Label>
+                    <Link
+                      href="/forgot-password"
+                      className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+                  <div className="relative">
+                    <KeyRound className="absolute left-3 top-3.5 h-5 w-5 text-muted-foreground" />
+                    <Input
+                      id="password"
+                      name="password"
+                      type="password"
+                      autoComplete="current-password"
+                      required
+                      className="pl-10 focus:border-primary"
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      disabled={isLoading}
+                    />
+                  </div>
+                </div>
               </div>
-            </div>
 
-            <div>
               <Button
                 type="submit"
-                className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-primary hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary transition-colors"
+                className="w-full py-5 border border-transparent rounded-xl shadow-subtle hover:shadow-elevation text-white bg-primary hover:bg-primary-600 focus:outline-none transition-all duration-300"
                 disabled={isLoading}
               >
+                <LogIn className="mr-2 h-4 w-4" />
                 {isLoading ? "Signing in..." : "Sign in"}
               </Button>
-            </div>
 
-            <div className="text-center text-sm">
-              <span className="text-muted-foreground">Don't have an account? </span>
-              <Link href="/register" className="font-medium text-primary hover:text-primary/80">
-                Sign up
-              </Link>
-            </div>
-          </form>
-        </motion.div>
+              <div className="text-center pt-3">
+                <span className="text-muted-foreground text-sm">Don't have an account? </span>
+                <Link href="/register" className="font-medium text-primary hover:text-primary/80 transition-colors">
+                  <span className="flex items-center justify-center gap-1 mt-2">
+                    <UserPlus className="h-4 w-4" />
+                    Create account
+                  </span>
+                </Link>
+              </div>
+            </form>
+          </motion.div>
+        </div>
       </div>
     </Layout>
   )
