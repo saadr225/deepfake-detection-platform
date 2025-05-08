@@ -24,6 +24,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger
 } from "@/components/ui/alert-dialog";
+import { CustomAlertDialog, CustomAlertDialogWithTrigger } from "@/components/ui/custom-alert-dialog";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -417,27 +418,17 @@ export default function Dashboard() {
                       <CardDescription>Your recent deepfake detection activities.</CardDescription>
                     </div>
                     {detectionHistory.length > 0 && (
-                      <AlertDialog>
-                        <AlertDialogTrigger asChild>
-                          <Button variant="destructive" size="sm">
-                            <Trash className="mr-2 h-4 w-4" /> Clear History
-                          </Button>
-                        </AlertDialogTrigger>
-                        <AlertDialogContent>
-                          <AlertDialogHeader>
-                            <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                            <AlertDialogDescription>
-                              This action will permanently clear your detection history. This cannot be undone.
-                            </AlertDialogDescription>
-                          </AlertDialogHeader>
-                          <AlertDialogFooter>
-                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                            <AlertDialogAction onClick={clearDetectionHistory}>
-                              Yes, clear history
-                            </AlertDialogAction>
-                          </AlertDialogFooter>
-                        </AlertDialogContent>
-                      </AlertDialog>
+                      <CustomAlertDialogWithTrigger
+                        title="Clear History"
+                        description="This action will permanently clear your detection history. This cannot be undone."
+                        onConfirm={clearDetectionHistory}
+                        confirmText="Clear"
+                        variant="destructive"
+                      >
+                        <Button variant="destructive" size="sm">
+                          <Trash className="mr-2 h-4 w-4" /> Clear History
+                        </Button>
+                      </CustomAlertDialogWithTrigger>
                     )}
                   </div>
                 </CardHeader>

@@ -342,7 +342,7 @@ export default function DetectPage() {
           >
             <div className="inline-flex items-center justify-center mb-6 relative">
               <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
-              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-primary text-sm font-medium">
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-black/60 text-sm font-medium">
                 <Zap className="h-4 w-4 mr-2" />
                 Advanced AI Deepfake Detection
               </span>

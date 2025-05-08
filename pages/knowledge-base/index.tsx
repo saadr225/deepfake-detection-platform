@@ -16,7 +16,7 @@ import { Badge } from "../../components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Button } from "../../components/ui/button";
-import { Search, Tag, Bookmark } from "lucide-react";
+import { Search, Tag, Bookmark, FileText, Zap, CheckCircle2 } from "lucide-react";
 import KnowledgeBaseBreadcrumb from "../../components/KnowledgeBaseBreadcrumb";
 
 // Mock data for topics, categories, and tags
@@ -185,13 +185,65 @@ export default function KnowledgeBase() {
 
   return (
     <Layout>
+      {/* Enhanced Header Section with Background - similar to detect.tsx */}
+      <div className="relative">
+        {/* Background with visible gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        {/* Header Content */}
+        <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-black/60 text-sm font-medium">
+                <FileText className="h-4 w-4 mr-2" />
+                Expert Resources & Articles
+              </span>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              Explore Our <span className="gradient-text">Knowledge Base</span> on Deepfake Detection
+            </h1>
+            
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed">
+              Access comprehensive resources, expert guides, and cutting-edge research on 
+              deepfake detection techniques and AI content analysis
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>{mockPosts.length}+ Articles & Guides</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>{mockTopics.length} Specialized Topics</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>Expert-Verified Content</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="container mx-auto px-4 py-8"
       >
-        <KnowledgeBaseBreadcrumb items={[{ label: "Knowledge Base", href: "/knowledge-base" }]} />
+        {/* <KnowledgeBaseBreadcrumb items={[{ label: "Knowledge Base", href: "/knowledge-base" }]} /> */}
         
         <div className="flex flex-col space-y-6">
           <motion.div 
@@ -201,9 +253,9 @@ export default function KnowledgeBase() {
             className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
           >
             <div>
-              <h1 className="text-3xl font-bold">Knowledge Base</h1>
+              <h2 className="text-2xl font-bold">Browse Resources</h2>
               <p className="text-muted-foreground mt-2">
-                Browse resources, guides, and articles about deepfake detection and AI content analysis
+                Filter by topic, category, or search for specific content
               </p>
             </div>
             
@@ -327,77 +379,7 @@ export default function KnowledgeBase() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="grid grid-cols-1 lg:grid-cols-4 gap-8"
           >
-            {/* Sidebar with Filters */}
-            <motion.div 
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ duration: 0.5, delay: 0.3 }}
-              className="lg:col-span-1"
-            >
-              <div className="sticky top-24 space-y-6">
-                <Tabs defaultValue="topics" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="topics">Topics</TabsTrigger>
-                    <TabsTrigger value="categories">Categories</TabsTrigger>
-                    <TabsTrigger value="tags">Tags</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="topics" className="space-y-2 mt-4">
-                    {mockTopics.map((topic) => (
-                      <div 
-                        key={topic.id}
-                        onClick={() => setSelectedTopic(selectedTopic === topic.name ? null : topic.name)}
-                        className={`flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors ${
-                          selectedTopic === topic.name 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        <span className="font-medium">{topic.name}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          {topic.count}
-                        </Badge>
-                      </div>
-                    ))}
-                  </TabsContent>
-                  
-                  <TabsContent value="categories" className="space-y-2 mt-4">
-                    {mockCategories.map((category) => (
-                      <div 
-                        key={category.id}
-                        onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
-                        className={`flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors ${
-                          selectedCategory === category.name 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        <span className="font-medium">{category.name}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          {category.count}
-                        </Badge>
-                      </div>
-                    ))}
-                  </TabsContent>
-                  
-                  <TabsContent value="tags" className="mt-4">
-                    <div className="flex flex-wrap gap-2">
-                      {mockTags.map((tag) => (
-                        <Badge 
-                          key={tag.id}
-                          variant={selectedTag === tag.name ? "default" : "outline"}
-                          className="cursor-pointer py-1 px-3"
-                          onClick={() => setSelectedTag(selectedTag === tag.name ? null : tag.name)}
-                        >
-                          <Tag className="h-3 w-3 mr-1" />
-                          {tag.name} ({tag.count})
-                        </Badge>
-                      ))}
-                    </div>
-                  </TabsContent>
-                </Tabs>
-              </div>
-            </motion.div>
+            
             
             {/* Posts List */}
             <motion.div 
@@ -496,6 +478,7 @@ export default function KnowledgeBase() {
                     ))}
                   </div>
                   
+                  
                   {/* Pagination */}
                   {totalPages > 1 && (
                     <motion.div
@@ -569,9 +552,81 @@ export default function KnowledgeBase() {
                         </PaginationContent>
                       </Pagination>
                     </motion.div>
+                    
                   )}
                 </>
               )}
+            </motion.div>
+            {/* Sidebar with Filters */}
+            <motion.div 
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ duration: 0.5, delay: 0.3 }}
+              className="lg:col-span-1"
+            >
+              <div className="sticky top-24 space-y-6">
+                <Tabs defaultValue="topics" className="w-full">
+                  <TabsList className="grid w-full grid-cols-3">
+                    <TabsTrigger value="topics">Topics</TabsTrigger>
+                    <TabsTrigger value="categories">Categories</TabsTrigger>
+                    <TabsTrigger value="tags">Tags</TabsTrigger>
+                  </TabsList>
+                  
+                  <TabsContent value="topics" className="space-y-2 mt-4">
+                    {mockTopics.map((topic) => (
+                      <div 
+                        key={topic.id}
+                        onClick={() => setSelectedTopic(selectedTopic === topic.name ? null : topic.name)}
+                        className={`flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors ${
+                          selectedTopic === topic.name 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'hover:bg-muted'
+                        }`}
+                      >
+                        <span className="font-medium">{topic.name}</span>
+                        <Badge variant="outline" className="ml-auto">
+                          {topic.count}
+                        </Badge>
+                      </div>
+                    ))}
+                  </TabsContent>
+                  
+                  <TabsContent value="categories" className="space-y-2 mt-4">
+                    {mockCategories.map((category) => (
+                      <div 
+                        key={category.id}
+                        onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
+                        className={`flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors ${
+                          selectedCategory === category.name 
+                            ? 'bg-primary text-primary-foreground' 
+                            : 'hover:bg-muted'
+                        }`}
+                      >
+                        <span className="font-medium">{category.name}</span>
+                        <Badge variant="outline" className="ml-auto">
+                          {category.count}
+                        </Badge>
+                      </div>
+                    ))}
+                  </TabsContent>
+                  
+                  <TabsContent value="tags" className="mt-4">
+                    <div className="flex flex-wrap gap-2">
+                      {mockTags.map((tag) => (
+                        <Badge 
+                          key={tag.id}
+                          variant={selectedTag === tag.name ? "default" : "outline"}
+                          className="cursor-pointer py-1 px-3"
+                          onClick={() => setSelectedTag(selectedTag === tag.name ? null : tag.name)}
+                        >
+                          <Tag className="h-3 w-3 mr-1" />
+                          {tag.name} ({tag.count})
+                        </Badge>
+                      ))}
+                    </div>
+                  </TabsContent>
+                </Tabs>
+              </div>
             </motion.div>
           </motion.div>
         </div>

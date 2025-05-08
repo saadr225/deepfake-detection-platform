@@ -107,12 +107,12 @@ export default function Home() {
             src="/images/deepfake-hero4.png" 
             alt="Deepfake detection background" 
             width={1920}
-  height={1080}
-  className="w-full h-full object-cover"
+            height={1080}
+            className="w-full h-full object-cover"
             priority
           />
-          {/* Modern gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background z-10"></div>
+          {/* Stronger gradient overlay for better text visibility */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-background z-10"></div>
         </div>
 
         {/* Content positioned over the image */}
@@ -125,17 +125,17 @@ export default function Home() {
               className="space-y-6"
             >
               <div className="inline-block mb-4">
-                <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
-                  <Zap className="h-3.5 w-3.5 mr-1" />
+                <span className="inline-flex items-center px-4 py-2 rounded-full bg-primary/30 backdrop-blur-sm border border-primary/30 text-white text-sm font-medium shadow-md">
+                  <Zap className="h-3.5 w-3.5 mr-1.5" />
                   Advanced AI Detection Platform
                 </span>
               </div>
 
-              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl mb-6 text-white">
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl mb-6 text-white drop-shadow-sm">
                 Deep Media <span className="gradient-text">Inspection</span>
               </h1>
               
-              <p className="text-xl text-gray-200 mb-8 max-w-4xl mx-auto font-light">
+              <p className="text-xl text-white mb-8 max-w-4xl mx-auto font-light drop-shadow-sm bg-primary/15 backdrop-blur-sm py-3 px-4 rounded-lg">
                 Our advanced AI-powered platform helps you identify deepfakes and 
                 AI-generated media with exceptional precision and reliability.
               </p>
@@ -191,15 +191,15 @@ export default function Home() {
                     <p className="text-muted-foreground mb-6 leading-relaxed">
                       {service.description}
                     </p>
-                    <div className="flex items-center text-primary font-medium text-sm group-hover:translate-x-2 transition-transform duration-200">
+                    <Link href="/knowledge-base" className="flex items-center text-primary font-medium text-sm group-hover:translate-x-2 transition-transform duration-200">
                       <span>Learn more</span>
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                    </div>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </Link>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
         </motion.section>
 
         {/* How It Works Section */}
@@ -318,7 +318,7 @@ export default function Home() {
                 </Button>
               </Link>
               <Link href="/knowledge-base">
-                <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 transition-all px-8 h-14 text-lg">
+                <Button  size="lg" className="bg-white border-white/30 text-primary hover:bg-white/90 transition-all px-8 h-14 text-lg">
                   Learn More
                   <ArrowUpRight className="ml-2 h-5 w-5" />
               </Button>

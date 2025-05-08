@@ -5,7 +5,7 @@ import Layout from '@/components/Layout';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CheckCircle, AlertTriangle } from "lucide-react";
+import { CheckCircle, AlertTriangle, Info, Shield, BarChart2, Image, Scan, Zap, FilmIcon, User, Eye } from "lucide-react";
 import { Download, Share2 } from 'lucide-react';
 import { useUser } from '../contexts/UserContext';
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext';
@@ -785,7 +785,7 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
         
         {/* Header Content */}
         <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
-          <motion.div 
+        <motion.div 
             className="text-center max-w-4xl mx-auto"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -836,153 +836,153 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
           {/* Header and Actions */}
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
             <h2 className="text-2xl font-semibold text-foreground">Analysis Details</h2>
-            <div className="flex space-x-2">
+    <div className="flex space-x-2">
               <Button variant="outline" size="sm" onClick={handleDownloadReport}>
-                <Download className="mr-2 h-4 w-4" /> Download
-              </Button>
+        <Download className="mr-2 h-4 w-4" /> Download
+      </Button>
               <Button variant="outline" size="sm" onClick={handleShareReport} disabled>
-                <Share2 className="mr-2 h-4 w-4" /> Share
-              </Button>
-            </div>
-          </div>
-
+        <Share2 className="mr-2 h-4 w-4" /> Share
+      </Button>
+    </div>
+  </div>
+  
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
             {/* Left: Media and Submit to PDA */}
             <div className="md:col-span-2 space-y-8">
               {/* Media Card */}
               <motion.div className="glass-card border rounded-xl overflow-hidden shadow-md" variants={itemVariants}>
-                {mediaType === 'image' && (
-                  <img 
-                    src={analysisResult.analysis_report.media_path} 
-                    alt="Analyzed Media" 
+    {mediaType === 'image' && (
+      <img 
+        src={analysisResult.analysis_report.media_path} 
+        alt="Analyzed Media" 
                     className="w-full h-auto max-h-[610px] object-contain"
                           style={{ width: '100%', height: '100%', objectFit: 'contain' }}
-                  />
-                )}
-                {mediaType === 'video' && (
-                  <video
-                    src={analysisResult.analysis_report.media_path}
-                    controls
-                    className="w-full max-h-[500px] object-contain"
-                  />
-                )}
-                {mediaType === 'unknown' && (
-                  <div className="w-full max-h-[500px] flex items-center justify-center">
-                    Unsupported media type
-                  </div>
-                )}
-              </motion.div>
+      />
+    )}
+    {mediaType === 'video' && (
+      <video
+        src={analysisResult.analysis_report.media_path}
+        controls
+        className="w-full max-h-[500px] object-contain"
+      />
+    )}
+    {mediaType === 'unknown' && (
+      <div className="w-full max-h-[500px] flex items-center justify-center">
+        Unsupported media type
+      </div>
+    )}
+  </motion.div>
 
               {/* Submit to PDA Section */}
-              {analysisResult.is_deepfake && (
+  {analysisResult.is_deepfake && (
                 <motion.div className="glass-card border rounded-xl p-6 shadow-md" variants={itemVariants}>
-                  {!submitSuccess ? (
-                    <>
-                      <Button 
-                        onClick={() => setShowSubmitForm(!showSubmitForm)} 
+      {!submitSuccess ? (
+        <>
+          <Button 
+            onClick={() => setShowSubmitForm(!showSubmitForm)} 
                         className="w-full mb-4"
-                        variant="default"
-                      >
-                        {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
-                      </Button>
-                      {showSubmitForm && (
-                        <motion.div
+            variant="default"
+          >
+            {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
+          </Button>
+          {showSubmitForm && (
+            <motion.div
                           className="mt-2"
-                          initial={{ opacity: 0, height: 0 }}
-                          animate={{ opacity: 1, height: 'auto' }}
-                          transition={{ duration: 0.3 }}
-                        >
-                          <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
-                          <p className="text-muted-foreground mb-4">
-                            Your submission will be reviewed before being added to the public archive.
-                            Please provide accurate information.
-                          </p>
-                          {submitError && (
-                            <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
-                              {submitError}
-                            </div>
-                          )}
-                          <form onSubmit={handleSubmitToPDA} className="space-y-4">
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
-                              <Input
-                                value={pdaTitle}
-                                onChange={(e) => setPdaTitle(e.target.value)}
-                                placeholder="E.g., Political Figure Deepfake"
-                                required
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
-                              <Select value={pdaCategory} onValueChange={setPdaCategory}>
-                                <SelectTrigger>
-                                  <SelectValue placeholder="Select a category" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                  {pdaCategories.map((category) => (
-                                    <SelectItem key={category.code} value={category.code}>
-                                      {category.name}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Description</label>
-                              <textarea
-                                value={pdaDescription}
-                                onChange={(e) => setPdaDescription(e.target.value)}
-                                placeholder="Describe the deepfake content"
-                                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Context</label>
-                              <textarea
-                                value={pdaContext}
-                                onChange={(e) => setPdaContext(e.target.value)}
-                                placeholder="Provide additional context about the deepfake"
-                                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
-                              />
-                            </div>
-                            <div>
-                              <label className="block text-sm font-medium mb-1">Source URL</label>
-                              <Input
-                                value={pdaSourceUrl}
-                                onChange={(e) => setPdaSourceUrl(e.target.value)}
-                                placeholder="https://example.com/source"
-                                type="url"
-                              />
-                            </div>
-                            <div className="flex justify-end">
-                              <Button type="submit" disabled={submitting}>
-                                {submitting ? "Submitting..." : "Submit"}
-                              </Button>
-                            </div>
-                          </form>
-                        </motion.div>
-                      )}
-                    </>
-                  ) : (
-                    <motion.div
-                      className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.5 }}
-                    >
-                      <div className="flex items-center">
-                        <CheckCircle className="h-5 w-5 mr-2" />
-                        <h3 className="font-semibold">Submission Successful</h3>
-                      </div>
-                      <p className="mt-2">
-                        Thank you for your submission to the Public Deepfake Archive. 
-                        Your submission is now under review. If approved, it will be listed in the PDA.
-                      </p>
-                    </motion.div>
-                  )}
-                </motion.div>
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              transition={{ duration: 0.3 }}
+            >
+              <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
+              <p className="text-muted-foreground mb-4">
+                Your submission will be reviewed before being added to the public archive.
+                Please provide accurate information.
+              </p>
+              {submitError && (
+                <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
+                  {submitError}
+                </div>
               )}
+              <form onSubmit={handleSubmitToPDA} className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
+                  <Input
+                    value={pdaTitle}
+                    onChange={(e) => setPdaTitle(e.target.value)}
+                    placeholder="E.g., Political Figure Deepfake"
+                    required
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
+                  <Select value={pdaCategory} onValueChange={setPdaCategory}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select a category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {pdaCategories.map((category) => (
+                        <SelectItem key={category.code} value={category.code}>
+                          {category.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Description</label>
+                  <textarea
+                    value={pdaDescription}
+                    onChange={(e) => setPdaDescription(e.target.value)}
+                    placeholder="Describe the deepfake content"
+                    className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Context</label>
+                  <textarea
+                    value={pdaContext}
+                    onChange={(e) => setPdaContext(e.target.value)}
+                    placeholder="Provide additional context about the deepfake"
+                    className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+                  />
+                </div>
+                <div>
+                  <label className="block text-sm font-medium mb-1">Source URL</label>
+                  <Input
+                    value={pdaSourceUrl}
+                    onChange={(e) => setPdaSourceUrl(e.target.value)}
+                    placeholder="https://example.com/source"
+                    type="url"
+                  />
+                </div>
+                <div className="flex justify-end">
+                              <Button type="submit" disabled={submitting}>
+                    {submitting ? "Submitting..." : "Submit"}
+                  </Button>
+                </div>
+              </form>
+            </motion.div>
+          )}
+        </>
+      ) : (
+        <motion.div
+          className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="flex items-center">
+            <CheckCircle className="h-5 w-5 mr-2" />
+            <h3 className="font-semibold">Submission Successful</h3>
+          </div>
+          <p className="mt-2">
+            Thank you for your submission to the Public Deepfake Archive. 
+            Your submission is now under review. If approved, it will be listed in the PDA.
+          </p>
+        </motion.div>
+      )}
+    </motion.div>
+  )}
             </div>
 
             {/* Right: Detection Result and Stats */}
@@ -990,13 +990,13 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
               {/* Detection Result Card */}
               <motion.div className="glass-card overflow-hidden border rounded-xl shadow-md" variants={itemVariants}>
                 <div className="px-6 pt-6 pb-2">
-                  <h2 className="text-xl font-semibold">Detection Result</h2>
+                <h2 className="text-xl font-semibold">Detection Result</h2>
                 </div>
                 <div className="px-6 pb-6">
                   <div className="flex flex-col items-center text-center mb-4">
                     <div
                       className={`p-4 rounded-full mb-2 ${
-                        analysisResult.is_deepfake
+                    analysisResult.is_deepfake 
                           ? "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
                           : "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
                       }`}
@@ -1006,7 +1006,7 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                       ) : (
                         <CheckCircle className="h-8 w-8" />
                       )}
-                    </div>
+              </div>
                     <h3 className="text-xl font-bold">
                       {analysisResult.is_deepfake ? "Deepfake Detected" : "Authentic Media"}
                     </h3>
@@ -1053,38 +1053,38 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                       </div>
                     )}
                   </div>
-                </div>
-              </motion.div>
+              </div>
+            </motion.div>
               {/* Analysis Statistics */}
               <motion.div className="glass-card border p-6 shadow-md" variants={itemVariants}>
-                <h2 className="text-xl font-semibold mb-4">Analysis Statistics</h2>
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="bg-muted/30 p-3 rounded-md">
-                    <div className="text-sm text-muted-foreground">Total Frames</div>
-                    <div className="text-xl font-semibold">
-                      {analysisResult.analysis_report.statistics.total_frames}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 p-3 rounded-md">
-                    <div className="text-sm text-muted-foreground">Fake Frames</div>
-                    <div className="text-xl font-semibold">
-                      {analysisResult.analysis_report.statistics.fake_frames}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 p-3 rounded-md">
-                    <div className="text-sm text-muted-foreground">Total Crops</div>
-                    <div className="text-xl font-semibold">
-                      {analysisResult.analysis_report.statistics.total_crops}
-                    </div>
-                  </div>
-                  <div className="bg-muted/30 p-3 rounded-md">
-                    <div className="text-sm text-muted-foreground">Fake Crops</div>
-                    <div className="text-xl font-semibold">
-                      {analysisResult.analysis_report.statistics.fake_crops}
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
+  <h2 className="text-xl font-semibold mb-4">Analysis Statistics</h2>
+  <div className="grid grid-cols-2 gap-4">
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Total Frames</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.total_frames}
+      </div>
+    </div>
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Fake Frames</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.fake_frames}
+      </div>
+    </div>
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Total Crops</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.total_crops}
+      </div>
+    </div>
+    <div className="bg-muted/30 p-3 rounded-md">
+      <div className="text-sm text-muted-foreground">Fake Crops</div>
+      <div className="text-xl font-semibold">
+        {analysisResult.analysis_report.statistics.fake_crops}
+      </div>
+    </div>
+  </div>
+</motion.div>
             </div>
           </div>
 
@@ -1110,112 +1110,316 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                       />
                     </div>
                   ) : (
-                    <SmallCarousel
-                      frames={analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)}
-                      onImageClick={handleImageClick}
-                      type="original"
-                      currentIndex={currentOriginalFrameSlide}
-                      currentPage={originalFramePage}
-                      onPageChange={setOriginalFramePage}
-                    />
-                  )}
+      <SmallCarousel
+        frames={analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)}
+        onImageClick={handleImageClick}
+        type="original"
+        currentIndex={currentOriginalFrameSlide}
+        currentPage={originalFramePage}
+        onPageChange={setOriginalFramePage}
+      />
+)}
                 </div>
-                {/* Error Level Analysis */}
+              {/* Error Level Analysis */}
                 <div className="glass-card border rounded-lg p-4 shadow-md">
                   <h3 className="text-lg font-semibold mb-4">Error Level Analysis</h3>
                   {mediaType === "image" ? (
                     <div className="flex justify-center">
-                      <img
-                        src={analysisResult.analysis_report.frame_results[0].ela_path}
-                        alt="Error Level Analysis"
+                    <img 
+                      src={analysisResult.analysis_report.frame_results[0].ela_path} 
+                      alt="Error Level Analysis" 
                         className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                        onClick={() => handleImageClick(
-                          analysisResult.analysis_report.frame_results[0].ela_path,
-                          'error',
-                          0
-                        )}
-                      />
+                      onClick={() => handleImageClick(
+                        analysisResult.analysis_report.frame_results[0].ela_path,
+                        'error',
+                        0
+                      )}
+                    />
                     </div>
                   ) : (
-                    <SmallCarousel
-                      frames={analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)}
-                      onImageClick={handleImageClick}
-                      type="error"
-                      currentIndex={currentErrorLevelSlide}
-                      currentPage={errorLevelPage}
-                      onPageChange={setErrorLevelPage}
-                    />
+                      <SmallCarousel
+                        frames={analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)}
+                        onImageClick={handleImageClick}
+                        type="error"
+                        currentIndex={currentErrorLevelSlide}
+                        currentPage={errorLevelPage}
+                        onPageChange={setErrorLevelPage}
+                      />
                   )}
                 </div>
-                {/* Gradcam Heatmap */}
+              {/* Gradcam Heatmap */}
                 <div className="glass-card border rounded-lg p-4 shadow-md">
                   <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
                   {mediaType === "image" ? (
                     <div className="flex justify-center">
-                      <img
-                        src={analysisResult.analysis_report.frame_results[0].gradcam_path}
-                        alt="Gradcam Heatmap"
+                    <img 
+                      src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
+                      alt="Gradcam Heatmap" 
                         className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                        onClick={() => handleImageClick(
-                          analysisResult.analysis_report.frame_results[0].gradcam_path,
-                          'heatmap',
-                          0
-                        )}
-                      />
+                      onClick={() => handleImageClick(
+                        analysisResult.analysis_report.frame_results[0].gradcam_path,
+                        'heatmap',
+                        0
+                      )}
+                    />
                     </div>
                   ) : (
-                    <SmallCarousel
-                      frames={analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)}
-                      onImageClick={handleImageClick}
-                      type="heatmap"
-                      currentIndex={currentHeatmapSlide}
-                      currentPage={heatmapPage}
-                      onPageChange={setHeatmapPage}
-                    />
+                      <SmallCarousel
+                        frames={analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)}
+                        onImageClick={handleImageClick}
+                        type="heatmap"
+                        currentIndex={currentHeatmapSlide}
+                        currentPage={heatmapPage}
+                        onPageChange={setHeatmapPage}
+                      />
                   )}
                 </div>
               </div>
             </div>
           )}
-
+                      
           {/* Metadata Section */}
           {analysisResult.metadata && (
             <div className="mt-8">
               {renderMetadata(analysisResult.metadata)}
+                    </div>
+                  )}
+                  
+          {/* Detection Explanation Section */}
+          <div className="mt-12 mb-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center">
+              <Info className="mr-3 h-6 w-6 text-primary" />
+              Understanding Deepfake Detection
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Our platform combines multiple advanced technologies to detect deepfakes and manipulated media.
+              Below we explain how to interpret the analysis results and what each visualization represents.
+            </p>
+                </div>
+                
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* Detection Method Card */}
+            <div className="glass-card border rounded-xl p-6 shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                  <Shield className="h-6 w-6 text-primary" />
+      </div>
+                <h3 className="text-xl font-semibold">Detection Methodology</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Our deepfake detection system analyzes both visual and statistical patterns across multiple dimensions that are
+                characteristic of AI manipulation, revealing artifacts invisible to the human eye.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Face analysis detects inconsistencies in facial features, lighting, and movement</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Error level analysis reveals manipulation artifacts from image compression</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Neural networks trained on millions of authentic and manipulated images/videos</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Metadata examination to detect inconsistencies in file properties</span>
+                </li>
+              </ul>
             </div>
-          )}
+
+            {/* Interpreting Results Card */}
+            <div className="glass-card border rounded-xl p-6 shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                  <BarChart2 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">Interpreting Results</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                The confidence score indicates how certain our system is about its verdict. Higher scores mean stronger evidence
+                of manipulation or authenticity was detected.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300 mr-3 flex-shrink-0">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Deepfake Detected (Red)</p>
+                    <p className="text-sm text-muted-foreground">Indicates the media has likely been manipulated using AI techniques such as face swapping, voice cloning, or synthetic generation</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300 mr-3 flex-shrink-0">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Authentic Media (Green)</p>
+                    <p className="text-sm text-muted-foreground">Indicates the media appears to be authentic with no significant signs of AI manipulation</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Analysis Explanation */}
+          <div className="glass-card border rounded-xl p-6 shadow-md mb-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                <Eye className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">Visual Analysis Explained</h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-lg font-medium mb-2 flex items-center">
+                  <Image className="h-5 w-5 text-primary mr-2" />
+                  Original Frames
+                </h4>
+                <p className="text-muted-foreground">
+                  These are the original frames extracted from your uploaded media. For videos, we analyze multiple frames
+                  to detect inconsistencies that might appear across time. For images, we examine the full resolution version.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-medium mb-2 flex items-center">
+                  <Scan className="h-5 w-5 text-primary mr-2" />
+                  Error Level Analysis (ELA)
+                </h4>
+                <p className="text-muted-foreground mb-3">
+                  ELA highlights differences in compression quality across an image. In authentic images, most areas have
+                  similar error levels. In manipulated images, edited regions often show different error levels (appearing as different colors or brightness).
+                </p>
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      <span className="font-medium">Interpretation Note:</span> Areas with distinctly different colors or brightness in the ELA image (especially around faces or objects)
+                      often indicate manipulation. However, sharp edges and high-contrast areas naturally show higher error levels.
+                    </p>
+                  </div>
+                </div>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-medium mb-2 flex items-center">
+                  <Zap className="h-5 w-5 text-primary mr-2" />
+                  Gradcam Heatmap
+                </h4>
+                <p className="text-muted-foreground mb-3">
+                  Gradient-weighted Class Activation Mapping (Grad-CAM) visualizes which regions of the image most strongly
+                  influenced the AI's decision. Warmer colors (red, yellow) highlight areas the model identified as most suspicious.
+                </p>
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      <span className="font-medium">Interpretation Note:</span> Strong activations around faces, especially eyes, mouths, or hair edges
+                      are common in deepfakes. Unnatural lighting inconsistencies, boundary artifacts, and blending issues 
+                      also trigger strong activation in the heatmap.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Frame and Crop Analysis (For Videos) */}
+          {mediaType === "video" && (
+            <div className="glass-card border rounded-xl p-6 shadow-md mb-8">
+              <div className="flex items-center mb-4">
+                <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                  <FilmIcon className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">Video Frame Analysis</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Our system analyzes videos frame-by-frame and tracks statistics across the entire timeline. This approach
+                can detect manipulations that only appear in portions of the video.
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <h4 className="text-base font-medium mb-2 flex items-center">
+                    <BarChart2 className="h-4 w-4 text-primary mr-2" />
+                    Fake Frames Percentage
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Shows what portion of all analyzed frames were detected as manipulated. Even authentic videos
+                    might have some frames flagged as suspicious due to motion blur, compression artifacts, or other factors.
+                  </p>
+                </div>
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <h4 className="text-base font-medium mb-2 flex items-center">
+                    <User className="h-4 w-4 text-primary mr-2" />
+                    Face Crop Analysis
+                  </h4>
+                  <p className="text-sm text-muted-foreground">
+                    Each detected face is analyzed separately to identify face-specific manipulations. This helps detect
+                    "face swap" deepfakes where only a specific person's face has been replaced.
+                  </p>
+                </div>
+              </div>
+        </div>
+      )}
+
+          {/* Limitations Notice */}
+          <div className="bg-muted/30 rounded-xl p-6 border border-border mb-8">
+            <div className="flex items-start">
+              <div className="p-2 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300 mr-4 flex-shrink-0">
+                <Info className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-lg font-medium mb-2">Limitations & Considerations</h4>
+                <p className="text-muted-foreground mb-3">
+                  While our system achieves high accuracy, deepfake technology is rapidly evolving. New generation
+                  methods may occasionally evade detection. Consider these results as strong indicators rather than absolute proof.
+                </p>
+                <p className="text-muted-foreground">
+                  For critical verification needs, we recommend combining these results with additional methods
+                  such as source verification, context analysis, and cross-referencing with known authentic media.
+                </p>
+              </div>
+            </div>
+          </div>
+
+          
         </motion.div>
 
-        {/* Modal */}
-        {enlargedImage && currentSliderType && (
-          <ImageModal
-            image={enlargedImage}
-            onClose={handleCloseModal}
-            sliderType={currentSliderType}
-            frames={currentSliderType === 'error'
-              ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
-              : currentSliderType === 'heatmap'
-              ? analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
-              : analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)
-            }
-            currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentSliderType === 'heatmap' ? currentHeatmapSlide : currentOriginalFrameSlide}
-            onSlideChange={(index) => {
-              if (currentSliderType === 'error') {
-                setCurrentErrorLevelSlide(index);
-              } else if (currentSliderType === 'heatmap') {
-                setCurrentHeatmapSlide(index);
-              } else {
-                setCurrentOriginalFrameSlide(index);
-              }
-              setEnlargedImage(currentSliderType === 'error'
-                ? analysisResult.analysis_report.frame_results[index].ela_path
-                : currentSliderType === 'heatmap'
-                ? analysisResult.analysis_report.frame_results[index].gradcam_path
-                : analysisResult.analysis_report.frame_results[index].frame_path
-              );
-            }}
-          />
-        )}
+      {/* Modal */}
+      {enlargedImage && currentSliderType && (
+  <ImageModal
+    image={enlargedImage}
+    onClose={handleCloseModal}
+    sliderType={currentSliderType}
+    frames={currentSliderType === 'error'
+      ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
+      : currentSliderType === 'heatmap'
+      ? analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
+      : analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)
+    }
+    currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentSliderType === 'heatmap' ? currentHeatmapSlide : currentOriginalFrameSlide}
+    onSlideChange={(index) => {
+      if (currentSliderType === 'error') {
+        setCurrentErrorLevelSlide(index);
+      } else if (currentSliderType === 'heatmap') {
+        setCurrentHeatmapSlide(index);
+      } else {
+        setCurrentOriginalFrameSlide(index);
+      }
+      setEnlargedImage(currentSliderType === 'error'
+        ? analysisResult.analysis_report.frame_results[index].ela_path
+        : currentSliderType === 'heatmap'
+        ? analysisResult.analysis_report.frame_results[index].gradcam_path
+        : analysisResult.analysis_report.frame_results[index].frame_path
+      );
+    }}
+  />
+)}
       </div>
     </Layout>
   );

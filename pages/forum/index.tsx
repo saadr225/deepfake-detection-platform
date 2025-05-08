@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useUser } from "@/contexts/UserContext"
-import { Plus, MessageSquare, AlertCircle, Users, Tag, ThumbsUp, ThumbsDown, Search, BookmarkIcon, ArrowUp, ArrowDown, Sparkles, TrendingUp, Clock, Filter, X, ChevronRight } from "lucide-react"
+import { Plus, MessageSquare, AlertCircle, Users, Tag, ThumbsUp, ThumbsDown, Search, BookmarkIcon, ArrowUp, ArrowDown, Sparkles, TrendingUp, Clock, Filter, X, ChevronRight, CheckCircle2 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/router"
 import Link from "next/link"
@@ -334,6 +334,58 @@ export default function ForumPage() {
 
   return (
     <Layout>
+      {/* Enhanced Header Section with Background - similar to detect.tsx */}
+      <div className="relative">
+        {/* Background with visible gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        {/* Header Content */}
+        <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-black/60 text-sm font-medium">
+                <MessageSquare className="h-4 w-4 mr-2" />
+                Community Knowledge Hub
+              </span>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              Join Our <span className="gradient-text">Discussion Community</span> for Deepfake Analysis
+            </h1>
+            
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed">
+              Connect with experts, researchers, and enthusiasts to discuss deepfake detection techniques, 
+              share insights, and stay informed about the latest developments
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>{FORUM_METRICS.totalThreads.toLocaleString()}+ Active Threads</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>{FORUM_METRICS.activeUsers.toLocaleString()}+ Community Members</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>Expert Moderation</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
       <div className="max-w-7xl mx-auto px-4 py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}

@@ -33,6 +33,8 @@ import {
 } from "@/components/ui/dialog"
 // Add this import for the Switch component
 import { Switch } from "@/components/ui/switch"
+// Import the CustomModal component
+import { CustomModal } from "@/components/ui/custom-modal"
 // Types for PDA submissions
 // Types for PDA submissions - update to match API response
 interface Category {
@@ -609,6 +611,58 @@ const performFaceSearch = async () => {
 
   return (
     <Layout>
+      {/* Enhanced Header Section with Background */}
+      <div className="relative">
+        {/* Background with gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        {/* Header Content */}
+        <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-black/60 text-sm font-medium">
+                <FileText className="h-4 w-4 mr-2" />
+                Comprehensive Deepfake Repository
+              </span>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              Public <span className="gradient-text">Deepfake</span> Archive
+            </h1>
+            
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed">
+              Browse our curated collection of verified deepfake media for education, research, and 
+              awareness about the capabilities and limitations of synthetic media
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle className="h-4 w-4 text-primary" /> 
+                <span>Verified Content</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle className="h-4 w-4 text-primary" /> 
+                <span>Face Matching Technology</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle className="h-4 w-4 text-primary" /> 
+                <span>Educational Resources</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
       <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8">
         <motion.div
           className="max-w-7xl mx-auto"
@@ -616,10 +670,7 @@ const performFaceSearch = async () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="text-3xl font-bold mb-2 text-gradient">Public Deepfake Archive</h1>
-          <p className="text-muted-foreground mb-8">
-            Browse our curated collection of verified deepfake media for research and educational purposes.
-          </p>
+          
 
           {/* Search and Filter Section */}
           <div className="bg-card glass-card rounded-2xl p-6 shadow-md mb-8">
@@ -650,7 +701,7 @@ const performFaceSearch = async () => {
         </div>
       </SelectTrigger>
       <SelectContent>
-        <SelectItem>All Categories</SelectItem>
+        <SelectItem value="All Categories">All Categories</SelectItem>
         {categories.map((category) => (
           <SelectItem key={category.code} value={category.code}>
             {category.name}
@@ -993,62 +1044,59 @@ const performFaceSearch = async () => {
       {/* Add this at the bottom of the component, right before the closing Layout tag */}
 
 {/* Face Upload Modal */}
-<Dialog open={faceUploadModalOpen && isUserLoggedIn} onOpenChange={setFaceUploadModalOpen}>
-  <DialogContent className="bg-card rounded-2xl">
-    <DialogHeader>
-      <DialogTitle>Register Your Face</DialogTitle>
-    </DialogHeader>
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Please upload a clear photo of your face. This will be used to alert you if deepfakes of your face are detected.
-      </p>
-      
-      <div className="border-2 border-dashed rounded-xl p-6 text-center">
-        {selectedFaceImage ? (
-          <div className="flex flex-col items-center">
-            <img 
-              src={URL.createObjectURL(selectedFaceImage)} 
-              alt="Selected face" 
-              className="max-h-[200px] max-w-full object-contain mb-3 rounded-lg" 
-            />
-            <p className="text-sm">{selectedFaceImage.name}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-2"
-              onClick={() => setSelectedFaceImage(null)}
-            >
-              Change Image
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <UserCircle className="h-16 w-16 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-2">
-              Click to select or drag and drop an image
-            </p>
-            <input
-              type="file"
-              id="faceUpload"
-              className="hidden"
-              accept="image/*"
-              onChange={handleFaceImageSelect}
-            />
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => document.getElementById("faceUpload")?.click()}
-            >
-              Select Image
-            </Button>
-          </div>
-        )}
-      </div>
-      
+<CustomModal
+  open={faceUploadModalOpen && isUserLoggedIn}
+  onOpenChange={setFaceUploadModalOpen}
+  title="Register Your Face"
+  description="Please upload a clear photo of your face. This will be used to alert you if deepfakes of your face are detected."
+  content={
+    <div className="border-2 border-dashed rounded-xl p-6 text-center">
+      {selectedFaceImage ? (
+        <div className="flex flex-col items-center">
+          <img 
+            src={URL.createObjectURL(selectedFaceImage)} 
+            alt="Selected face" 
+            className="max-h-[200px] max-w-full object-contain mb-3 rounded-lg" 
+          />
+          <p className="text-sm">{selectedFaceImage.name}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2"
+            onClick={() => setSelectedFaceImage(null)}
+          >
+            Change Image
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center">
+          <UserCircle className="h-16 w-16 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground mb-2">
+            Click to select or drag and drop an image
+          </p>
+          <input
+            type="file"
+            id="faceUpload"
+            className="hidden"
+            accept="image/*"
+            onChange={handleFaceImageSelect}
+          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => document.getElementById("faceUpload")?.click()}
+          >
+            Select Image
+          </Button>
+        </div>
+      )}
+    </div>
+  }
+  footer={
+    <div className="flex flex-col space-y-4">
       {registrationError && (
         <p className="text-sm text-destructive">{registrationError}</p>
       )}
-      
       <div className="flex justify-end gap-2">
         <Button 
           variant="outline" 
@@ -1069,66 +1117,63 @@ const performFaceSearch = async () => {
         </Button>
       </div>
     </div>
-  </DialogContent>
-</Dialog>
+  }
+/>
 {/* Add this at the bottom of the component, right before the closing Layout tag */}
 {/* Face Search Modal */}
-<Dialog open={isFaceSearchModalOpen} onOpenChange={setIsFaceSearchModalOpen}>
-  <DialogContent className="bg-card rounded-2xl">
-    <DialogHeader>
-      <DialogTitle>Search by Face</DialogTitle>
-    </DialogHeader>
-    <div className="space-y-4">
-      <p className="text-sm text-muted-foreground">
-        Upload a photo containing a face to search for similar faces in our deepfake database.
-      </p>
-      
-      <div className="border-2 border-dashed rounded-xl p-6 text-center">
-        {faceSearchImage ? (
-          <div className="flex flex-col items-center">
-            <img 
-              src={URL.createObjectURL(faceSearchImage)} 
-              alt="Selected face" 
-              className="max-h-[200px] max-w-full object-contain mb-3 rounded-lg" 
-            />
-            <p className="text-sm">{faceSearchImage.name}</p>
-            <Button 
-              variant="outline" 
-              size="sm" 
-              className="mt-2"
-              onClick={() => setFaceSearchImage(null)}
-            >
-              Change Image
-            </Button>
-          </div>
-        ) : (
-          <div className="flex flex-col items-center">
-            <UserCircle className="h-16 w-16 text-muted-foreground mb-2" />
-            <p className="text-sm text-muted-foreground mb-2">
-              Click to select or drag and drop an image containing a face
-            </p>
-            <input
-              type="file"
-              id="faceSearchUpload"
-              className="hidden"
-              accept="image/*"
-              onChange={handleFaceSearchImageSelect}
-            />
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => document.getElementById("faceSearchUpload")?.click()}
-            >
-              Select Image
-            </Button>
-          </div>
-        )}
-      </div>
-      
+<CustomModal
+  open={isFaceSearchModalOpen}
+  onOpenChange={setIsFaceSearchModalOpen}
+  title="Search by Face"
+  description="Upload a photo containing a face to search for similar faces in our deepfake database."
+  content={
+    <div className="border-2 border-dashed rounded-xl p-6 text-center">
+      {faceSearchImage ? (
+        <div className="flex flex-col items-center">
+          <img 
+            src={URL.createObjectURL(faceSearchImage)} 
+            alt="Selected face" 
+            className="max-h-[200px] max-w-full object-contain mb-3 rounded-lg" 
+          />
+          <p className="text-sm">{faceSearchImage.name}</p>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="mt-2"
+            onClick={() => setFaceSearchImage(null)}
+          >
+            Change Image
+          </Button>
+        </div>
+      ) : (
+        <div className="flex flex-col items-center">
+          <UserCircle className="h-16 w-16 text-muted-foreground mb-2" />
+          <p className="text-sm text-muted-foreground mb-2">
+            Click to select or drag and drop an image containing a face
+          </p>
+          <input
+            type="file"
+            id="faceSearchUpload"
+            className="hidden"
+            accept="image/*"
+            onChange={handleFaceSearchImageSelect}
+          />
+          <Button 
+            variant="outline" 
+            size="sm"
+            onClick={() => document.getElementById("faceSearchUpload")?.click()}
+          >
+            Select Image
+          </Button>
+        </div>
+      )}
+    </div>
+  }
+  footer={
+    <div className="flex flex-col space-y-4">
       {faceSearchError && (
         <p className="text-sm text-destructive">{faceSearchError}</p>
       )}
-      
       <div className="flex justify-end gap-2">
         <Button 
           variant="outline" 
@@ -1156,8 +1201,8 @@ const performFaceSearch = async () => {
         </Button>
       </div>
     </div>
-  </DialogContent>
-</Dialog>
+  }
+/>
     </Layout>
   )
 }

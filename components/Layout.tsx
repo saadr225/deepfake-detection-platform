@@ -54,7 +54,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <div className="flex min-h-screen h-full bg-background overflow-x-hidden">
       <Sidebar isCollapsed={isCollapsed} setIsCollapsed={handleToggleCollapse} />
       <div 
-        className="flex-1 min-h-screen overflow-x-hidden flex flex-col"
+        className="flex-1 min-h-screen  flex flex-col"
         style={{ 
           marginLeft: isCollapsed ? '6rem' : '18rem',
           transition: hasToggledRef.current ? 'margin-left 300ms ease' : 'none'

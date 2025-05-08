@@ -118,7 +118,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
           {user ? (
             <>
               {/* User profile section when logged in */}
-              {!isCollapsed && (
+              {!isCollapsed ? (
                 <div className="px-5 py-4 mb-2">
                   <div className="flex items-center space-x-3">
                     <div className="relative">
@@ -128,9 +128,18 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                       <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-400 border-2 border-primary-700"></div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{user.email?.split('@')[0] || "User"}</p>
+                      <p className="text-sm font-medium text-white truncate">{user.username || "User"}</p>
                       <p className="text-xs text-white/70 truncate">{user.email || "user@example.com"}</p>
                     </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex justify-center py-4 mb-2">
+                  <div className="relative">
+                    <div className="h-10 w-10 mr-1 rounded-full bg-white/20 flex items-center justify-center">
+                      <User className="h-5 w-5 text-white" />
+                    </div>
+                    <div className="absolute bottom-0 right-1 h-3 w-3 rounded-full bg-green-400 border-2 border-primary-700"></div>
                   </div>
                 </div>
               )}

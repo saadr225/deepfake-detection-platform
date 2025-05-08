@@ -3,7 +3,7 @@ import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import Layout from '@/components/Layout'
 import { Button } from '@/components/ui/button'
-import { Download, Share2, CheckCircle, AlertTriangle } from 'lucide-react'
+import { Download, Share2, CheckCircle, AlertTriangle, Info, Brain, BarChart2, Image, Zap, Eye } from 'lucide-react'
 import { useUser } from '../contexts/UserContext'
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
 import Cookies from 'js-cookie'
@@ -849,6 +849,156 @@ export default function AIContentReportPage() {
           {renderMetadata(analysisResult.metadata)}
         </div>
       )}
+        </motion.div>
+      </div>
+
+      {/* Detection Explanation Section */}
+      <div className="py-8 px-4 sm:px-6 lg:px-8 bg-background">
+        <motion.div 
+          className="max-w-7xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold mb-6 flex items-center">
+              <Info className="mr-3 h-6 w-6 text-primary" />
+              Understanding AI Content Detection
+            </h2>
+            <p className="text-muted-foreground mb-6">
+              Our platform uses advanced machine learning algorithms to detect AI-generated content. 
+              Below we explain how to interpret the analysis results and what each visualization represents.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            {/* Detection Method Card */}
+            <div className="glass-card border rounded-xl p-6 shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                  <Brain className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">Detection Methodology</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                Our AI detection system analyzes patterns, inconsistencies, and statistical anomalies in content that are 
+                characteristic of AI generation but often invisible to the human eye.
+              </p>
+              <ul className="space-y-2">
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Pattern analysis of linguistic structures and image artifacts</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Deep neural networks trained on millions of AI and human-created samples</span>
+                </li>
+                <li className="flex items-start">
+                  <CheckCircle className="h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0" />
+                  <span>Analysis of metadata and content fingerprinting</span>
+                </li>
+              </ul>
+            </div>
+
+            {/* Interpreting Results Card */}
+            <div className="glass-card border rounded-xl p-6 shadow-md">
+              <div className="flex items-center mb-4">
+                <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                  <BarChart2 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="text-xl font-semibold">Interpreting Results</h3>
+              </div>
+              <p className="text-muted-foreground mb-4">
+                The confidence score indicates how certain our system is about its verdict. Higher scores mean stronger evidence
+                of AI generation or human creation was found.
+              </p>
+              <div className="space-y-4">
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-red-100 text-red-600 dark:bg-red-900/30 dark:text-red-300 mr-3 flex-shrink-0">
+                    <AlertTriangle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">AI-Generated Content (Red)</p>
+                    <p className="text-sm text-muted-foreground">Indicates content likely created by AI tools like DALL-E, Midjourney, or similar</p>
+                  </div>
+                </div>
+                <div className="flex items-start">
+                  <div className="p-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-300 mr-3 flex-shrink-0">
+                    <CheckCircle className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <p className="font-medium">Human-Created Content (Green)</p>
+                    <p className="text-sm text-muted-foreground">Indicates content likely created by a human without AI assistance</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Visual Analysis Explanation */}
+          <div className="glass-card border rounded-xl p-6 shadow-md mb-8">
+            <div className="flex items-center mb-6">
+              <div className="bg-primary/10 p-3 rounded-xl mr-4">
+                <Eye className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="text-xl font-semibold">Visual Analysis Explained</h3>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <h4 className="text-lg font-medium mb-2 flex items-center">
+                  <Image className="h-5 w-5 text-primary mr-2" />
+                  Original Image
+                </h4>
+                <p className="text-muted-foreground">
+                  This is the original content that was submitted for analysis. Our system examines this for patterns and artifacts
+                  characteristic of AI generation.
+                </p>
+              </div>
+              
+              <div>
+                <h4 className="text-lg font-medium mb-2 flex items-center">
+                  <Zap className="h-5 w-5 text-primary mr-2" />
+                  Gradcam Heatmap
+                </h4>
+                <p className="text-muted-foreground mb-3">
+                  Gradient-weighted Class Activation Mapping (Grad-CAM) visualizes which regions of the image most strongly 
+                  influenced the AI's decision. Warmer colors (red, yellow) indicate areas the model found most suspicious or indicative of AI generation.
+                </p>
+                <div className="bg-muted/30 p-4 rounded-lg">
+                  <div className="flex items-start">
+                    <AlertTriangle className="h-5 w-5 text-amber-500 mr-2 mt-0.5 flex-shrink-0" />
+                    <p className="text-sm">
+                      <span className="font-medium">Interpretation Note:</span> High activation in unnatural areas or across regular patterns
+                      often indicates AI generation. However, certain complex natural patterns may also trigger detection signals.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Limitations Notice */}
+          <div className="bg-muted/30 rounded-xl p-6 border border-border">
+            <div className="flex items-start">
+              <div className="p-2 rounded-full bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300 mr-4 flex-shrink-0">
+                <Info className="h-5 w-5" />
+              </div>
+              <div>
+                <h4 className="text-lg font-medium mb-2">Limitations & Considerations</h4>
+                <p className="text-muted-foreground mb-3">
+                  While our system achieves high accuracy, AI detection technology is constantly evolving as new generation 
+                  methods emerge. Consider these results as strong indicators rather than absolute proof.
+                </p>
+                <p className="text-muted-foreground">
+                  For critical applications, we recommend using these results as part of a broader verification approach 
+                  that may include manual review, context analysis, and source verification.
+                </p>
+              </div>
+            </div>
+          </div>
+          
+          
         </motion.div>
       </div>
 
