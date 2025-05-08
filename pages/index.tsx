@@ -107,8 +107,8 @@ export default function Home() {
             src="/images/deepfake-hero4.png" 
             alt="Deepfake detection background" 
             width={1920}
-            height={1080}
-            className="w-full h-full object-cover"
+  height={1080}
+  className="w-full h-full object-cover"
             priority
           />
           {/* Modern gradient overlay */}
@@ -141,7 +141,7 @@ export default function Home() {
               </p>
               
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/detect">
+              <Link href="/detect">
                   <Button size="lg" className="bg-primary hover:bg-primary-600 text-white shadow-subtle hover:shadow-elevation transition-all px-6 py-6 text-lg h-auto">
                     Start Detecting
                     <ChevronRight className="ml-2 h-5 w-5" />
@@ -193,13 +193,13 @@ export default function Home() {
                     </p>
                     <div className="flex items-center text-primary font-medium text-sm group-hover:translate-x-2 transition-transform duration-200">
                       <span>Learn more</span>
-                      <ArrowRight className="ml-2 h-4 w-4" />
+                        <ArrowRight className="ml-2 h-4 w-4" />
                     </div>
-                  </CardContent>
-                </Card>
-              </motion.div>
-            ))}
-          </div>
+                    </CardContent>
+                  </Card>
+                </motion.div>
+              ))}
+            </div>
         </motion.section>
 
         {/* How It Works Section */}
@@ -214,7 +214,7 @@ export default function Home() {
             <motion.div className="text-center mb-16" variants={itemVariants}>
               <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">
                 How It <span className="gradient-text">Works</span>
-              </h2>
+            </h2>
               <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
                 Our streamlined process makes it easy to analyze any media for authenticity
               </p>
@@ -282,7 +282,7 @@ export default function Home() {
             <motion.div className="stats-card" variants={itemVariants}>
               <div className="stats-value">50K+</div>
               <div className="stats-label">Active Users</div>
-            </motion.div>
+          </motion.div>
           </div>
         </motion.section>
 
@@ -311,9 +311,9 @@ export default function Home() {
               Join thousands of users who trust our platform for reliable AI content detection
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
-              <Link href="/aicontentdetection">
+            <Link href="/aicontentdetection">
                 <Button size="lg" className="bg-white text-primary hover:bg-white/90 transition-all px-8 h-14 text-lg border-white/20 shadow-elevation">
-                  Get Started Free
+                Get Started Free
                   <ChevronRight className="ml-2 h-5 w-5" />
                 </Button>
               </Link>
@@ -321,8 +321,8 @@ export default function Home() {
                 <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 transition-all px-8 h-14 text-lg">
                   Learn More
                   <ArrowUpRight className="ml-2 h-5 w-5" />
-                </Button>
-              </Link>
+              </Button>
+            </Link>
             </div>
           </motion.div>
         </motion.section>

@@ -48,10 +48,10 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
   return (
     <div
       className={`fixed left-0 top-0 bottom-0 h-screen bg-gradient-to-b from-primary-600 to-primary-700 text-white flex flex-col z-50 ${
-        isCollapsed ? "w-24" : "w-72"
-      } transition-all duration-300 shadow-elevation overflow-hidden`}
+        isCollapsed ? "w-[6.5rem]" : "w-72"
+      } transition-all duration-300 shadow-elevation`}
     >
-      <div className="flex items-center justify-between p-6 border-b border-primary-500/30">
+      <div className="flex items-center justify-between p-6 border-b border-primary-500/30 relative">
         <div className="flex items-center justify-center w-full">
           {isCollapsed ? (
             <div className="text-white text-2xl font-bold">DMI</div>
@@ -64,7 +64,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
         </div>
         <button
           onClick={() => setIsCollapsed(!isCollapsed)}
-          className="absolute right-[-10px] top-[50px] transform bg-white dark:bg-gray-800 text-primary p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 shadow-subtle-md"
+          className="absolute right-[-16px] top-[23px] transform bg-white dark:bg-gray-800 text-primary p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors duration-200 shadow-subtle-md z-[60]"
           aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {isCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
@@ -87,7 +87,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                 }`}
                   >
                     <div className="flex items-center min-w-0">
-                      <div className={`flex items-center justify-center h-9 w-9 rounded-lg ${
+                      <div className={`flex items-center justify-center h-9 w-9 rounded-xl ${
                         router.pathname === item.href ? "bg-white/20" : "bg-transparent"
                       } transition-colors duration-200`}>
                         <item.icon
@@ -128,7 +128,7 @@ export default function Sidebar({ isCollapsed, setIsCollapsed }: SidebarProps) {
                       <div className="absolute bottom-0 right-0 h-3 w-3 rounded-full bg-green-400 border-2 border-primary-700"></div>
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-white truncate">{user.name || "User"}</p>
+                      <p className="text-sm font-medium text-white truncate">{user.email?.split('@')[0] || "User"}</p>
                       <p className="text-xs text-white/70 truncate">{user.email || "user@example.com"}</p>
                     </div>
                   </div>

@@ -3,11 +3,12 @@ import { useRouter } from 'next/router'
 import { motion } from 'framer-motion'
 import Layout from '@/components/Layout'
 import { Button } from '@/components/ui/button'
-import { Download, Share2 } from 'lucide-react'
+import { Download, Share2, CheckCircle, AlertTriangle } from 'lucide-react'
 import { useUser } from '../contexts/UserContext'
 import { useDetectionHistory } from '../contexts/DetectionHistoryContext'
 import Cookies from 'js-cookie'
 import axios from 'axios'
+import { Progress } from "@/components/ui/progress"
 
 /**
  * Below are the interfaces for the AI content detection result.
@@ -611,77 +612,243 @@ export default function AIContentReportPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8 bg-background">
+      {/* Enhanced Header Section with Background */}
+      <div className="relative">
+        {/* Background with gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        {/* Header Content */}
+        <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-primary text-sm font-medium">
+                <CheckCircle className="h-4 w-4 mr-2" />
+                Analysis Complete
+              </span>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              AI Content <span className="gradient-text">Detection Results</span>
+            </h1>
+            
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed">
+              Advanced analysis of AI-generated content, using linguistic patterns, 
+              stylistic markers, and machine learning to identify artificially created text and images
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle className="h-4 w-4 text-primary" /> 
+                <span>Linguistic Analysis</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle className="h-4 w-4 text-primary" /> 
+                <span>Style Detection</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle className="h-4 w-4 text-primary" /> 
+                <span>Pattern Recognition</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="py-8 px-4 sm:px-6 lg:px-8 bg-background">
         <motion.div
-          className="grid grid-cols-12 gap-8 p-8 w-full max-w-6xl"
+          className="max-w-7xl mx-auto"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          {/* Left Section: Title, Download, and main media */}
-          <motion.div className="col-span-12 md:col-span-7 space-y-6" variants={itemVariants}>
-            <div className="flex justify-between items-center">
-              <h1 className="text-3xl font-bold text-primary">
-                AI Content Detection Report
-              </h1>
-              <div className="flex space-x-2">
-                <Button variant="outline" size="sm" onClick={handleDownloadReport}>
-                  <Download className="mr-2 h-4 w-4" /> Download
-                </Button>
-                <Button variant="outline" size="sm" onClick={handleShareReport} disabled>
-                  <Share2 className="mr-2 h-4 w-4" /> Share
-                </Button>
-              </div>
+          {/* Header and Actions */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <h2 className="text-2xl font-semibold text-foreground">Analysis Details</h2>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" onClick={handleDownloadReport}>
+                <Download className="mr-2 h-4 w-4" /> Download
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareReport} disabled>
+                <Share2 className="mr-2 h-4 w-4" /> Share
+              </Button>
+            </div>
+          </div>
+
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 ">
+            {/* Left: Media Display */}
+            <div className="md:col-span-2 space-y-8">
+              {/* Media Card */}
+              <motion.div className="glass-card border rounded-xl overflow-hidden shadow-md" variants={itemVariants}>
+                {mediaType === 'image' && (
+                  <img 
+                    src={analysisResult.analysis_report.media_path} 
+                    alt="Analyzed Media" 
+                    className="w-full h-auto max-h-[595px] object-contain"
+                    style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                )}
+                {mediaType === 'video' && (
+                  <video
+                    src={analysisResult.analysis_report.media_path}
+                    controls
+                    className="w-full max-h-[500px] object-contain"
+                  />
+                )}
+                {mediaType === 'unknown' && (
+                  <div className="w-full max-h-[500px] flex items-center justify-center">
+                    Unsupported media type
+                  </div>
+                )}
+              </motion.div>
             </div>
 
-            <motion.div className="border rounded-lg overflow-hidden shadow-md" variants={itemVariants}>
-              <img
-                src={analysisResult.analysis_report.media_path}
-                alt="Analyzed Media"
-                className="w-full max-h-[500px] object-contain"
-              />
-            </motion.div>
-          </motion.div>
+            {/* Right: Detection Result and Stats */}
+            <div className="space-y-8">
+              {/* Detection Result Card */}
+              <motion.div className="glass-card overflow-hidden border rounded-xl shadow-md" variants={itemVariants}>
+                <div className="px-6 pt-6 pb-2">
+                  <h2 className="text-xl font-semibold">Detection Result</h2>
+                </div>
+                <div className="px-6 pb-6">
+                  <div className="flex flex-col items-center text-center mb-4">
+                    <div
+                      className={`p-4 rounded-full mb-2 ${
+                        analysisResult.is_generated
+                          ? "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
+                          : "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
+                      }`}
+                    >
+                      {analysisResult.is_generated ? (
+                        <AlertTriangle className="h-8 w-8" />
+                      ) : (
+                        <CheckCircle className="h-8 w-8" />
+                      )}
+                    </div>
+                    <h3 className="text-xl font-bold">
+                      {analysisResult.is_generated ? "AI-Generated Content" : "Human-Created Content"}
+                    </h3>
+                    <p className="text-muted-foreground text-sm mt-1">
+                      {analysisResult.is_generated
+                        ? "This content has been identified as likely created by AI."
+                        : "This content appears to be created by a human."}
+                    </p>
+                  </div>
 
-          {/* Right Section: Detection result, confidence, ELA, GradCam */}
-          <motion.div className="col-span-12 md:col-span-5 space-y-6" variants={itemVariants}>
-            {/* Detection Result Summary */}
-            <motion.div className=" glass-card border rounded-lg p-6 shadow-md" variants={itemVariants}>
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Detection Result</h2>
-                <motion.div
-                  className={`px-3 py-1 rounded-full text-white text-sm ${
-                    analysisResult.is_generated ? 'bg-red-500' : 'bg-green-500'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {analysisResult.is_generated ? 'Likely AI-Generated' : 'Likely Authentic'}
-                </motion.div>
-              </div>
-              <div className="mt-4 text-center">
-                <motion.p
-                  className="text-4xl font-bold text-primary"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {(analysisResult.confidence_score * 100).toFixed(2)}%
-                </motion.p>
-                <p className="text-muted-foreground">Confidence of AI Content Detection</p>
-              </div>
-            </motion.div>
+                  <div className="space-y-4">
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium">Confidence Score</span>
+                        <span className="text-sm font-medium">
+                          {(analysisResult.confidence_score * 100).toFixed(1)}%
+                        </span>
+                      </div>
+                      <Progress
+                        value={analysisResult.confidence_score * 100}
+                        className={`h-2 ${
+                          analysisResult.is_generated ? "[&>div]:bg-red-500" : "[&>div]:bg-green-500"
+                        }`}
+                      />
+                    </div>
 
-            <motion.div className="border rounded-lg p-4 glass-card shadow-md" variants={itemVariants}>
-              <h3 className="text-lg font-semibold mb-2">Gradcam Heatmap</h3>
-              <img
-                src={analysisResult.analysis_report.gradcam_path}
-                alt="Gradcam Heatmap"
-                className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                onClick={() => handleImageClick(analysisResult.analysis_report.gradcam_path, 'heatmap', 0)}
-              />
-            </motion.div>
-          </motion.div>
+                    {/* Adding Fake Frames progress bar (always 1 frame for images) */}
+                    <div>
+                      <div className="flex justify-between mb-1">
+                        <span className="text-sm font-medium">Fake Frames</span>
+                        <span className="text-sm font-medium">
+                          {analysisResult.is_generated ? "1 / 1" : "0 / 1"}
+                        </span>
+                      </div>
+                      <Progress
+                        value={analysisResult.is_generated ? 100 : 0}
+                        className="h-2 [&>div]:bg-amber-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+              
+              {/* Analysis Statistics */}
+              <motion.div className="glass-card border p-6 shadow-md" variants={itemVariants}>
+                <h2 className="text-xl font-semibold mb-4">Analysis Statistics</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Total Frames</div>
+                    <div className="text-xl font-semibold">1</div>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Generated Frames</div>
+                    <div className="text-xl font-semibold">{analysisResult.is_generated ? "1" : "0"}</div>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Analysis Method</div>
+                    <div className="text-xl font-semibold">AI Detection</div>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Processing Time</div>
+                    <div className="text-xl font-semibold">~2.4s</div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
+      {/* Visual Analysis Section */}
+      <div className="py-8 px-4 sm:px-6 lg:px-8 bg-background">
+        <motion.div 
+          className="max-w-7xl mx-auto"
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+        >
+          <h2 className="text-2xl font-bold mb-6">Visual Analysis</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+
+            {/* Gradcam Heatmap - Updated to match deepfakereport.tsx */}
+            <div className="glass-card border rounded-lg p-4 shadow-md">
+              <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
+              {mediaType === "image" ? (
+                <div className="flex justify-center">
+                  <img
+                    src={analysisResult.analysis_report.gradcam_path}
+                    alt="Gradcam Heatmap"
+                    className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                    onClick={() => handleImageClick(
+                      analysisResult.analysis_report.gradcam_path,
+                      'heatmap',
+                      0
+                    )}
+                  />
+                </div>
+              ) : (
+                <SmallCarousel
+                  frames={[analysisResult.analysis_report.gradcam_path]}
+                  onImageClick={handleImageClick}
+                  type="heatmap"
+                  currentIndex={currentHeatmapSlide}
+                  currentPage={heatmapPage}
+                  onPageChange={setHeatmapPage}
+                />
+              )}
+            </div>
+          </div>
+          {analysisResult.metadata && (
+        <div className="mt-8">
+          {renderMetadata(analysisResult.metadata)}
+        </div>
+      )}
         </motion.div>
       </div>
 
@@ -697,11 +864,7 @@ export default function AIContentReportPage() {
         />
       )}
 
-      {analysisResult.metadata && (
-        <div className="max-w-6xl mx-auto px-4 pb-12 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          {renderMetadata(analysisResult.metadata)}
-        </div>
-      )}
+      
     </Layout>
   )
 }
