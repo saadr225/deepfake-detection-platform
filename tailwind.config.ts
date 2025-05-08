@@ -18,8 +18,18 @@ const config: Config = {
         background: "hsl(var(--background))",
         foreground: "hsl(var(--foreground))",
         primary: {
-          DEFAULT: "#7165E3", // Updated to match mobile app's purple
+          DEFAULT: "#6366F1", // Updated to a more modern indigo
           foreground: "hsl(var(--primary-foreground))",
+          50: "#EEF2FF",
+          100: "#E0E7FF",
+          200: "#C7D2FE",
+          300: "#A5B4FC",
+          400: "#818CF8",
+          500: "#6366F1",
+          600: "#4F46E5",
+          700: "#4338CA",
+          800: "#3730A3",
+          900: "#312E81",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",
@@ -34,8 +44,8 @@ const config: Config = {
           foreground: "hsl(var(--muted-foreground))",
         },
         accent: {
-          DEFAULT: "#F3F2FF", // Light purple accent background
-          foreground: "#7165E3",
+          DEFAULT: "#F3F4FF", // Light accent background
+          foreground: "#6366F1",
         },
         popover: {
           DEFAULT: "hsl(var(--popover))",
@@ -55,6 +65,17 @@ const config: Config = {
         success: {
           light: "#E8F5E9", // Light green background for success messages
           DEFAULT: "#4CAF50", // Green text/icons for success
+          dark: "#2E7D32",
+        },
+        warning: {
+          light: "#FFF8E1",
+          DEFAULT: "#FFC107",
+          dark: "#F57F17",
+        },
+        info: {
+          light: "#E3F2FD",
+          DEFAULT: "#2196F3",
+          dark: "#1565C0",
         },
       },
       borderRadius: {
@@ -63,6 +84,7 @@ const config: Config = {
         sm: "0.5rem",
         xl: "1.25rem",
         "2xl": "1.5rem", // Very rounded corners like in the app
+        "3xl": "2rem",
       },
       fontFamily: {
         sans: ["var(--font-sans)", ...fontFamily.sans],
@@ -70,7 +92,48 @@ const config: Config = {
       boxShadow: {
         card: "0 4px 20px rgba(0, 0, 0, 0.08)",
         "card-hover": "0 8px 30px rgba(0, 0, 0, 0.12)",
+        subtle: "0 1px 3px rgba(0, 0, 0, 0.05)",
+        "subtle-md": "0 2px 6px rgba(0, 0, 0, 0.06)",
+        elevation: "0 10px 30px -5px rgba(0, 0, 0, 0.1)",
+        "elevation-md": "0 20px 40px -5px rgba(0, 0, 0, 0.15)",
       },
+      animation: {
+        "gradient-x": "gradient-x 15s ease infinite",
+        "gradient-y": "gradient-y 15s ease infinite",
+        "gradient-xy": "gradient-xy 15s ease infinite",
+      },
+      keyframes: {
+        "gradient-y": {
+          "0%, 100%": {
+            "background-size": "400% 400%",
+            "background-position": "center top"
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "center center"
+          }
+        },
+        "gradient-x": {
+          "0%, 100%": {
+            "background-size": "200% 200%",
+            "background-position": "left center"
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "right center"
+          }
+        },
+        "gradient-xy": {
+          "0%, 100%": {
+            "background-size": "400% 400%",
+            "background-position": "left center"
+          },
+          "50%": {
+            "background-size": "200% 200%",
+            "background-position": "right center"
+          }
+        }
+      }
     },
   },
   plugins: [

@@ -13,8 +13,13 @@ import {
   Thermometer,
   Archive,
   ArrowRight,
+  ArrowUpRight,
+  CheckCircle2,
+  BarChart3,
+  Zap,
+  AlertCircle,
 } from "lucide-react"
-import Layout from "../components/Layout"
+import Layout from "@/components/Layout"
 import { motion } from "framer-motion"
 import Image from "next/image"
 import Link from "next/link"
@@ -73,49 +78,79 @@ export default function Home() {
     }
   }
 
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
   return (
     <Layout>
       {/* Full-width hero section with background image */}
-      <div className="relative w-full h-[600px] mb-12">
-        {/* Background image that extends full width */}
-        <div className="absolute inset-0 z-0">
+      <div className="relative w-full h-[650px] mb-16">
+        {/* Background image with gradient overlay */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <Image 
             src="/images/deepfake-hero4.png" 
             alt="Deepfake detection background" 
             width={1920}
-  height={1080}
-  className="w-full h-full object-cover"
+            height={1080}
+            className="w-full h-full object-cover"
             priority
           />
-          {/* Dark gradient overlay for better text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70 z-10"></div>
+          {/* Modern gradient overlay */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/50 to-background z-10"></div>
         </div>
 
         {/* Content positioned over the image */}
-        <div className="relative z-20 h-full flex   items-center px-6">
-          <div className="max-w-7xl mx-auto ">
+        <div className="relative z-20 h-full flex flex-col justify-center items-center px-6">
+          <div className="max-w-7xl mx-auto text-center">
             <motion.div 
-              initial={{ opacity: 0, y: 20 }} 
+              initial={{ opacity: 0, y: 30 }} 
               animate={{ opacity: 1, y: 0 }} 
-              transition={{ duration: 0.5 }}
+              transition={{ duration: 0.7, ease: "easeOut" }}
+              className="space-y-6"
             >
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl  mb-6 text-center text-white">
-                Deep Media Inspection
-                
+              <div className="inline-block mb-4">
+                <span className="inline-flex items-center px-3 py-1 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-medium">
+                  <Zap className="h-3.5 w-3.5 mr-1" />
+                  Advanced AI Detection Platform
+                </span>
+              </div>
+
+              <h1 className="text-4xl font-bold tracking-tighter sm:text-5xl md:text-6xl lg:text-7xl mb-6 text-white">
+                Deep Media <span className="gradient-text">Inspection</span>
               </h1>
-              <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl mt-20 mb-16 text-center text-white">
-                Detect Deepfakes with
-                <span className="text-gradient ml-2">Unmatched Precision</span>
-              </h1>
-              <p className="text-xl text-center text-gray-200 mb-16 max-w-6xl mx-auto">
-                Our advanced AI-powered platform helps you identify and analyze deepfakes and AI-generated media with
-                industry-leading accuracy.
+              
+              <p className="text-xl text-gray-200 mb-8 max-w-4xl mx-auto font-light">
+                Our advanced AI-powered platform helps you identify deepfakes and 
+                AI-generated media with exceptional precision and reliability.
               </p>
+              
               <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link href="/detect">
-                  <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
-                    Try it now
-                    <ChevronRight className="ml-2 h-4 w-4" />
+                <Link href="/detect">
+                  <Button size="lg" className="bg-primary hover:bg-primary-600 text-white shadow-subtle hover:shadow-elevation transition-all px-6 py-6 text-lg h-auto">
+                    Start Detecting
+                    <ChevronRight className="ml-2 h-5 w-5" />
+                  </Button>
+                </Link>
+                <Link href="/knowledge-base">
+                  <Button variant="outline" size="lg" className="border-white/20 bg-white/10 text-white backdrop-blur-sm hover:bg-white/20 transition-all px-6 py-6 text-lg h-auto">
+                    Learn More
+                    <ArrowUpRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
               </div>
@@ -124,153 +159,173 @@ export default function Home() {
         </div>
       </div>
 
-      <main className="p-6 max-w-7xl mx-auto">
-        <section className="mb-12 animate-fadeInUp">
-          <div className="flex items-center justify-between mb-5">
-            <Button
-              variant="default"
-              size="icon"
-              onClick={scrollLeft}
-              className="text-white hover:text-foreground"
-            >
-              <ChevronLeft className="h-5 w-5" />
-            </Button>
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl text-foreground text-center">
-              Our Services
-            </h2>
-            <Button
-              variant="default"
-              size="icon"
-              onClick={scrollRight}
-              className="text-white hover:text-foreground"
-            >
-              <ChevronRight className="h-5 w-5" />
-            </Button>
+      <main className="max-w-7xl mx-auto px-6 pb-16">
+        {/* Features/Services Section */}
+        <motion.section 
+          className="mb-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={containerVariants}
+        >
+          <div className="text-center mb-16">
+            <motion.h2 variants={itemVariants} className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">
+              Comprehensive Detection <span className="gradient-text">Services</span>
+            </motion.h2>
+            <motion.p variants={itemVariants} className="text-muted-foreground max-w-2xl mx-auto text-lg">
+              Our platform offers advanced tools to detect manipulated media using the latest in AI technology
+            </motion.p>
           </div>
-          <div className="relative">
-            <div
-              ref={sliderRef}
-              className="flex overflow-x-auto gap-8 pb-4 pl-2 pt-2 snap-x snap-mandatory scrollbar-hide"
-              style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
-            >
-              {services.map((service, index) => (
-                <motion.div
-                  key={index}
-                  className="flex-shrink-0 w-[280px] sm:w-[340px] snap-center"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.1 }}
-                >
-                  <Card className="h-full shadow-lg hover:shadow-xl transition-shadow duration-300 border-0">
-                    <CardContent className="p-6">
-                      <service.icon className="h-12 w-12 mb-4 text-primary" />
-                      <h3 className="text-xl font-semibold mb-2 text-foreground">{service.title}</h3>
-                      <p className="text-muted-foreground mb-4">{service.description}</p>
-                      <Button variant="link" className="p-0 text-primary hover:text-primary/80">
-                        Learn more
-                        <ArrowRight className="ml-2 h-4 w-4" />
-                      </Button>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              ))}
-            </div>
-          </div>
-        </section>
 
-        <section className="mb-12 animate-fadeInUp">
-          <motion.div
-            className="rounded-2xl glass-card p-8 md:p-12 shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.2 }}
-          >
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-6 text-center text-foreground">
-              How It Works
-            </h2>
-            <div className="grid gap-8 md:grid-cols-3">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
+            {services.slice(0, 6).map((service, index) => (
+              <motion.div key={index} variants={itemVariants} whileHover={{ y: -8 }} transition={{ duration: 0.3 }}>
+                <Card className="h-full border-0 bg-card shadow-subtle hover:shadow-elevation transition-all duration-300 overflow-hidden group">
+                  <CardContent className="p-8">
+                    <div className="bg-primary/10 h-12 w-12 flex items-center justify-center rounded-xl mb-6">
+                      <service.icon className="h-6 w-6 text-primary" />
+                    </div>
+                    <h3 className="text-xl font-semibold mb-3 text-foreground group-hover:text-primary transition-colors">
+                      {service.title}
+                    </h3>
+                    <p className="text-muted-foreground mb-6 leading-relaxed">
+                      {service.description}
+                    </p>
+                    <div className="flex items-center text-primary font-medium text-sm group-hover:translate-x-2 transition-transform duration-200">
+                      <span>Learn more</span>
+                      <ArrowRight className="ml-2 h-4 w-4" />
+                    </div>
+                  </CardContent>
+                </Card>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* How It Works Section */}
+        <motion.section 
+          className="mb-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={containerVariants}
+        >
+          <div className="glass-card-elevated p-12 rounded-3xl">
+            <motion.div className="text-center mb-16" variants={itemVariants}>
+              <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4">
+                How It <span className="gradient-text">Works</span>
+              </h2>
+              <p className="text-muted-foreground max-w-2xl mx-auto text-lg">
+                Our streamlined process makes it easy to analyze any media for authenticity
+              </p>
+            </motion.div>
+
+            <div className="grid gap-8 md:grid-cols-3 relative">
+              <div className="absolute top-1/2 left-0 right-0 h-0.5 bg-primary/10 -translate-y-1/2 hidden md:block z-0"></div>
+
               {[
                 {
                   step: "01",
                   title: "Upload Media",
                   description: "Upload any image, video, or text content you want to analyze",
+                  icon: FileText,
                 },
                 {
                   step: "02",
                   title: "Advanced Analysis",
                   description: "Our AI performs multiple detection techniques simultaneously",
+                  icon: BarChart3,
                 },
                 {
                   step: "03",
                   title: "Detailed Results",
                   description: "Get comprehensive results with confidence scores and visual explanations",
+                  icon: CheckCircle2,
                 },
               ].map((item, index) => (
                 <motion.div
                   key={item.step}
-                  className="relative"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.5, delay: 0.3 + index * 0.1 }}
+                  className="relative z-10"
+                  variants={itemVariants}
                 >
-                  <div className="relative z-20 rounded-xl glass-card bg-card p-6 pl-16 shadow-md">
-                    <div className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary flex items-center justify-center">
-                      <span className="text-xl font-bold text-white">{item.step}</span>
+                  <div className="bg-card rounded-2xl p-8 border border-border/40 shadow-subtle hover:shadow-elevation transition-all duration-300 flex flex-col items-center text-center relative">
+                    <div className="bg-primary text-white flex items-center justify-center w-12 h-12 rounded-full text-lg font-bold mb-6">
+                      {item.step}
                     </div>
-                    <h3 className="text-xl font-semibold mb-2 text-foreground">{item.title}</h3>
+                    <item.icon className="h-10 w-10 text-primary mb-6" />
+                    <h3 className="text-xl font-semibold mb-4">{item.title}</h3>
                     <p className="text-muted-foreground">{item.description}</p>
                   </div>
                 </motion.div>
               ))}
             </div>
-          </motion.div>
-        </section>
+          </div>
+        </motion.section>
 
-        <section className="mb-12 animate-fadeInUp">
+        {/* Stats Section */}
+        <motion.section 
+          className="mb-24"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={containerVariants}
+        >
+          <div className="grid gap-8 md:grid-cols-3">
+            <motion.div className="stats-card" variants={itemVariants}>
+              <div className="stats-value">1M+</div>
+              <div className="stats-label">Media Files Analyzed</div>
+            </motion.div>
+            <motion.div className="stats-card" variants={itemVariants}>
+              <div className="stats-value">99.8%</div>
+              <div className="stats-label">Detection Accuracy</div>
+            </motion.div>
+            <motion.div className="stats-card" variants={itemVariants}>
+              <div className="stats-value">50K+</div>
+              <div className="stats-label">Active Users</div>
+            </motion.div>
+          </div>
+        </motion.section>
+
+        {/* CTA Section */}
+        <motion.section 
+          className="mb-0"
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, margin: "-100px" }}
+          variants={containerVariants}
+        >
           <motion.div
-            className="rounded-2xl glass-card p-8 shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.4 }}
+            className="gradient-bg rounded-3xl p-12 text-center shadow-elevation overflow-hidden relative"
+            variants={itemVariants}
           >
-            <div className="grid gap-8 md:grid-cols-3">
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-gradient">1M+</div>
-                <div className="text-muted-foreground">Media Files Analyzed</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-gradient">99.8%</div>
-                <div className="text-muted-foreground">Detection Accuracy</div>
-              </div>
-              <div className="text-center">
-                <div className="text-4xl font-bold mb-2 text-gradient">50K+</div>
-                <div className="text-muted-foreground">Active Users</div>
-              </div>
+            {/* Background abstract shapes */}
+            <div className="absolute inset-0 overflow-hidden opacity-20">
+              <div className="absolute top-0 left-1/4 w-64 h-64 bg-white/20 rounded-full blur-3xl transform -translate-y-1/2"></div>
+              <div className="absolute bottom-0 right-1/4 w-64 h-64 bg-white/20 rounded-full blur-3xl transform translate-y-1/2"></div>
             </div>
-          </motion.div>
-        </section>
 
-        <section className="animate-fadeInUp">
-          <motion.div
-            className="rounded-2xl glass-card p-8 md:p-12 text-center shadow-lg"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5, delay: 0.5 }}
-          >
-            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl mb-4 text-foreground">
+            <h2 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl mb-4 text-white relative z-10">
               Start Detecting AI-Generated Content Today
             </h2>
-            <p className="text-xl text-muted-foreground mb-8 max-w-2xl mx-auto">
+            <p className="text-xl text-white/90 mb-10 max-w-2xl mx-auto relative z-10">
               Join thousands of users who trust our platform for reliable AI content detection
             </p>
-            <Link href="/aicontentdetection">
-              <Button size="lg" className="bg-primary text-white hover:bg-primary/90">
-                Get Started Free
-                <ChevronRight className="ml-2 h-4 w-4" />
-              </Button>
-            </Link>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center relative z-10">
+              <Link href="/aicontentdetection">
+                <Button size="lg" className="bg-white text-primary hover:bg-white/90 transition-all px-8 h-14 text-lg border-white/20 shadow-elevation">
+                  Get Started Free
+                  <ChevronRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+              <Link href="/knowledge-base">
+                <Button variant="outline" size="lg" className="border-white/30 text-white hover:bg-white/10 transition-all px-8 h-14 text-lg">
+                  Learn More
+                  <ArrowUpRight className="ml-2 h-5 w-5" />
+                </Button>
+              </Link>
+            </div>
           </motion.div>
-        </section>
+        </motion.section>
       </main>
     </Layout>
   )

@@ -773,413 +773,355 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8 bg-background">
+      <div className="min-h-screen py-8 px-4 sm:px-6 lg:px-8 bg-background">
         <motion.div 
-          className="grid grid-cols-12 gap-8 p-8 w-full max-w-6xl"
+          className="max-w-7xl mx-auto"
           initial="hidden"
           animate="visible"
           variants={containerVariants}
         >
-          {/* Left Side - Deepfake Detection Report Header & Media */}
-          {/* Analyzed Media section - add button inside the left column, right after the media */}
-<motion.div 
-  className="col-span-12 md:col-span-7 space-y-6"
-  variants={itemVariants}
->
-  <div className="flex justify-between items-center">
-    <h1 className="text-3xl font-bold text-primary">
-      Deepfake Detection Report
-    </h1>
-    <div className="flex space-x-2">
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={handleDownloadReport}
-      >
-        <Download className="mr-2 h-4 w-4" /> Download
-      </Button>
-      <Button 
-        variant="outline" 
-        size="sm" 
-        onClick={handleShareReport}
-        disabled
-      >
-        <Share2 className="mr-2 h-4 w-4" /> Share
-      </Button>
-    </div>
-  </div>
-  
-  {/* Analyzed Media */}
-  <motion.div 
-    className="border rounded-lg overflow-hidden shadow-md"
-    variants={itemVariants}
-  >
-    {mediaType === 'image' && (
-      <img 
-        src={analysisResult.analysis_report.media_path} 
-        alt="Analyzed Media" 
-        className="w-full max-h-[500px] object-contain"
-      />
-    )}
-    
-    {mediaType === 'video' && (
-      <video
-        src={analysisResult.analysis_report.media_path}
-        controls
-        className="w-full max-h-[500px] object-contain"
-      />
-    )}
-    
-    {mediaType === 'unknown' && (
-      <div className="w-full max-h-[500px] flex items-center justify-center">
-        Unsupported media type
-      </div>
-    )}
-  </motion.div>
-
-  {/* Submit to PDA Button - Only show for deepfakes */}
-  {analysisResult.is_deepfake && (
-    <motion.div
-      className="mt-4"
-      variants={itemVariants}
-    >
-      {!submitSuccess ? (
-        <>
-          <Button 
-            onClick={() => setShowSubmitForm(!showSubmitForm)} 
-            className="w-full"
-            variant="default"
-          >
-            {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
-          </Button>
-          
-          {showSubmitForm && (
-            <motion.div
-              className="mt-4 border glass-card rounded-lg p-4 shadow-md"
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              transition={{ duration: 0.3 }}
-            >
-              <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
-              <p className="text-muted-foreground mb-4">
-                Your submission will be reviewed before being added to the public archive.
-                Please provide accurate information.
-              </p>
-              
-              {submitError && (
-                <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
-                  {submitError}
-                </div>
-              )}
-              
-              <form onSubmit={handleSubmitToPDA} className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
-                  <Input
-                    value={pdaTitle}
-                    onChange={(e) => setPdaTitle(e.target.value)}
-                    placeholder="E.g., Political Figure Deepfake"
-                    required
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
-                  <Select value={pdaCategory} onValueChange={setPdaCategory}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select a category" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {pdaCategories.map((category) => (
-                        <SelectItem key={category.code} value={category.code}>
-                          {category.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Description</label>
-                  <textarea
-                    value={pdaDescription}
-                    onChange={(e) => setPdaDescription(e.target.value)}
-                    placeholder="Describe the deepfake content"
-                    className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Context</label>
-                  <textarea
-                    value={pdaContext}
-                    onChange={(e) => setPdaContext(e.target.value)}
-                    placeholder="Provide additional context about the deepfake"
-                    className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
-                  />
-                </div>
-                
-                <div>
-                  <label className="block text-sm font-medium mb-1">Source URL</label>
-                  <Input
-                    value={pdaSourceUrl}
-                    onChange={(e) => setPdaSourceUrl(e.target.value)}
-                    placeholder="https://example.com/source"
-                    type="url"
-                  />
-                </div>
-                
-                <div className="flex justify-end">
-                  <Button
-                    type="submit"
-                    disabled={submitting}
-                  >
-                    {submitting ? "Submitting..." : "Submit"}
-                  </Button>
-                </div>
-              </form>
-            </motion.div>
-          )}
-        </>
-      ) : (
-        <motion.div
-          className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div className="flex items-center">
-            <CheckCircle className="h-5 w-5 mr-2" />
-            <h3 className="font-semibold">Submission Successful</h3>
+          {/* Header and Actions */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-8">
+            <h1 className="text-3xl font-bold text-primary">Deepfake Detection Report</h1>
+            <div className="flex space-x-2">
+              <Button variant="outline" size="sm" onClick={handleDownloadReport}>
+                <Download className="mr-2 h-4 w-4" /> Download
+              </Button>
+              <Button variant="outline" size="sm" onClick={handleShareReport} disabled>
+                <Share2 className="mr-2 h-4 w-4" /> Share
+              </Button>
+            </div>
           </div>
-          <p className="mt-2">
-            Thank you for your submission to the Public Deepfake Archive. 
-            Your submission is now under review. If approved, it will be listed in the PDA.
-          </p>
-        </motion.div>
-      )}
-    </motion.div>
-  )}
-</motion.div>
 
-          {/* Right Side - Analysis Results */}
-          <motion.div 
-            className="col-span-12 md:col-span-5 space-y-6"
-            variants={itemVariants}
-          >
-            {/* Confidence Result */}
-            <motion.div 
-              className="glass-card border p-6 shadow-md"
-              variants={itemVariants}
-            >
-              <div className="flex items-center justify-between">
-                <h2 className="text-xl font-semibold">Detection Result</h2>
-                <motion.div 
-                  className={`px-3 py-1 rounded-full text-white text-sm ${
-                    analysisResult.is_deepfake 
-                      ? 'bg-red-500' 
-                      : 'bg-green-500'
-                  }`}
-                  whileHover={{ scale: 1.05 }}
-                  whileTap={{ scale: 0.95 }}
-                >
-                  {analysisResult.is_deepfake 
-                    ? 'Likely Deepfake' 
-                    : 'Likely Authentic'}
+          {/* Main Content Grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
+            {/* Left: Media and Submit to PDA */}
+            <div className="md:col-span-2 space-y-8">
+              {/* Media Card */}
+              <motion.div className="glass-card border rounded-xl overflow-hidden shadow-md" variants={itemVariants}>
+                {mediaType === 'image' && (
+                  <img 
+                    src={analysisResult.analysis_report.media_path} 
+                    alt="Analyzed Media" 
+                    className="w-full h-auto max-h-[500px] object-contain"
+                          style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+                  />
+                )}
+                {mediaType === 'video' && (
+                  <video
+                    src={analysisResult.analysis_report.media_path}
+                    controls
+                    className="w-full max-h-[500px] object-contain"
+                  />
+                )}
+                {mediaType === 'unknown' && (
+                  <div className="w-full max-h-[500px] flex items-center justify-center">
+                    Unsupported media type
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Submit to PDA Section */}
+              {analysisResult.is_deepfake && (
+                <motion.div className="glass-card border rounded-xl p-6 shadow-md" variants={itemVariants}>
+                  {!submitSuccess ? (
+                    <>
+                      <Button 
+                        onClick={() => setShowSubmitForm(!showSubmitForm)} 
+                        className="w-full mb-4"
+                        variant="default"
+                      >
+                        {showSubmitForm ? "Cancel Submission" : "Submit to Public Deepfake Archive"}
+                      </Button>
+                      {showSubmitForm && (
+                        <motion.div
+                          className="mt-2"
+                          initial={{ opacity: 0, height: 0 }}
+                          animate={{ opacity: 1, height: 'auto' }}
+                          transition={{ duration: 0.3 }}
+                        >
+                          <h3 className="text-xl font-semibold mb-4">Submit to Public Deepfake Archive</h3>
+                          <p className="text-muted-foreground mb-4">
+                            Your submission will be reviewed before being added to the public archive.
+                            Please provide accurate information.
+                          </p>
+                          {submitError && (
+                            <div className="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-3 rounded-md mb-4">
+                              {submitError}
+                            </div>
+                          )}
+                          <form onSubmit={handleSubmitToPDA} className="space-y-4">
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Title <span className="text-red-500">*</span></label>
+                              <Input
+                                value={pdaTitle}
+                                onChange={(e) => setPdaTitle(e.target.value)}
+                                placeholder="E.g., Political Figure Deepfake"
+                                required
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Category <span className="text-red-500">*</span></label>
+                              <Select value={pdaCategory} onValueChange={setPdaCategory}>
+                                <SelectTrigger>
+                                  <SelectValue placeholder="Select a category" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {pdaCategories.map((category) => (
+                                    <SelectItem key={category.code} value={category.code}>
+                                      {category.name}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Description</label>
+                              <textarea
+                                value={pdaDescription}
+                                onChange={(e) => setPdaDescription(e.target.value)}
+                                placeholder="Describe the deepfake content"
+                                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Context</label>
+                              <textarea
+                                value={pdaContext}
+                                onChange={(e) => setPdaContext(e.target.value)}
+                                placeholder="Provide additional context about the deepfake"
+                                className="w-full min-h-[100px] p-2 border rounded-md bg-transparent"
+                              />
+                            </div>
+                            <div>
+                              <label className="block text-sm font-medium mb-1">Source URL</label>
+                              <Input
+                                value={pdaSourceUrl}
+                                onChange={(e) => setPdaSourceUrl(e.target.value)}
+                                placeholder="https://example.com/source"
+                                type="url"
+                              />
+                            </div>
+                            <div className="flex justify-end">
+                              <Button type="submit" disabled={submitting}>
+                                {submitting ? "Submitting..." : "Submit"}
+                              </Button>
+                            </div>
+                          </form>
+                        </motion.div>
+                      )}
+                    </>
+                  ) : (
+                    <motion.div
+                      className="bg-green-100 dark:bg-green-900/30 text-green-600 dark:text-green-400 p-4 rounded-lg"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      transition={{ duration: 0.5 }}
+                    >
+                      <div className="flex items-center">
+                        <CheckCircle className="h-5 w-5 mr-2" />
+                        <h3 className="font-semibold">Submission Successful</h3>
+                      </div>
+                      <p className="mt-2">
+                        Thank you for your submission to the Public Deepfake Archive. 
+                        Your submission is now under review. If approved, it will be listed in the PDA.
+                      </p>
+                    </motion.div>
+                  )}
                 </motion.div>
-              </div>
-              <div className="mt-4 text-center">
-                <motion.p 
-                  className="text-4xl font-bold text-primary"
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  transition={{ duration: 0.5 }}
-                >
-                  {(analysisResult.confidence_score * 100).toFixed(2)}%
-                </motion.p>
-                <p className="text-muted-foreground">
-                  Confidence of Deepfake Detection
-                </p>
-              </div>
-            </motion.div>
-            {/* Analysis Statistics - Add this right after the Confidence Result container */}
-<motion.div 
-  className="glass-card border p-6 shadow-md"
-  variants={itemVariants}
->
-  <h2 className="text-xl font-semibold mb-4">Analysis Statistics</h2>
-  <div className="grid grid-cols-2 gap-4">
-    <div className="bg-muted/30 p-3 rounded-md">
-      <div className="text-sm text-muted-foreground">Total Frames</div>
-      <div className="text-xl font-semibold">
-        {analysisResult.analysis_report.statistics.total_frames}
-      </div>
-    </div>
-    <div className="bg-muted/30 p-3 rounded-md">
-      <div className="text-sm text-muted-foreground">Fake Frames</div>
-      <div className="text-xl font-semibold">
-        {analysisResult.analysis_report.statistics.fake_frames}
-      </div>
-    </div>
-    <div className="bg-muted/30 p-3 rounded-md">
-      <div className="text-sm text-muted-foreground">Total Crops</div>
-      <div className="text-xl font-semibold">
-        {analysisResult.analysis_report.statistics.total_crops}
-      </div>
-    </div>
-    <div className="bg-muted/30 p-3 rounded-md">
-      <div className="text-sm text-muted-foreground">Fake Crops</div>
-      <div className="text-xl font-semibold">
-        {analysisResult.analysis_report.statistics.fake_crops}
-      </div>
-    </div>
-  </div>
-</motion.div>
-            {/* Analysis Boxes */}
-            <motion.div 
-              className="space-y-4"
-              variants={itemVariants}
-            >
-              {mediaType === 'video' && (
-  <motion.div 
-    className="border rounded-lg p-4 glass-card shadow-md"
-    variants={itemVariants}
-    whileHover={{ scale: 1.02 }}
-  >
-    <h3 className="text-lg font-semibold mb-5">
-      Original Frames
-    </h3>
-    <div className="space-y-4">
-      {/* <h3 className="text-lg font-semibold">Analyzed Frames</h3> */}
-      <SmallCarousel
-        frames={analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)}
-        onImageClick={handleImageClick}
-        type="original"
-        currentIndex={currentOriginalFrameSlide}
-        currentPage={originalFramePage}
-        onPageChange={setOriginalFramePage}
-      />
-    </div>
-  </motion.div>
-)}
-              {/* Error Level Analysis */}
-              <motion.div 
-                className="border rounded-lg p-4 glass-card shadow-md"
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-              >
-                <h3 className="text-lg font-semibold mb-2">
-                  Error Level Analysis
-                </h3>
-                <div>
-                {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
-                    <img 
-                      src={analysisResult.analysis_report.frame_results[0].ela_path} 
-                      alt="Error Level Analysis" 
-                      className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => handleImageClick(
-                        analysisResult.analysis_report.frame_results[0].ela_path,
-                        'error',
-                        0
-                      )}
-                    />
-                  )}
-                  {mediaType === 'video' && (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Analyzed Frames</h3>
-                      <SmallCarousel
-                        frames={analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)}
-                        onImageClick={handleImageClick}
-                        type="error"
-                        currentIndex={currentErrorLevelSlide}
-                        currentPage={errorLevelPage}
-                        onPageChange={setErrorLevelPage}
-                      />
-                    </div>
-                  )}
-                </div>
-              </motion.div>
+              )}
+            </div>
 
-              {/* Gradcam Heatmap */}
-              <motion.div 
-                className="border rounded-lg p-4 glass-card shadow-md"
-                variants={itemVariants}
-                whileHover={{ scale: 1.02 }}
-              >
-                <h3 className="text-lg font-semibold mb-2">
-                  Gradcam Heatmap
-                </h3>
-                <div>
-                {mediaType === 'image' && analysisResult.analysis_report.frame_results.length > 0 && (
-                    <img 
-                      src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
-                      alt="Gradcam Heatmap" 
-                      className="w-full max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => handleImageClick(
-                        analysisResult.analysis_report.frame_results[0].gradcam_path,
-                        'heatmap',
-                        0
-                      )}
+            {/* Right: Detection Result and Stats */}
+            <div className="space-y-8">
+              {/* Detection Result Card */}
+              <motion.div className="glass-card border p-6 shadow-md" variants={itemVariants}>
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">Detection Result</h2>
+                  <motion.div 
+                    className={`px-3 py-1 rounded-full text-white text-sm ${analysisResult.is_deepfake ? 'bg-red-500' : 'bg-green-500'}`}
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
+                  >
+                    {analysisResult.is_deepfake ? 'Likely Deepfake' : 'Likely Authentic'}
+                  </motion.div>
+                </div>
+                <div className="mt-4 text-center">
+                  <motion.p 
+                    className="text-4xl font-bold text-primary"
+                    initial={{ opacity: 0, scale: 0.8 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.5 }}
+                  >
+                    {(analysisResult.confidence_score * 100).toFixed(2)}%
+                  </motion.p>
+                  <p className="text-muted-foreground">
+                    Confidence of Deepfake Detection
+                  </p>
+                </div>
+              </motion.div>
+              {/* Analysis Statistics */}
+              <motion.div className="glass-card border p-6 shadow-md" variants={itemVariants}>
+                <h2 className="text-xl font-semibold mb-4">Analysis Statistics</h2>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Total Frames</div>
+                    <div className="text-xl font-semibold">
+                      {analysisResult.analysis_report.statistics.total_frames}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Fake Frames</div>
+                    <div className="text-xl font-semibold">
+                      {analysisResult.analysis_report.statistics.fake_frames}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Total Crops</div>
+                    <div className="text-xl font-semibold">
+                      {analysisResult.analysis_report.statistics.total_crops}
+                    </div>
+                  </div>
+                  <div className="bg-muted/30 p-3 rounded-md">
+                    <div className="text-sm text-muted-foreground">Fake Crops</div>
+                    <div className="text-xl font-semibold">
+                      {analysisResult.analysis_report.statistics.fake_crops}
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            </div>
+          </div>
+
+          {/* Visual Analysis Section */}
+          {analysisResult.analysis_report.frame_results && analysisResult.analysis_report.frame_results.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-2xl font-bold mb-6">Visual Analysis</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-10">
+                {/* Original Frames */}
+                <div className="glass-card border rounded-lg p-4 shadow-md">
+                  <h3 className="text-lg font-semibold mb-4">Original Frames</h3>
+                  {mediaType === "image" ? (
+                    <div className="flex justify-center">
+                      <img
+                        src={analysisResult.analysis_report.frame_results[0].frame_path}
+                        alt="Original Frame"
+                        className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => handleImageClick(
+                          analysisResult.analysis_report.frame_results[0].frame_path,
+                          'original',
+                          0
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <SmallCarousel
+                      frames={analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)}
+                      onImageClick={handleImageClick}
+                      type="original"
+                      currentIndex={currentOriginalFrameSlide}
+                      currentPage={originalFramePage}
+                      onPageChange={setOriginalFramePage}
                     />
                   )}
-                  {mediaType === 'video' && (
-                    <div className="space-y-4">
-                      <h3 className="text-lg font-semibold">Analyzed Frames</h3>
-                      <SmallCarousel
-                        frames={analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)}
-                        onImageClick={handleImageClick}
-                        type="heatmap"
-                        currentIndex={currentHeatmapSlide}
-                        currentPage={heatmapPage}
-                        onPageChange={setHeatmapPage}
-                      />
-                      
-                    </div>
-                  )}
-                  
                 </div>
-                
-              </motion.div>
-            </motion.div>
-          </motion.div>
+                {/* Error Level Analysis */}
+                <div className="glass-card border rounded-lg p-4 shadow-md">
+                  <h3 className="text-lg font-semibold mb-4">Error Level Analysis</h3>
+                  {mediaType === "image" ? (
+                    <div className="flex justify-center">
+                      <img
+                        src={analysisResult.analysis_report.frame_results[0].ela_path}
+                        alt="Error Level Analysis"
+                        className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => handleImageClick(
+                          analysisResult.analysis_report.frame_results[0].ela_path,
+                          'error',
+                          0
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <SmallCarousel
+                      frames={analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)}
+                      onImageClick={handleImageClick}
+                      type="error"
+                      currentIndex={currentErrorLevelSlide}
+                      currentPage={errorLevelPage}
+                      onPageChange={setErrorLevelPage}
+                    />
+                  )}
+                </div>
+                {/* Gradcam Heatmap */}
+                <div className="glass-card border rounded-lg p-4 shadow-md">
+                  <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
+                  {mediaType === "image" ? (
+                    <div className="flex justify-center">
+                      <img
+                        src={analysisResult.analysis_report.frame_results[0].gradcam_path}
+                        alt="Gradcam Heatmap"
+                        className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => handleImageClick(
+                          analysisResult.analysis_report.frame_results[0].gradcam_path,
+                          'heatmap',
+                          0
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <SmallCarousel
+                      frames={analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)}
+                      onImageClick={handleImageClick}
+                      type="heatmap"
+                      currentIndex={currentHeatmapSlide}
+                      currentPage={heatmapPage}
+                      onPageChange={setHeatmapPage}
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Metadata Section */}
+          {analysisResult.metadata && (
+            <div className="mt-8">
+              {renderMetadata(analysisResult.metadata)}
+            </div>
+          )}
         </motion.div>
-      </div>
-      {analysisResult.metadata && (
-        <div className="max-w-6xl mx-auto px-4 pb-12 min-h-screen flex items-center justify-center px-4 sm:px-6 lg:px-8">
-          {renderMetadata(analysisResult.metadata)}
-        </div>
-      )}
 
-      {/* Modal */}
-      {enlargedImage && currentSliderType && (
-  <ImageModal
-    image={enlargedImage}
-    onClose={handleCloseModal}
-    sliderType={currentSliderType}
-    frames={currentSliderType === 'error'
-      ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
-      : currentSliderType === 'heatmap'
-      ? analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
-      : analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)
-    }
-    currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentSliderType === 'heatmap' ? currentHeatmapSlide : currentOriginalFrameSlide}
-    onSlideChange={(index) => {
-      if (currentSliderType === 'error') {
-        setCurrentErrorLevelSlide(index);
-      } else if (currentSliderType === 'heatmap') {
-        setCurrentHeatmapSlide(index);
-      } else {
-        setCurrentOriginalFrameSlide(index);
-      }
-      setEnlargedImage(currentSliderType === 'error'
-        ? analysisResult.analysis_report.frame_results[index].ela_path
-        : currentSliderType === 'heatmap'
-        ? analysisResult.analysis_report.frame_results[index].gradcam_path
-        : analysisResult.analysis_report.frame_results[index].frame_path
-      );
-    }}
-  />
-)}
+        {/* Modal */}
+        {enlargedImage && currentSliderType && (
+          <ImageModal
+            image={enlargedImage}
+            onClose={handleCloseModal}
+            sliderType={currentSliderType}
+            frames={currentSliderType === 'error'
+              ? analysisResult.analysis_report.frame_results.map(frame => frame.ela_path)
+              : currentSliderType === 'heatmap'
+              ? analysisResult.analysis_report.frame_results.map(frame => frame.gradcam_path)
+              : analysisResult.analysis_report.frame_results.map(frame => frame.frame_path)
+            }
+            currentSlide={currentSliderType === 'error' ? currentErrorLevelSlide : currentSliderType === 'heatmap' ? currentHeatmapSlide : currentOriginalFrameSlide}
+            onSlideChange={(index) => {
+              if (currentSliderType === 'error') {
+                setCurrentErrorLevelSlide(index);
+              } else if (currentSliderType === 'heatmap') {
+                setCurrentHeatmapSlide(index);
+              } else {
+                setCurrentOriginalFrameSlide(index);
+              }
+              setEnlargedImage(currentSliderType === 'error'
+                ? analysisResult.analysis_report.frame_results[index].ela_path
+                : currentSliderType === 'heatmap'
+                ? analysisResult.analysis_report.frame_results[index].gradcam_path
+                : analysisResult.analysis_report.frame_results[index].frame_path
+              );
+            }}
+          />
+        )}
+      </div>
     </Layout>
   );
 }

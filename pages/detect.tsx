@@ -2,19 +2,34 @@
 
 import type React from "react"
 
-import { useState, useCallback } from "react"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { useDropzone } from "react-dropzone"
 import { useRouter } from "next/router"
 import VideoComponent from "../components/ui/VideoComponent"
 import Layout from "../components/Layout"
 import { Button } from "@/components/ui/button"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { Upload, LinkIcon, X, Cloud, BarChart2, FileText } from 'lucide-react'
-import { motion } from "framer-motion"
+import { 
+  Upload, 
+  LinkIcon, 
+  X, 
+  Cloud, 
+  BarChart2, 
+  FileText, 
+  ChevronRight,
+  AlertTriangle,
+  CheckCircle2,
+  Info,
+  Zap,
+  Shield,
+  Search,
+  ArrowUpRight
+} from 'lucide-react'
+import { motion, AnimatePresence } from "framer-motion"
 import { useUser } from "../contexts/UserContext"
 import Cookies from "js-cookie"
 import axios from "axios"
+import Image from "next/image"
 
 export default function DetectPage() {
   const router = useRouter()
@@ -24,8 +39,76 @@ export default function DetectPage() {
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(0)
   const [socialMediaUrl, setSocialMediaUrl] = useState<string>("")
-  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
   const [importError, setImportError] = useState<string | null>(null)
+  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+
+  // Animations variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
+
+  // Modal animations
+  const modalVariants = {
+    hidden: { opacity: 0, scale: 0.95 },
+    visible: { 
+      opacity: 1, 
+      scale: 1,
+      transition: { duration: 0.2 }
+    },
+    exit: {
+      opacity: 0,
+      scale: 0.95,
+      transition: { duration: 0.2 }
+    }
+  };
+
+  // Handle click outside modal
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (modalRef.current && !modalRef.current.contains(event.target as Node)) {
+        setIsCustomModalOpen(false);
+      }
+    };
+
+    if (isCustomModalOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isCustomModalOpen]);
+
+  // Close modal with ESC key
+  useEffect(() => {
+    const handleEsc = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setIsCustomModalOpen(false);
+      }
+    };
+    
+    window.addEventListener('keydown', handleEsc);
+    
+    return () => {
+      window.removeEventListener('keydown', handleEsc);
+    };
+  }, []);
 
   // Dropzone configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -215,7 +298,7 @@ export default function DetectPage() {
 
         // Use onDrop to handle file validation and setting
         onDrop([importedFile])
-        setIsImportModalOpen(false)
+        setIsCustomModalOpen(false)
       } else {
         const errorData = await response.json()
         setImportError(errorData.message || "Failed to import media")
@@ -226,233 +309,453 @@ export default function DetectPage() {
     }
   }
 
+  // Open modal and reset state
+  const openImportModal = () => {
+    setSocialMediaUrl("")
+    setImportError(null)
+    setIsCustomModalOpen(true)
+  }
+
+  // Handle modal close
+  const closeImportModal = () => {
+    setIsCustomModalOpen(false)
+  }
+
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8">
-        <motion.div
-          className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          {/* Page Header */}
-          <h1 className="text-3xl font-bold text-center mb-14 text-gradient">Detect Deepfakes with Exceptional Precision</h1>
-          
-          {/* Action Buttons */}
-          <div className="grid grid-cols-2 gap-4 mb-8">
-            <Button 
-              className="h-14 text-base font-medium"
-              onClick={() => document.getElementById("fileUpload")?.click()}
-            >
-              <Upload className="mr-2 h-5 w-5" /> Upload File
-            </Button>
-            <Button 
-              variant="outline" 
-              className="h-14 text-base font-medium"
-              onClick={() => setIsImportModalOpen(true)}
-            >
-              <LinkIcon className="mr-2 h-5 w-5" /> Import URL
-            </Button>
-            <input
-              type="file"
-              id="fileUpload"
-              className="hidden"
-              onChange={handleFileUpload}
-              accept="image/*,video/*"
-            />
-          </div>
-
-          
-
-          {/* Detection Area */}
-          <div className="bg-card glass-card rounded-2xl p-6 shadow-md mb-8">
-            <h2 className="text-xl font-bold mb-4">Upload Media</h2>
-            <p className="text-muted-foreground mb-4">JPEG, PNG, MP4 Supported (Max: 10MB)</p>
+      {/* Enhanced Header Section with Background */}
+      <div className="relative">
+        {/* Background with more visible gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        {/* Header Content - more compact */}
+        <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-primary text-sm font-medium">
+                <Zap className="h-4 w-4 mr-2" />
+                Advanced AI Deepfake Detection
+              </span>
+            </div>
             
-            <div
-              {...getRootProps()}
-              className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors mb-6 flex flex-col justify-center items-center h-full min-h-[300px] p-6 ${
-                isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground hover:border-primary"
-              }`}
-            >
-              <input {...getInputProps()} />
+            {/* Smaller header text on a single line */}
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              Detect <span className="gradient-text">Deepfakes</span> with Exceptional Precision
+            </h1>
+            
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed">
+              Our advanced AI system analyzes media with multiple detection techniques 
+              to identify manipulated content with industry-leading accuracy
+            </p>
 
-              {/* File Preview */}
-              {file ? (
-                <div className="flex flex-col items-center justify-center h-full w-full">
-                  {file.type.startsWith("image/") ? (
-                    <img
-                      src={URL.createObjectURL(file) || "/placeholder.svg"}
-                      alt="Uploaded file"
-                      className="max-h-[250px] max-w-full object-contain mb-4 rounded-xl shadow-md"
-                    />
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>99.8% Accuracy Rate</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>Multiple Detection Models</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>Comprehensive Reports</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+        <motion.div
+          className="w-full"
+          initial="hidden"
+          animate="visible"
+          variants={containerVariants}
+        >
+          {/* Main Upload Section and How It Works in Two Columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-8">
+            {/* Left Panel: Upload Options - Wider */}
+            <motion.div className="lg:col-span-3" variants={itemVariants}>
+              <div className="glass-card-elevated p-8 rounded-2xl h-full flex flex-col">
+                <h2 className="text-xl font-bold mb-6 flex items-center">
+                  <Upload className="mr-2 h-5 w-5 text-primary" /> 
+                  Upload Media for Analysis
+                </h2>
+                
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-4 mb-8">
+                  <Button 
+                    className="h-14 text-base font-medium bg-primary hover:bg-primary-600 transition-all shadow-subtle hover:shadow-elevation"
+                    onClick={() => document.getElementById("fileUpload")?.click()}
+                  >
+                    <Upload className="mr-2 h-5 w-5" /> Upload File
+                  </Button>
+                  
+                  {/* Custom Import URL Button */}
+                  <Button 
+                    variant="outline" 
+                    className="h-14 text-base font-medium border-primary/20 hover:bg-primary/5"
+                    onClick={openImportModal}
+                  >
+                    <LinkIcon className="mr-2 h-5 w-5" /> Import URL
+                  </Button>
+                  
+                  <input
+                    type="file"
+                    id="fileUpload"
+                    className="hidden"
+                    onChange={handleFileUpload}
+                    accept="image/*,video/*"
+                  />
+                </div>
+
+                {/* Upload/Dropzone Area - Flex grow to take available space */}
+                <div
+                  {...getRootProps()}
+                  className={`border-2 border-dashed rounded-xl transition-all mb-6 flex flex-col justify-center items-center flex-grow min-h-[280px] p-6 ${
+                    isDragActive 
+                      ? "border-primary bg-primary/5" 
+                      : "border-muted-foreground/30 hover:border-primary hover:bg-primary/5"
+                  }`}
+                >
+                  <input {...getInputProps()} />
+
+                  {/* File Preview */}
+                  {file ? (
+                    <div className="flex flex-col items-center justify-center h-full w-full">
+                      {file.type.startsWith("image/") ? (
+                        <img
+                          src={URL.createObjectURL(file) || "/placeholder.svg"}
+                          alt="Uploaded file"
+                          className="max-h-[220px] max-w-full object-contain mb-4 rounded-xl shadow-subtle"
+                        />
+                      ) : (
+                        <VideoComponent file={file} />
+                      )}
+                      <div className="flex items-center py-2 px-4 bg-primary/10 rounded-full mb-6">
+                        <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                        <p className="text-sm font-medium text-primary">{file.name}</p>
+                      </div>
+
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={(e) => {
+                          e.stopPropagation()
+                          handleRemoveFile()
+                        }}
+                        className="flex items-center border-primary/20 hover:bg-primary/5"
+                      >
+                        <X className="mr-2 h-4 w-4" /> Remove File
+                      </Button>
+                    </div>
                   ) : (
-                    <VideoComponent file={file} />
+                    <div className="flex flex-col items-center text-center">
+                      <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                        <Upload className="h-10 w-10 text-primary" />
+                      </div>
+                      <h3 className="text-xl font-semibold mb-2">Drop your file here</h3>
+                      <p className="text-muted-foreground max-w-md mb-6">
+                        Drag & drop an image or video file here, or click to select a file
+                      </p>
+                      <div className="flex items-center text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                        <Info className="h-3 w-3 mr-1" /> JPEG, PNG, MP4 supported (Max: 10MB)
+                      </div>
+                    </div>
                   )}
-                  <p className="text-lg text-primary mb-4">{file.name}</p>
+                </div>
 
-                  <div className="flex items-center space-x-4">
+                {/* Analysis Controls - Moved inside the Upload Media section */}
+                <div className="border-t border-border/40 pt-6 mt-auto">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex items-start md:items-center">
+                      <AlertTriangle className="text-amber-500 h-5 w-5 mr-2 flex-shrink-0 mt-0.5 md:mt-0" />
+                      <p className="text-sm text-muted-foreground md:flex-1">
+                        By clicking "Detect Now", you agree to the terms and conditions of Deep Media Inspection.
+                      </p>
+                    </div>
                     <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        handleRemoveFile()
-                      }}
-                      className="flex items-center"
+                      onClick={handleAnalyze}
+                      disabled={!file || isAnalyzing}
+                      className="py-5 px-8 text-base font-medium h-auto shadow-subtle hover:shadow-elevation transition-all"
                     >
-                      <X className="mr-2 h-4 w-4" /> Remove
+                      {isAnalyzing ? "Analyzing..." : "Detect Now"}
+                      <ChevronRight className="ml-2 h-5 w-5" />
                     </Button>
                   </div>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center">
-                  <Upload className="mx-auto h-16 w-16 text-primary mb-4" />
-                  <p className="text-lg text-muted-foreground">
-                    Drag & drop an image or video file here, or click to select a file
-                  </p>
-                </div>
-              )}
-            </div>
 
-            {/* Terms and Detect Button */}
-            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
-              <p className="text-sm text-muted-foreground md:flex-1 md:mb-0 mb-4">
-                Max size allowed for image is 5mb and max size allowed for video is 10mb. By clicking "DETECT", you
-                agree to terms and conditions of Deep Media Inspection.
-              </p>
-              <Button
-                onClick={handleAnalyze}
-                disabled={!file || isAnalyzing}
-                className="py-4 text-base md:w-auto w-full md:min-w-[230px]"
-              >
-                {isAnalyzing ? "Analyzing..." : "Detect"}
-              </Button>
-            </div>
-            {/* Progress indicator during analysis */}
-          {isAnalyzing && (
-            <motion.div
-              className="mt-6 mb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Progress value={analysisProgress} className="w-full h-2" />
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                Analyzing your media... {analysisProgress}%
-              </p>
+                  {/* Progress indicator during analysis */}
+                  {isAnalyzing && (
+                    <motion.div
+                      className="mt-6"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Progress value={analysisProgress} className="w-full h-2 mb-3" />
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">
+                          Analyzing your media...
+                        </span>
+                        <span className="font-medium text-primary">{analysisProgress}%</span>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              </div>
             </motion.div>
-          )}
+
+            {/* Right Panel: How It Works - Match height */}
+            <motion.div 
+              className="lg:col-span-2"
+              variants={itemVariants}
+            >
+              {/* Enhanced How It Works Section */}
+              <div className="glass-card-elevated p-8 rounded-2xl relative overflow-hidden h-full flex flex-col">
+                {/* Background elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 z-0"></div>
+                
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-8">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <Info className="mr-2 h-5 w-5 text-primary" />
+                      How It Works
+                    </h2>
+                    <div className="bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">
+                      3 Simple Steps
+                    </div>
+                  </div>
+                  
+                  <div className="space-y-6 relative flex-grow">
+                    {/* Vertical line connecting the steps */}
+                    <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-primary/10 z-0"></div>
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="bg-gradient-to-br from-primary to-primary-600 text-white flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-4 flex-shrink-0 shadow-subtle">
+                        01
+                      </div>
+                      <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-primary/10 flex-1">
+                        <h3 className="font-semibold mb-2 flex items-center text-base">
+                          <Upload className="h-4 w-4 mr-2 text-primary" />
+                          Upload Media
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Upload any image or video file, or import directly from social media platforms
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="bg-gradient-to-br from-primary to-primary-600 text-white flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-4 flex-shrink-0 shadow-subtle">
+                        02
+                      </div>
+                      <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-primary/10 flex-1">
+                        <h3 className="font-semibold mb-2 flex items-center text-base">
+                          <BarChart2 className="h-4 w-4 mr-2 text-primary" />
+                          Advanced Analysis
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Our AI performs multiple detection techniques including ELA, facial analysis, and metadata examination
+                        </p>
+                      </div>
+                    </div>
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="bg-gradient-to-br from-primary to-primary-600 text-white flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-4 flex-shrink-0 shadow-subtle">
+                        03
+                      </div>
+                      <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-primary/10 flex-1">
+                        <h3 className="font-semibold mb-2 flex items-center text-base">
+                          <FileText className="h-4 w-4 mr-2 text-primary" />
+                          Detailed Results
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Get comprehensive analysis with confidence scores, visual heatmaps, and detailed metrics
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
           </div>
 
-          
-
-          {/* Three Steps Section */}
-          <div className="bg-card glass-card rounded-2xl p-6 mb-8 shadow-md">
-            <h2 className="text-xl font-bold mb-6">Three Steps to Detect Deepfakes</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <div className="flex flex-col items-center text-center">
-                <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                  <Cloud className="text-primary w-8 h-8" />
+          {/* Full Width Key Features Section as a separate row with reduced gap */}
+          <motion.div 
+            className="mb-6"
+            variants={itemVariants}
+          >
+            {/* Enhanced Key Features Section */}
+            <div className="glass-card-elevated p-10 rounded-2xl relative overflow-hidden">
+              {/* Background elements */}
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl -ml-10 -mb-10 z-0"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 z-0"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold flex items-center">
+                    <Shield className="mr-3 h-6 w-6 text-primary" />
+                    Key Features
+                  </h2>
+                  <a href="/knowledge-base" className="text-primary text-sm font-medium flex items-center hover:underline">
+                    Learn more about our technology
+                    <ArrowUpRight className="ml-1 h-4 w-4" />
+                  </a>
                 </div>
-                <h3 className="text-xl mb-2">Upload media</h3>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                  <BarChart2 className="text-primary w-8 h-8" />
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                  <div className="col-span-1 md:col-span-2 lg:col-span-4">
+                    <div className="bg-gradient-to-br from-primary/10 to-primary/5 backdrop-blur-sm p-6 rounded-xl border border-primary/10 flex items-start">
+                      <div className="bg-white dark:bg-gray-800 rounded-lg p-3 mr-4 shadow-subtle">
+                        <Shield className="h-6 w-6 text-primary" />
+                      </div>
+                      <div>
+                        <h3 className="font-semibold text-lg mb-2">AI-Powered Detection System</h3>
+                        <p className="text-muted-foreground">Our platform uses state-of-the-art deep learning models trained on millions of images to identify manipulation patterns with exceptional accuracy. The system continuously learns and improves from new data.</p>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-1">
+                    <div className="h-full bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                      <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                        <Search className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-base mb-2">Error Level Analysis</h3>
+                      <p className="text-muted-foreground">Sophisticated algorithm that detects manipulation through careful analysis of compression artifacts and inconsistencies in the image</p>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-1">
+                    <div className="h-full bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                      <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                        <BarChart2 className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-base mb-2">Gradcam Heatmaps</h3>
+                      <p className="text-muted-foreground">Visual representation of detected manipulation areas using gradient-weighted class activation mapping technology</p>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-1">
+                    <div className="h-full bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                      <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                        <FileText className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-base mb-2">Metadata Analysis</h3>
+                      <p className="text-muted-foreground">In-depth examination of file metadata to uncover hidden manipulation traces and editing history that might not be visible to the naked eye</p>
+                    </div>
+                  </div>
+                  
+                  <div className="col-span-1">
+                    <div className="h-full bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                      <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                        <Zap className="h-5 w-5 text-primary" />
+                      </div>
+                      <h3 className="font-semibold text-base mb-2">Confidence Scoring</h3>
+                      <p className="text-muted-foreground">Precise probability assessment of content authenticity with detailed breakdowns of detection confidence across multiple metrics</p>
+                    </div>
+                  </div>
                 </div>
-                <h3 className="text-xl mb-2">Deepfake analysis</h3>
-              </div>
-              <div className="flex flex-col items-center text-center">
-                <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                  <FileText className="text-primary w-8 h-8" />
-                </div>
-                <h3 className="text-xl mb-2">Detailed results</h3>
               </div>
             </div>
-          </div>
-
-          {/* Features Section */}
-          <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-            <h2 className="text-xl font-bold mb-6">Features of Deepfake Detection Module</h2>
-            <div className="space-y-4">
-              <div className="feature-card glass-card">
-                <div className="feature-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M22 15.01L21.999 3.00101C21.999 2.4487 21.552 2.00101 21 2.00101L9 2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M8 16H3C2.44772 16 2 16.4477 2 17V21C2 21.5523 2.44772 22 3 22H21C21.5523 22 22 21.5523 22 21V20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M16 8L18 6M10 14L16 8L10 14Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M7 17V17.01" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Error Level Analysis</h3>
-                  <p className="text-muted-foreground text-sm">Detect image manipulation by analyzing compression error levels.</p>
-                </div>
-              </div>
-              
-              <div className="feature-card glass-card">
-                <div className="feature-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2C6.47715 2 2 6.47715 2 12Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M16.2426 7.75736C18.5858 10.1005 18.5858 13.8995 16.2426 16.2426C13.8995 18.5858 10.1005 18.5858 7.75736 16.2426C5.41421 13.8995 5.41421 10.1005 7.75736 7.75736C10.1005 5.41421 13.8995 5.41421 16.2426 7.75736" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M14.1213 9.87868C15.2929 11.0503 15.2929 12.9497 14.1213 14.1213C12.9497 15.2929 11.0503 15.2929 9.87868 14.1213C8.70711 12.9497 8.70711 11.0503 9.87868 9.87868C11.0503 8.70711 12.9497 8.70711 14.1213 9.87868" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Gradcam Heatmaps</h3>
-                  <p className="text-muted-foreground text-sm">Visualize areas of interest in images using gradient-weighted class activation mapping.</p>
-                </div>
-              </div>
-              
-              <div className="feature-card glass-card">
-                <div className="feature-icon">
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    <path d="M12 2V4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12 20V22" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M4 12H2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M22 12H20" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M19.0784 4.92163L17.6642 6.33584" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M6.33584 17.6642L4.92163 19.0784" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M19.0784 19.0784L17.6642 17.6642" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M6.33584 6.33584L4.92163 4.92163" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <path d="M12 16C14.2091 16 16 14.2091 16 12C16 9.79086 14.2091 8 12 8C9.79086 8 8 9.79086 8 12C8 14.2091 9.79086 16 12 16Z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-semibold mb-1">Metadata analysis</h3>
-                  <p className="text-muted-foreground text-sm">Detailed examination of file metadata to uncover hidden manipulation traces.</p>
-                </div>
-              </div>
-            </div>
-          </div>
+          </motion.div>
         </motion.div>
       </div>
 
-      {/* Social Media Import Dialog */}
-      <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
-        <DialogContent className="bg-card rounded-2xl">
-          <DialogHeader>
-            <DialogTitle>Import from Social Media</DialogTitle>
-          </DialogHeader>
-          <div className="space-y-4">
-            <input
-              type="text"
-              placeholder="Enter social media post URL"
-              value={socialMediaUrl}
-              onChange={(e) => setSocialMediaUrl(e.target.value)}
-              className="w-full p-4 border rounded-xl bg-background"
+      {/* Custom modal implementation */}
+      <AnimatePresence>
+        {isCustomModalOpen && (
+          <>
+            {/* Background overlay */}
+            <motion.div 
+              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              onClick={closeImportModal}
             />
-            <Button onClick={handleSocialMediaImport} className="w-full">
-              Import Media
-            </Button>
-            {importError && <p className="text-red-500">{importError}</p>}
-            <p className="text-sm text-muted-foreground">
-              Supported platforms: Instagram, Twitter, Facebook, TikTok
-            </p>
-          </div>
-        </DialogContent>
-      </Dialog>
+            
+            {/* Modal content */}
+            <motion.div 
+              className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+            >
+              <motion.div 
+                ref={modalRef}
+                className="bg-card rounded-2xl border-0 shadow-elevation max-w-md w-full mx-auto"
+                variants={modalVariants}
+                initial="hidden"
+                animate="visible"
+                exit="exit"
+                onClick={(e) => e.stopPropagation()}
+              >
+                {/* Modal header */}
+                <div className="p-6 border-b border-border">
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-xl font-semibold">Import from Social Media</h2>
+                    <button 
+                      onClick={closeImportModal}
+                      className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <X className="h-4 w-4" />
+                    </button>
+                  </div>
+                </div>
+                
+                {/* Modal body */}
+                <div className="p-6 space-y-4">
+                  <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 text-sm text-muted-foreground mb-6">
+                    <div className="flex">
+                      <Info className="h-5 w-5 text-primary mr-2 flex-shrink-0" />
+                      <p>Enter the URL of a public social media post containing media you want to analyze</p>
+                    </div>
+                  </div>
+                  
+                  <input
+                    type="text"
+                    placeholder="https://www.example.com/post/..."
+                    value={socialMediaUrl}
+                    onChange={(e) => setSocialMediaUrl(e.target.value)}
+                    className="w-full p-4 border rounded-xl bg-background focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none transition-all"
+                  />
+                  
+                  <Button onClick={handleSocialMediaImport} className="w-full h-12 shadow-subtle hover:shadow-elevation transition-all">
+                    <LinkIcon className="mr-2 h-4 w-4" />
+                    Import Media
+                  </Button>
+                  
+                  {importError && (
+                    <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-start">
+                      <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+                      <p>{importError}</p>
+                    </div>
+                  )}
+                  
+                  <div className="flex flex-wrap gap-2 justify-center pt-2">
+                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">Instagram</div>
+                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">Twitter</div>
+                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">Facebook</div>
+                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">TikTok</div>
+                  </div>
+                </div>
+              </motion.div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
     </Layout>
   )
 }

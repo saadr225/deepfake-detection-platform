@@ -1,4 +1,4 @@
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -6,75 +6,74 @@
 
 @layer base {
   :root {
-    /* Updated color scheme to match mobile app */
-    --background: 260 33% 98%; /* Light lavender-tinted background */
+    /* Updated color scheme for a more modern look */
+    --background: 220 30% 98%; /* Subtle blue-gray background */
     --foreground: 224 71% 4%;
     --card: 0 0% 100%; /* White cards */
     --card-foreground: 224 71% 4%;
     --popover: 0 0% 100%;
     --popover-foreground: 224 71% 4%;
-    --primary: 252 74% 64%; /* #7165E3 - Purple from mobile app */
+    --primary: 240 81% 67%; /* #6366F1 - Modern indigo */
     --primary-foreground: 0 0% 100%;
     --secondary: 220 14% 96%;
-    --secondary-foreground: 252 74% 64%;
+    --secondary-foreground: 240 81% 67%;
     --muted: 220 14% 96%;
     --muted-foreground: 220 8% 46%;
-    --accent: 252 100% 98%; /* Light purple accent */
-    --accent-foreground: 252 74% 64%;
+    --accent: 240 96% 98%; /* Light indigo accent */
+    --accent-foreground: 240 81% 67%;
     --destructive: 0 84% 60%;
     --destructive-foreground: 210 40% 98%;
     --border: 220 13% 91%;
     --input: 220 13% 91%;
-    --ring: 252 74% 64%;
-    --radius: 1rem; /* Increased border radius to match mobile app */
+    --ring: 240 81% 67%;
+    --radius: 1rem; 
 
     /* Sidebar variables for light mode */
-    --sidebar-background: 252 74% 64%; /* Purple sidebar */
+    --sidebar-background: 240 81% 67%; /* Indigo sidebar */
     --sidebar-foreground: 0 0% 100%; /* White text */
-    --sidebar-border: 252 59% 40%;
-    --sidebar-accent: 252 59% 40%; /* Darker purple for hover */
+    --sidebar-border: 240 64% 50%;
+    --sidebar-accent: 240 64% 50%; /* Darker indigo for hover */
     --sidebar-accent-foreground: 0 0% 100%;
 
     /* Chart colors */
-    --chart-1: 252 74% 64%; /* Primary purple */
-    --chart-2: 252 59% 65%; /* Lighter purple */
+    --chart-1: 240 81% 67%; /* Primary indigo */
+    --chart-2: 240 70% 75%; /* Lighter indigo */
     --chart-3: 230 64% 60%; /* Blue */
     --chart-4: 199 89% 48%; /* Cyan */
     --chart-5: 152 60% 52%; /* Teal */
   }
 
   .dark {
-    /* --background: 224 71% 4%; Dark background */
-    --background: 0 0 4%;
-    --foreground: 210 40% 98%;
-    --card: 224 71% 8%; /* Dark card background */
-    --card-foreground: 210 40% 98%;
-    --popover: 224 71% 8%;
-    --popover-foreground: 210 40% 98%;
-    --primary: 252 74% 64%; /* Keep same purple for dark mode */
+    --background: 230 25% 8%; /* Dark blue-gray background for better contrast */
+    --foreground: 220 40% 98%;
+    --card: 230 25% 12%; /* Darker card background */
+    --card-foreground: 220 40% 98%;
+    --popover: 230 25% 12%;
+    --popover-foreground: 220 40% 98%;
+    --primary: 240 81% 67%; /* Keep same indigo for dark mode */
     --primary-foreground: 0 0% 100%;
-    --secondary: 215 27% 16%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 215 27% 16%;
-    --muted-foreground: 217 10% 64%;
-    --accent: 252 59% 20%;
-    --accent-foreground: 210 40% 98%;
+    --secondary: 230 25% 16%;
+    --secondary-foreground: 220 40% 98%;
+    --muted: 230 25% 16%;
+    --muted-foreground: 230 20% 70%;
+    --accent: 240 70% 20%;
+    --accent-foreground: 220 40% 98%;
     --destructive: 0 62% 30%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 215 27% 16%;
-    --input: 215 27% 16%;
-    --ring: 252 74% 64%;
+    --destructive-foreground: 220 40% 98%;
+    --border: 230 25% 20%;
+    --input: 230 25% 20%;
+    --ring: 240 81% 67%;
 
     /* Sidebar variables for dark mode */
-    --sidebar-background: 252 59% 25%; /* Darker purple sidebar */
+    --sidebar-background: 240 70% 25%; /* Darker indigo sidebar */
     --sidebar-foreground: 0 0% 100%;
-    --sidebar-border: 252 59% 20%;
-    --sidebar-accent: 252 59% 30%;
+    --sidebar-border: 240 70% 20%;
+    --sidebar-accent: 240 70% 30%;
     --sidebar-accent-foreground: 0 0% 100%;
 
     /* Chart colors for dark mode */
-    --chart-1: 252 74% 64%;
-    --chart-2: 252 59% 75%;
+    --chart-1: 240 81% 67%;
+    --chart-2: 240 70% 75%;
     --chart-3: 230 64% 70%;
     --chart-4: 199 89% 58%;
     --chart-5: 152 60% 62%;
@@ -117,27 +116,35 @@
     animation: slideUp 0.5s ease-out;
   }
 
-  /* Card styling */
+  /* Modern Card styling */
   .card-enhanced {
-    @apply bg-card rounded-2xl shadow-card border border-border/40 transition-all duration-300 hover:shadow-card-hover;
+    @apply bg-card rounded-2xl shadow-card border border-border/40 transition-all duration-300 hover:shadow-card-hover hover:-translate-y-1;
+  }
+
+  .card-glass {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border border-white/20 dark:border-gray-800/50 shadow-elevation;
   }
 
   /* Button styling */
   .btn-primary {
-    @apply bg-primary text-primary-foreground hover:bg-primary/90 rounded-xl px-4 py-2 font-medium transition-colors;
+    @apply bg-primary text-primary-foreground hover:bg-primary-600 active:bg-primary-700 rounded-xl px-4 py-2 font-medium transition-all duration-200 shadow-subtle hover:shadow-subtle-md;
   }
 
   .btn-secondary {
-    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl px-4 py-2 font-medium transition-colors;
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 rounded-xl px-4 py-2 font-medium transition-all duration-200;
   }
 
   .btn-outline {
     @apply border border-input bg-background hover:bg-accent hover:text-accent-foreground rounded-xl px-4 py-2 font-medium transition-colors;
   }
 
+  .btn-icon {
+    @apply h-10 w-10 rounded-full flex items-center justify-center bg-primary/10 text-primary hover:bg-primary/20 transition-all;
+  }
+
   /* Form styling */
   .form-input {
-    @apply rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2;
+    @apply rounded-xl border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 transition-all duration-200;
   }
 
   .form-label {
@@ -146,7 +153,7 @@
 
   /* Feature card styling */
   .feature-card {
-    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 flex items-start gap-4;
+    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 flex items-start gap-4 hover:shadow-elevation transition-all duration-300 hover:-translate-y-1;
   }
   
   .feature-icon {
@@ -155,7 +162,7 @@
 
   /* Step card styling */
   .step-card {
-    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 flex flex-col items-center text-center gap-4;
+    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 flex flex-col items-center text-center gap-4 hover:shadow-elevation transition-all duration-300;
   }
   
   .step-icon {
@@ -164,14 +171,52 @@
 
   /* Result card styling */
   .result-card {
-    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40;
+    @apply bg-card rounded-2xl p-6 shadow-md border border-border/40 hover:shadow-elevation transition-all duration-300;
   }
   
   .success-card {
     @apply bg-success-light rounded-2xl p-6 shadow-md border border-success/20 text-center;
   }
 
-  /* Add these styles to your existing globals.css */
+  /* New modern gradient sections */
+  .gradient-bg {
+    @apply bg-gradient-to-br from-primary-500/90 via-primary-600/80 to-primary-700/90 animate-gradient-xy text-white;
+  }
+
+  .gradient-text {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-700 font-bold;
+  }
+
+  .gradient-border {
+    @apply border border-transparent bg-gradient-to-r from-primary-300 to-primary-500 rounded-2xl;
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+
+  /* Modern glass cards */
+  .glass-card {
+    @apply bg-white/70 dark:bg-gray-900/70 backdrop-blur-md rounded-2xl border border-white/20 dark:border-gray-800/30 shadow-subtle;
+  }
+
+  .glass-card-elevated {
+    @apply bg-white/80 dark:bg-gray-900/80 backdrop-blur-md rounded-2xl border border-white/20 dark:border-gray-800/30 shadow-elevation transition-all duration-300 hover:shadow-elevation-md hover:-translate-y-1;
+  }
+
+  /* Stats counter card */
+  .stats-card {
+    @apply glass-card-elevated p-8 text-center;
+  }
+  
+  .stats-value {
+    @apply text-4xl font-bold gradient-text mb-2;
+  }
+  
+  .stats-label {
+    @apply text-muted-foreground text-sm uppercase tracking-wider;
+  }
+
+  /* Add these styles for your carousel */
   .carousel-container {
     display: flex;
     flex-direction: column;
@@ -330,19 +375,6 @@
     background-color: rgba(113, 101, 227, 0.4);
   }
 
-  /* Add navigation button content */
-  /* .carousel-button.prev::before {
-    content: "‹";
-    font-size: 24px;
-    line-height: 1;
-  }
-
-  .carousel-button.next::before {
-    content: "›";
-    font-size: 24px;
-    line-height: 1;
-  } */
-
   .carousel-button:not(:disabled):hover {
     background-color: #5d52c7;
   }
@@ -351,7 +383,6 @@
     background-color: #5d52c7;
   }
 
-  /* Dark mode support */
   .dark .carousel-button {
     background-color: rgba(113, 101, 227, 0.6);
   }
@@ -385,17 +416,16 @@
   }
 
   /* global.css or Sidebar.module.css */
-
   .sidebar {
-    transition: width 0.3s;
+    @apply transition-all duration-300 bg-gradient-to-b from-primary-600 to-primary-700/90 backdrop-blur-sm;
   }
 
   .sidebar .menu-item {
-    @apply px-4 py-3 flex items-center gap-4 rounded-xl transition-colors duration-200;
+    @apply px-4 py-3 flex items-center gap-4 rounded-xl transition-all duration-200 my-1;
   }
 
   .sidebar .menu-item:hover {
-    @apply bg-sidebar-accent text-sidebar-accent-foreground;
+    @apply bg-sidebar-accent/60 text-sidebar-accent-foreground translate-x-1;
   }
 
   .sidebar .menu-item.active {
@@ -499,42 +529,155 @@
       transform: translateY(-5px);
     }
     100% {
-      transform: translateY(0);
+      transform: translateY(0px);
     }
   }
 
   .hover-elevate {
-    transition: transform 0.3s ease, box-shadow 0.3s ease;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s ease-in-out;
   }
 
   .hover-elevate:hover {
-    animation: elevate 0.3s ease forwards;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1), 0 0 0 3px rgba(113, 101, 227, 0.3);
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.1);
   }
 
   .hover-elevate:not(:hover) {
-    animation: de-elevate 0.3s ease forwards;
+    animation: de-elevate 0.2s ease-in-out forwards;
   }
 
   .dark .hover-elevate {
-    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1);
+    transition: all 0.2s ease-in-out;
   }
 
   .dark .hover-elevate:hover {
-    box-shadow: 0 4px 6px rgba(255, 255, 255, 0.1), 0 0 0 3px rgba(113, 101, 227, 0.3);
+    box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.3);
   }
 
   .how-it-works-step {
-    @apply relative z-20 rounded-2xl bg-card dark:bg-card p-6 pl-16 shadow-md;
+    @apply relative pl-12 pb-8;
   }
 
   .how-it-works-step-number {
-    @apply absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-primary dark:bg-primary flex items-center justify-center;
+    @apply absolute left-0 top-0 w-8 h-8 rounded-full bg-primary flex items-center justify-center;
   }
 
   .how-it-works-step-number span {
-    @apply text-xl font-bold text-white;
+    @apply text-white font-bold text-sm;
+  }
+
+  /* Hide scrollbar for clean UIs */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  /* Glass effect for backgrounds */
+  .glass-effect {
+    @apply backdrop-blur-md bg-white/30 dark:bg-gray-900/30 border border-white/20 dark:border-gray-800/30;
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    @apply text-transparent bg-clip-text bg-gradient-to-r from-primary-500 to-primary-700 font-bold;
+  }
+
+  /* Modern loading spinner */
+  .spinner {
+    @apply h-10 w-10 rounded-full border-4 border-primary/30 border-t-primary animate-spin;
+  }
+
+  /* Modern scrollbar */
+  .scrollbar-thin::-webkit-scrollbar {
+    @apply w-2 h-2;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    @apply bg-transparent rounded-full;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    @apply bg-gray-300 dark:bg-gray-600 rounded-full hover:bg-gray-400 dark:hover:bg-gray-500 transition-colors;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb:hover {
+    @apply bg-gray-400 dark:bg-gray-500;
+  }
+
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(155, 155, 155, 0.5) transparent;
+  }
+
+  /* Modern three step process */
+  .three-steps {
+    @apply grid md:grid-cols-3 gap-8;
+  }
+
+  .step-item {
+    @apply flex flex-col items-center text-center;
+  }
+
+  .step-icon-container {
+    @apply w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4;
+  }
+
+  .step-icon {
+    @apply text-primary h-8 w-8;
+  }
+
+  .step-title {
+    @apply text-xl font-semibold mb-2;
+  }
+
+  .step-description {
+    @apply text-muted-foreground;
+  }
+
+  /* Modern tabs */
+  .tab-container {
+    @apply flex border-b border-gray-200 dark:border-gray-700 mb-6;
+  }
+
+  .tab-button {
+    @apply px-6 py-3 text-sm font-medium transition-colors duration-200;
+  }
+
+  .tab-button-active {
+    @apply text-primary border-b-2 border-primary;
+  }
+
+  .tab-button-inactive {
+    @apply text-muted-foreground hover:text-foreground hover:bg-gray-50 dark:hover:bg-gray-800;
+  }
+
+  /* Modern code styling */
+  pre {
+    @apply bg-gray-50 dark:bg-gray-800 p-4 rounded-xl overflow-x-auto my-4 border border-gray-200 dark:border-gray-700;
+  }
+
+  /* Animation for elements entering viewport */
+  .animate-in {
+    @apply opacity-0 translate-y-4;
+    animation: fadeIn50 0.5s ease-out forwards;
+  }
+
+  .fade-in-50 {
+    animation: fadeIn50 0.5s ease-out forwards;
+  }
+
+  @keyframes fadeIn50 {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }
 

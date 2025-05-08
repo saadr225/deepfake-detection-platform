@@ -12,8 +12,21 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Progress } from "@/components/ui/progress"
-import { Upload, Link, X, AlertTriangle, CheckCircle, FileText, Cloud, BarChart2 } from 'lucide-react'
-import { motion } from "framer-motion"
+import { 
+  Upload, 
+  Link, 
+  X, 
+  AlertTriangle, 
+  CheckCircle, 
+  FileText, 
+  Cloud, 
+  BarChart2,
+  Zap,
+  Info,
+  CheckCircle2,
+  ArrowUpRight
+} from 'lucide-react'
+import { motion, AnimatePresence } from "framer-motion"
 import { useUser } from "../contexts/UserContext"
 import Cookies from "js-cookie"
 import axios from "axios"
@@ -326,319 +339,480 @@ export default function AIContentDetectionPage() {
 
   return (
     <Layout>
-      <div className="min-h-screen flex items-center justify-center py-5 px-4 sm:px-6 lg:px-8">
+      {/* Enhanced Header Section with Background */}
+      <div className="relative">
+        {/* Background with more visible gradient */}
+        <div className="absolute inset-0 z-0 overflow-hidden">
+          <div className="w-full h-full bg-gradient-to-b from-primary/60 via-primary/40 to-background"></div>
+          <div className="absolute top-0 right-0 w-72 h-72 bg-primary/30 rounded-full blur-3xl transform -translate-y-1/3"></div>
+          <div className="absolute mb-10 bottom-1/4 left-0 w-64 h-64 bg-primary/25 rounded-full blur-3xl transform translate-y-1/4"></div>
+        </div>
+        
+        {/* Header Content - more compact */}
+        <div className="relative z-10 pt-16 pb-16 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
+          <motion.div 
+            className="text-center max-w-4xl mx-auto"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7 }}
+          >
+            <div className="inline-flex items-center justify-center mb-6 relative">
+              <div className="absolute inset-0 bg-primary/20 rounded-full blur-md"></div>
+              <span className="relative inline-flex items-center px-4 py-2 rounded-full bg-primary/15 border border-primary/30 text-primary text-sm font-medium">
+                <Zap className="h-4 w-4 mr-2" />
+                Advanced AI Content Detection
+              </span>
+            </div>
+            
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-6 leading-tight tracking-tight">
+              Detect <span className="gradient-text">AI-Generated</span> Content with Precision
+            </h1>
+            
+            <p className="text-muted-foreground max-w-2xl mx-auto text-base md:text-lg mb-8 leading-relaxed">
+              Our platform identifies AI-generated images and text using advanced detection models
+              to help you verify content authenticity
+            </p>
+
+            <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-muted-foreground mb-4">
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>98.7% Accuracy Rate</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>Text & Image Analysis</span>
+              </div>
+              <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/20">
+                <CheckCircle2 className="h-4 w-4 text-primary" /> 
+                <span>Multi-Source Detection</span>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+      </div>
+
+      <div className="py-6 px-4 sm:px-6 lg:px-8 max-w-[1400px] mx-auto">
         <motion.div
-          className="max-w-6xl mx-auto py-8 px-4 sm:px-6 lg:px-8 w-full"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
+          className="w-full"
+          initial="hidden"
+          animate="visible"
+          variants={{
+            hidden: { opacity: 0 },
+            visible: {
+              opacity: 1,
+              transition: {
+                staggerChildren: 0.1
+              }
+            }
+          }}
         >
-          <h1 className="text-3xl font-bold text-center mb-14 text-gradient">Generative AI Detection</h1>
-          
-          {/* Tab Buttons */}
-          <div className="tab-container mb-8">
-            <button 
-              className={`tab-button ${activeTab === "media" ? "tab-button-active" : "tab-button-inactive"}`}
-              onClick={() => setActiveTab("media")}
+          {/* Main Content Section in Two Columns */}
+          <div className="grid grid-cols-1 lg:grid-cols-5 gap-6 mb-24">
+            {/* Left Panel: Upload Options with Tabs Above */}
+            <motion.div 
+              className="lg:col-span-3"
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { 
+                  opacity: 1, 
+                  y: 0,
+                  transition: { duration: 0.5 }
+                }
+              }}
             >
-              <div className="flex items-center justify-center">
-                <Upload className="mr-2 h-5 w-5" />
-                <span>Upload File</span>
-              </div>
-            </button>
-            <button 
-              className={`tab-button ${activeTab === "text" ? "tab-button-active" : "tab-button-inactive"}`}
-              onClick={() => setActiveTab("text")}
-            >
-              <div className="flex items-center justify-center">
-                <FileText className="mr-2 h-5 w-5" />
-                <span>Detect Text</span>
-              </div>
-            </button>
-          </div>
-
-          {/* Image Detection Tab */}
-          {activeTab === "media" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-8"
-            >
-              {/* Upload Section */}
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <h2 className="text-xl font-bold mb-4">Upload Media</h2>
-                <p className="text-muted-foreground mb-4">JPEG, PNG Supported (Max: 5MB)</p>
-                
-                <div
-                  {...getRootProps()}
-                  className={`border-2 border-dashed rounded-xl text-center cursor-pointer transition-colors mb-6 flex flex-col justify-center items-center h-full min-h-[300px] p-6 ${
-                    isDragActive ? "border-primary bg-primary/5" : "border-muted-foreground hover:border-primary"
-                  }`}
+              {/* Tabs Navigation - Positioned Above Upload Container */}
+              <div className="tab-container mb-4">
+                <button 
+                  className={`tab-button ${activeTab === "media" ? "tab-button-active" : "tab-button-inactive"}`}
+                  onClick={() => setActiveTab("media")}
                 >
-                  <input {...getInputProps()} />
-
-                  {file ? (
-                    <div className="flex flex-col items-center justify-center h-full w-full">
-                      {file.type.startsWith("image/") && (
-                        <img
-                          src={URL.createObjectURL(file) || "/placeholder.svg"}
-                          alt="Uploaded file"
-                          className="max-h-[250px] max-w-full object-contain mb-4 rounded-xl shadow-md"
-                        />
-                      )}
-                      <p className="text-lg text-primary mb-4">{file.name}</p>
-                      <div className="flex items-center space-x-4">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            handleRemoveFile()
-                          }}
-                          className="flex items-center"
-                        >
-                          <X className="mr-2 h-4 w-4" /> Remove
-                        </Button>
-                      </div>
+                  <div className="flex items-center justify-center">
+                    <Upload className="mr-2 h-5 w-5" />
+                    <span>Upload File</span>
+                  </div>
+                </button>
+                <button 
+                  className={`tab-button ${activeTab === "text" ? "tab-button-active" : "tab-button-inactive"}`}
+                  onClick={() => setActiveTab("text")}
+                >
+                  <div className="flex items-center justify-center">
+                    <FileText className="mr-2 h-5 w-5" />
+                    <span>Detect Text</span>
+                  </div>
+                </button>
+              </div>
+              
+              <div className="glass-card-elevated p-8 rounded-2xl h-full flex flex-col">
+                {activeTab === "media" && (
+                  <>
+                    <h2 className="text-xl font-bold mb-6 flex items-center">
+                      <Upload className="mr-2 h-5 w-5 text-primary" /> 
+                      Upload Image for Analysis
+                    </h2>
+                    
+                    {/* Action Buttons */}
+                    <div className="grid grid-cols-2 gap-4 mb-8">
+                      <Button 
+                        className="h-14 text-base font-medium bg-primary hover:bg-primary-600 transition-all shadow-subtle hover:shadow-elevation"
+                        onClick={() => document.getElementById("fileUpload")?.click()}
+                      >
+                        <Upload className="mr-2 h-5 w-5" /> Upload File
+                      </Button>
+                      
+                      <input
+                        type="file"
+                        id="fileUpload"
+                        className="hidden"
+                        onChange={handleFileUpload}
+                        accept="image/*"
+                      />
                     </div>
-                  ) : (
-                    <div className="flex flex-col items-center">
-                      <Upload className="mx-auto h-16 w-16 text-primary mb-4" />
-                      <p className="text-lg text-muted-foreground">
-                        Drag & drop an image file here, or click to select a file
+
+                    {/* Dropzone Area */}
+                    <div
+                      {...getRootProps()}
+                      className={`border-2 border-dashed rounded-xl transition-all mb-6 flex flex-col justify-center items-center flex-grow min-h-[280px] p-6 ${
+                        isDragActive 
+                          ? "border-primary bg-primary/5" 
+                          : "border-muted-foreground/30 hover:border-primary hover:bg-primary/5"
+                      }`}
+                    >
+                      <input {...getInputProps()} />
+
+                      {/* File Preview */}
+                      {file ? (
+                        <div className="flex flex-col items-center justify-center h-full w-full">
+                          <img
+                            src={URL.createObjectURL(file) || "/placeholder.svg"}
+                            alt="Uploaded file"
+                            className="max-h-[220px] max-w-full object-contain mb-4 rounded-xl shadow-subtle"
+                          />
+                          <div className="flex items-center py-2 px-4 bg-primary/10 rounded-full mb-6">
+                            <div className="w-2 h-2 bg-primary rounded-full mr-2"></div>
+                            <p className="text-sm font-medium text-primary">{file.name}</p>
+                          </div>
+
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              handleRemoveFile()
+                            }}
+                            className="flex items-center border-primary/20 hover:bg-primary/5"
+                          >
+                            <X className="mr-2 h-4 w-4" /> Remove File
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="flex flex-col items-center text-center">
+                          <div className="w-20 h-20 bg-primary/10 rounded-full flex items-center justify-center mb-6">
+                            <Upload className="h-10 w-10 text-primary" />
+                          </div>
+                          <h3 className="text-xl font-semibold mb-2">Drop your file here</h3>
+                          <p className="text-muted-foreground max-w-md mb-6">
+                            Drag & drop an image file here, or click to select a file
+                          </p>
+                          <div className="flex items-center text-xs text-muted-foreground bg-muted/50 px-3 py-1 rounded-full">
+                            <Info className="h-3 w-3 mr-1" /> JPEG, PNG supported (Max: 5MB)
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </>
+                )}
+
+                {activeTab === "text" && (
+                  <>
+                    <h2 className="text-xl font-bold mb-6 flex items-center">
+                      <FileText className="mr-2 h-5 w-5 text-primary" /> 
+                      Analyze Text Content
+                    </h2>
+                    
+                    <textarea
+                      placeholder="Enter text to analyze for AI generation..."
+                      className="w-full p-4 border border-muted-foreground/30 rounded-xl mb-6 bg-background/50 focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none transition-all flex-grow min-h-[280px]"
+                      value={text}
+                      onChange={(e) => setText(e.target.value)}
+                    />
+                  </>
+                )}
+
+                {/* Analysis Controls */}
+                <div className="border-t border-border/40 pt-6 mt-auto">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div className="flex items-start md:items-center">
+                      <AlertTriangle className="text-amber-500 h-5 w-5 mr-2 flex-shrink-0 mt-0.5 md:mt-0" />
+                      <p className="text-sm text-muted-foreground md:flex-1">
+                        By clicking "Detect Now", you agree to the terms and conditions of Deep Media Inspection.
                       </p>
                     </div>
+                    <Button
+                      onClick={handleAnalyze}
+                      disabled={(activeTab === "media" && !file) || (activeTab === "text" && !text.trim()) || isAnalyzing}
+                      className="py-5 px-8 text-base font-medium h-auto shadow-subtle hover:shadow-elevation transition-all"
+                    >
+                      {isAnalyzing ? "Analyzing..." : "Detect Now"}
+                    </Button>
+                  </div>
+
+                  {/* Progress indicator during analysis */}
+                  {isAnalyzing && (
+                    <motion.div
+                      className="mt-6"
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      transition={{ duration: 0.3 }}
+                    >
+                      <Progress value={analysisProgress} className="w-full h-2 mb-3" />
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">
+                          Analyzing your {activeTab === "media" ? "image" : "text"}...
+                        </span>
+                        <span className="font-medium text-primary">{analysisProgress}%</span>
+                      </div>
+                    </motion.div>
                   )}
                 </div>
+              </div>
+            </motion.div>
 
-                <div className="flex flex-col md:flex-row gap-4 mb-4">
-                  <Button
-                    onClick={() => document.getElementById("fileUpload")?.click()}
-                    className="md:flex-1"
-                  >
-                    Select File
-                  </Button>
-                  <Button
-                    onClick={handleAnalyze}
-                    disabled={!file || isAnalyzing}
-                    className="py-4 text-base md:flex-1"
-                  >
-                    {isAnalyzing ? "Analyzing..." : "Detect"}
-                  </Button>
-                  <input
-                    type="file"
-                    id="fileUpload"
-                    className="hidden"
-                    onChange={handleFileUpload}
-                    accept="image/*"
-                  />
-                </div>
-
-                <div className="flex flex-col">
-                  <p className="text-xs text-muted-foreground">
-                    Max size allowed is 5MB for images. By clicking "DETECT", you agree to the AI Content Detection
-                    terms and conditions.
-                  </p>
-                </div>
-
-                {/* Analysis progress indicator */}
-          {isAnalyzing && (
-            <motion.div
-              className="mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
+            {/* Right Panel: How It Works */}
+            <motion.div 
+              className="lg:col-span-2"
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { 
+                  opacity: 1, 
+                  y: 0,
+                  transition: { duration: 0.5 }
+                }
+              }}
             >
-              <Progress value={analysisProgress} className="w-full h-2" />
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                Analyzing your content... {analysisProgress}%
-              </p>
-            </motion.div>
-          )}
-              </div>
-
-              {/* Three Steps Section */}
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <h2 className="text-xl font-bold mb-6">Three Steps to Detect AI</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                      <Cloud className="text-primary w-8 h-8" />
+              {/* Enhanced How It Works Section */}
+              <div className="glass-card-elevated mt-16 p-8 rounded-2xl relative overflow-hidden h-full flex flex-col">
+                {/* Background elements */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 z-0"></div>
+                
+                <div className="relative z-10 flex flex-col h-full">
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold flex items-center">
+                      <Info className="mr-2 h-5 w-5 text-primary" />
+                      How It Works
+                    </h2>
+                    <div className="bg-primary/10 text-primary text-xs font-medium px-3 py-1 rounded-full">
+                      3 Simple Steps
                     </div>
-                    <h3 className="text-xl mb-2 ">Upload content</h3>
                   </div>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                      <BarChart2 className="text-primary w-8 h-8" />
+                  
+                  <div className="space-y-6 relative flex-grow">
+                    {/* Vertical line connecting the steps */}
+                    <div className="absolute left-4 top-6 bottom-6 w-0.5 bg-primary/10 z-0"></div>
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="bg-gradient-to-br from-primary to-primary-600 text-white flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-4 flex-shrink-0 shadow-subtle">
+                        01
+                      </div>
+                      <div className="mb-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-primary/10 flex-1">
+                        <h3 className="font-semibold mb-2 flex items-center text-base">
+                          <Upload className="h-4 w-4 mr-2 text-primary" />
+                          Upload Content
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Upload any image or paste text you want to analyze for AI generation markers
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl mb-2">AI analysis</h3>
-                  </div>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                      <FileText className="text-primary w-8 h-8" />
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="bg-gradient-to-br from-primary to-primary-600 text-white flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-4 flex-shrink-0 shadow-subtle">
+                        02
+                      </div>
+                      <div className="mb-10 bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-primary/10 flex-1">
+                        <h3 className="font-semibold mb-2 flex items-center text-base">
+                          <BarChart2 className="h-4 w-4 mr-2 text-primary" />
+                          AI Analysis
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Our models examine content patterns, structures, and unique artifacts that indicate AI generation
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl mb-2">View results</h3>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          )}
-
-          {/* Text Detection Tab */}
-          {activeTab === "text" && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.3 }}
-              className="space-y-8"
-            >
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <h2 className="text-xl font-bold mb-4">Text Analysis</h2>
-                <textarea
-                  placeholder="Enter text here..."
-                  className="w-full h-[300px] p-4 border rounded-xl mb-6 bg-background"
-                  value={text}
-                  onChange={(e) => setText(e.target.value)}
-                />
-                <div className="flex flex-col">
-                  <p className="text-xs text-muted-foreground mb-4">
-                    By clicking "ANALYZE TEXT", you agree to the AI Content Detection terms and conditions.
-                  </p>
-                  <Button
-                    onClick={handleAnalyze}
-                    disabled={!text.trim() || isAnalyzing}
-                    className="w-full py-4 text-base"
-                  >
-                    {isAnalyzing ? "Analyzing..." : "Analyze Text"}
-                  </Button>
-                </div>
-                {/* Analysis progress indicator */}
-          {isAnalyzing && (
-            <motion.div
-              className="mt-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              transition={{ duration: 0.3 }}
-            >
-              <Progress value={analysisProgress} className="w-full h-2" />
-              <p className="text-center text-sm text-muted-foreground mt-2">
-                Analyzing your content... {analysisProgress}%
-              </p>
-            </motion.div>
-          )}
-              </div>
-
-              {/* Three Steps Section */}
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <h2 className="text-xl font-bold mb-6">Three Steps to Detect AI</h2>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                      <Cloud className="text-primary w-8 h-8" />
+                    
+                    <div className="flex items-start relative z-10">
+                      <div className="bg-gradient-to-br from-primary to-primary-600 text-white flex items-center justify-center w-8 h-8 rounded-full text-sm font-bold mr-4 flex-shrink-0 shadow-subtle">
+                        03
+                      </div>
+                      <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-5 rounded-xl border border-primary/10 flex-1">
+                        <h3 className="font-semibold mb-2 flex items-center text-base">
+                          <FileText className="h-4 w-4 mr-2 text-primary" />
+                          Detailed Results
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          Get comprehensive detection results with confidence scores, source predictions, and explanations
+                        </p>
+                      </div>
                     </div>
-                    <h3 className="text-xl mb-2">Upload content</h3>
-                  </div>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                      <BarChart2 className="text-primary w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl mb-2">AI analysis</h3>
-                  </div>
-                  <div className="flex flex-col items-center text-center">
-                    <div className="bg-accent rounded-2xl p-4 mb-4 w-16 h-16 flex items-center justify-center">
-                      <FileText className="text-primary w-8 h-8" />
-                    </div>
-                    <h3 className="text-xl mb-2">View results</h3>
                   </div>
                 </div>
               </div>
             </motion.div>
-          )}
+          </div>
 
-          {/* Text Analysis Results */}
+          {/* Text Results Section */}
           {textResults && (
             <motion.div
               ref={resultsRef}
-              className="mt-12 space-y-6"
+              className="glass-card-elevated p-8 rounded-2xl mb-8"
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.5 }}
+              variants={{
+                hidden: { opacity: 0, y: 20 },
+                visible: { 
+                  opacity: 1, 
+                  y: 0,
+                  transition: { duration: 0.5 }
+                }
+              }}
             >
-              <h2 className="text-2xl font-bold mb-4">AI Text Detection Results</h2>
+              <h2 className="text-xl font-bold mb-6 flex items-center">
+                <FileText className="mr-2 h-5 w-5 text-primary" /> 
+                AI Text Detection Results
+              </h2>
 
-              {/* Source Prediction */}
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <div className="flex items-center gap-2 mb-4">
-                  <h3 className="text-xl font-semibold">Primary Source Prediction:</h3>
-                  <Badge
-                    variant="outline"
-                    className={
-                      textResults.source_prediction === "Human"
-                        ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100"
-                        : "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-100"
-                    }
-                  >
-                    {textResults.source_prediction}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center mt-2">
-                  {textResults.is_ai_generated ? (
-                    <div className="flex items-center text-amber-600 dark:text-amber-400">
-                      <AlertTriangle className="w-5 h-5 mr-1" />
-                      <span>AI-generated content detected</span>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                {/* Source Prediction */}
+                <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border">
+                  <h3 className="font-semibold mb-4 flex items-center">
+                    <BarChart2 className="h-4 w-4 mr-2 text-primary" />
+                    Primary Source Prediction
+                  </h3>
+                  
+                  <div className="flex flex-col space-y-4">
+                    <div className="flex items-center">
+                      {textResults.is_ai_generated ? (
+                        <div className="flex items-center text-amber-600 dark:text-amber-400 space-x-2">
+                          <AlertTriangle className="w-5 h-5" />
+                          <span className="font-medium">AI-Generated Content Detected</span>
+                        </div>
+                      ) : (
+                        <div className="flex items-center text-green-600 dark:text-green-400 space-x-2">
+                          <CheckCircle className="w-5 h-5" />
+                          <span className="font-medium">Likely Human-Written Content</span>
+                        </div>
+                      )}
                     </div>
-                  ) : (
-                    <div className="flex items-center text-green-600 dark:text-green-400">
-                      <CheckCircle className="w-5 h-5 mr-1" />
-                      <span>Likely human-written content</span>
+                    
+                    <div className="bg-primary/10 text-primary text-sm font-medium px-4 py-2 rounded-lg inline-flex">
+                      Predicted Source: {textResults.source_prediction}
                     </div>
-                  )}
+                  </div>
                 </div>
-              </div>
 
-              {/* Confidence Scores */}
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <h3 className="text-xl font-semibold mb-4">Confidence Scores</h3>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                  {Object.entries(textResults.confidence_scores || {}).map(([source, score]) => (
-                    <div key={source} className="bg-card glass-card rounded-xl p-4 shadow-sm border">
-                      <div className="font-semibold mb-2">{source}</div>
-                      <div className="text-2xl font-bold">{formatPercentage(score as number)}</div>
-                      <Progress
-                        value={(score as number) * 100}
-                        className={`mt-2 ${
-                          source === "Human"
-                            ? "[&>div]:bg-green-500"
-                            : source === "Claude"
-                              ? "[&>div]:bg-primary"
-                              : "[&>div]:bg-amber-500"
-                        }`}
-                      />
-                    </div>
-                  ))}
+                {/* Confidence Scores Summary */}
+                <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border">
+                  <h3 className="font-semibold mb-4 flex items-center">
+                    <BarChart2 className="h-4 w-4 mr-2 text-primary" />
+                    Confidence Scores
+                  </h3>
+                  
+                  <div className="space-y-4">
+                    {Object.entries(textResults.confidence_scores || {}).map(([source, score]) => (
+                      <div key={source} className="space-y-1">
+                        <div className="flex justify-between items-center">
+                          <span className="text-sm font-medium">{source}</span>
+                          <span className="text-sm font-bold">{formatPercentage(score as number)}</span>
+                        </div>
+                        <Progress
+                          value={(score as number) * 100}
+                          className={`h-2 ${
+                            source === "Human"
+                              ? "[&>div]:bg-green-500"
+                              : source === "Claude"
+                                ? "[&>div]:bg-primary"
+                                : "[&>div]:bg-amber-500"
+                          }`}
+                        />
+                      </div>
+                    ))}
+                  </div>
                 </div>
               </div>
 
               {/* Analyzed Text with Highlights */}
-              <div className="bg-card glass-card rounded-2xl p-6 shadow-md">
-                <h3 className="text-xl font-semibold mb-2">Analyzed Text</h3>
-                <p className="text-sm text-muted-foreground mb-4">Highlighted portions indicate AI-generated content</p>
+              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border">
+                <h3 className="font-semibold mb-2 flex items-center">
+                  <FileText className="h-4 w-4 mr-2 text-primary" />
+                  Analyzed Text
+                </h3>
+                <p className="text-sm text-muted-foreground mb-4">Highlighted portions indicate potential AI-generated content</p>
                 {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}
               </div>
             </motion.div>
           )}
 
-          {textError && (
-            <div className="mt-8 p-4 bg-red-100 dark:bg-red-900 border border-red-400 rounded-xl text-red-700 dark:text-red-300">
-              <p>{textError}</p>
+          {/* Features Section */}
+          <motion.div 
+            className="mb-6"
+            variants={{
+              hidden: { opacity: 0, y: 20 },
+              visible: { 
+                opacity: 1, 
+                y: 0,
+                transition: { duration: 0.5 }
+              }
+            }}
+          >
+            <div className="glass-card-elevated p-10 rounded-2xl relative overflow-hidden">
+              {/* Background elements */}
+              <div className="absolute bottom-0 left-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl -ml-10 -mb-10 z-0"></div>
+              <div className="absolute top-0 right-0 w-40 h-40 bg-primary/5 rounded-full blur-2xl -mr-10 -mt-10 z-0"></div>
+              
+              <div className="relative z-10">
+                <div className="flex items-center justify-between mb-8">
+                  <h2 className="text-2xl font-bold flex items-center">
+                    <Info className="mr-3 h-6 w-6 text-primary" />
+                    Key Features
+                  </h2>
+                  <a href="/knowledge-base" className="text-primary text-sm font-medium flex items-center hover:underline">
+                    Learn more about our technology
+                    <ArrowUpRight className="ml-1 h-4 w-4" />
+                  </a>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                  <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                    <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                      <BarChart2 className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-2">Multi-Model Detection</h3>
+                    <p className="text-muted-foreground">Our system uses multiple specialized models to detect content from various AI generators like DALL-E, Midjourney, and GPT</p>
+                  </div>
+                  
+                  <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                    <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-2">Highlighted Text Analysis</h3>
+                    <p className="text-muted-foreground">Visualize potentially AI-generated parts of text with intelligent highlighting that identifies AI writing patterns</p>
+                  </div>
+                  
+                  <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border flex flex-col">
+                    <div className="bg-primary/10 rounded-lg p-3 mb-3 w-fit">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                    <h3 className="font-semibold text-base mb-2">Detailed Source Analysis</h3>
+                    <p className="text-muted-foreground">Identify not just if content is AI-generated, but which specific AI model likely created it with source attribution</p>
+                  </div>
+                </div>
+              </div>
             </div>
-          )}
+          </motion.div>
         </motion.div>
       </div>
 
-      {/* Social Media Import Dialog */}
+      {/* Custom modal for import URL - will be created if needed */}
       <Dialog open={isImportModalOpen} onOpenChange={setIsImportModalOpen}>
         <DialogContent className="bg-card rounded-2xl">
           <DialogHeader>
