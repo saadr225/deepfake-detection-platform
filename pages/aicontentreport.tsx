@@ -820,17 +820,21 @@ export default function AIContentReportPage() {
             <div className="glass-card border rounded-lg p-4 shadow-md">
               <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
               {mediaType === "image" ? (
-                <div className="flex justify-center">
-                  <img
-                    src={analysisResult.analysis_report.gradcam_path}
-                    alt="Gradcam Heatmap"
-                    className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                    onClick={() => handleImageClick(
-                      analysisResult.analysis_report.gradcam_path,
-                      'heatmap',
-                      0
-                    )}
-                  />
+                <div className="grid grid-cols-3 gap-2">
+                  {[0, 1, 2].map((index) => (
+                    <div key={index} className="relative aspect-video">
+                      <img
+                        src={analysisResult.analysis_report.gradcam_path}
+                        alt={`Gradcam Heatmap ${index + 1}`}
+                        className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                        onClick={() => handleImageClick(
+                          analysisResult.analysis_report.gradcam_path,
+                          'heatmap',
+                          0
+                        )}
+                      />
+                    </div>
+                  ))}
                 </div>
               ) : (
                 <SmallCarousel

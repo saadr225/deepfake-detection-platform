@@ -1097,17 +1097,21 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                 <div className="glass-card border rounded-lg p-4 shadow-md">
                   <h3 className="text-lg font-semibold mb-4">Original Frames</h3>
                   {mediaType === "image" ? (
-                    <div className="flex justify-center">
-                      <img
-                        src={analysisResult.analysis_report.frame_results[0].frame_path}
-                        alt="Original Frame"
-                        className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                        onClick={() => handleImageClick(
-                          analysisResult.analysis_report.frame_results[0].frame_path,
-                          'original',
-                          0
-                        )}
-                      />
+                    <div className="grid grid-cols-3 gap-2">
+                      {[0, 1, 2].map((index) => (
+                        <div key={index} className="relative aspect-video">
+                          <img
+                            src={analysisResult.analysis_report.frame_results[0].frame_path}
+                            alt={`Original Frame ${index + 1}`}
+                            className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                            onClick={() => handleImageClick(
+                              analysisResult.analysis_report.frame_results[0].frame_path,
+                              'original',
+                              0
+                            )}
+                          />
+                        </div>
+                      ))}
                     </div>
                   ) : (
       <SmallCarousel
@@ -1124,17 +1128,21 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                 <div className="glass-card border rounded-lg p-4 shadow-md">
                   <h3 className="text-lg font-semibold mb-4">Error Level Analysis</h3>
                   {mediaType === "image" ? (
-                    <div className="flex justify-center">
-                    <img 
-                      src={analysisResult.analysis_report.frame_results[0].ela_path} 
-                      alt="Error Level Analysis" 
-                        className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => handleImageClick(
-                        analysisResult.analysis_report.frame_results[0].ela_path,
-                        'error',
-                        0
-                      )}
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {[0, 1, 2].map((index) => (
+                        <div key={index} className="relative aspect-video">
+                          <img 
+                            src={analysisResult.analysis_report.frame_results[0].ela_path} 
+                            alt={`Error Level Analysis ${index + 1}`} 
+                            className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                            onClick={() => handleImageClick(
+                              analysisResult.analysis_report.frame_results[0].ela_path,
+                              'error',
+                              0
+                            )}
+                          />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                       <SmallCarousel
@@ -1151,17 +1159,21 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                 <div className="glass-card border rounded-lg p-4 shadow-md">
                   <h3 className="text-lg font-semibold mb-4">Gradcam Heatmap</h3>
                   {mediaType === "image" ? (
-                    <div className="flex justify-center">
-                    <img 
-                      src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
-                      alt="Gradcam Heatmap" 
-                        className="max-h-[150px] object-contain cursor-pointer transition-transform hover:scale-105"
-                      onClick={() => handleImageClick(
-                        analysisResult.analysis_report.frame_results[0].gradcam_path,
-                        'heatmap',
-                        0
-                      )}
-                    />
+                    <div className="grid grid-cols-3 gap-2">
+                      {[0, 1, 2].map((index) => (
+                        <div key={index} className="relative aspect-video">
+                          <img 
+                            src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
+                            alt={`Gradcam Heatmap ${index + 1}`} 
+                            className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
+                            onClick={() => handleImageClick(
+                              analysisResult.analysis_report.frame_results[0].gradcam_path,
+                              'heatmap',
+                              0
+                            )}
+                          />
+                        </div>
+                      ))}
                     </div>
                   ) : (
                       <SmallCarousel
