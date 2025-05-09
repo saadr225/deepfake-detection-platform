@@ -694,7 +694,7 @@ const performFaceSearch = async () => {
       onValueChange={handleCategoryChange}
       disabled={isFaceMatchEnabled}
     >
-      <SelectTrigger>
+      <SelectTrigger className="h-12 rounded-xl">
         <div className="flex items-center">
           <Filter className="mr-2 h-4 w-4" />
           <SelectValue placeholder="All Categories" />

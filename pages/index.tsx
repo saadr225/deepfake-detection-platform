@@ -111,8 +111,14 @@ export default function Home() {
             className="w-full h-full object-cover"
             priority
           />
-          {/* Stronger gradient overlay for better text visibility */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-background z-10"></div>
+          {/* Gradient overlay - different for light and dark mode */}
+          <div className="absolute inset-0 z-10">
+            {/* Dark mode gradient - starts higher */}
+            <div className="hidden dark:block absolute inset-0 bg-gradient-to-b from-black/60 via-black/50 to-background"></div>
+            {/* Light mode gradient - starts lower */}
+            {/* <div className="block dark:hidden absolute inset-0 bg-gradient-to-b from-black/60 from-40% via-black/50 to-background"></div> */}
+            <div className="block dark:hidden absolute inset-0 bg-gradient-to-b from-black/50 via-black/40 to-background"></div>
+          </div>
         </div>
 
         {/* Content positioned over the image */}

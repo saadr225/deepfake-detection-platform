@@ -999,8 +999,8 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                     analysisResult.is_deepfake 
                           ? "bg-red-100 text-red-600 dark:bg-red-900 dark:text-red-300"
                           : "bg-green-100 text-green-600 dark:bg-green-900 dark:text-green-300"
-                      }`}
-                    >
+                  }`}
+                >
                       {analysisResult.is_deepfake ? (
                         <AlertTriangle className="h-8 w-8" />
                       ) : (
@@ -1131,16 +1131,16 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                     <div className="grid grid-cols-3 gap-2">
                       {[0, 1, 2].map((index) => (
                         <div key={index} className="relative aspect-video">
-                          <img 
-                            src={analysisResult.analysis_report.frame_results[0].ela_path} 
+                    <img 
+                      src={analysisResult.analysis_report.frame_results[0].ela_path} 
                             alt={`Error Level Analysis ${index + 1}`} 
                             className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
-                            onClick={() => handleImageClick(
-                              analysisResult.analysis_report.frame_results[0].ela_path,
-                              'error',
-                              0
-                            )}
-                          />
+                      onClick={() => handleImageClick(
+                        analysisResult.analysis_report.frame_results[0].ela_path,
+                        'error',
+                        0
+                      )}
+                    />
                         </div>
                       ))}
                     </div>
@@ -1162,16 +1162,16 @@ const handleSubmitToPDA = async (e: React.FormEvent) => {
                     <div className="grid grid-cols-3 gap-2">
                       {[0, 1, 2].map((index) => (
                         <div key={index} className="relative aspect-video">
-                          <img 
-                            src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
+                    <img 
+                      src={analysisResult.analysis_report.frame_results[0].gradcam_path} 
                             alt={`Gradcam Heatmap ${index + 1}`} 
                             className="w-full h-[150px] object-cover rounded-lg cursor-pointer transition-transform hover:scale-105"
-                            onClick={() => handleImageClick(
-                              analysisResult.analysis_report.frame_results[0].gradcam_path,
-                              'heatmap',
-                              0
-                            )}
-                          />
+                      onClick={() => handleImageClick(
+                        analysisResult.analysis_report.frame_results[0].gradcam_path,
+                        'heatmap',
+                        0
+                      )}
+                    />
                         </div>
                       ))}
                     </div>
