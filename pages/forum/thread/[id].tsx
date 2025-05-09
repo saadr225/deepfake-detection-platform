@@ -16,6 +16,10 @@ import {
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
 import Image from "next/image"
+import axios from "axios"
+
+// Constants
+const API_URL = "http://localhost:8000"
 
 // Type definitions
 interface Author {
@@ -24,6 +28,37 @@ interface Author {
   joinDate: string;
   postCount: number;
   isVerified?: boolean;
+}
+
+// API Thread and Reply interfaces
+interface ApiTag {
+  id: number;
+  name: string;
+}
+
+interface ApiTopic {
+  id: number;
+  name: string;
+}
+
+interface ApiReply {
+  id: number;
+  content: string;
+  author: string;
+  created_at: string;
+  like_count: number;
+}
+
+interface ApiThreadDetail {
+  id: number;
+  title: string;
+  content: string;
+  author: string;
+  created_at: string;
+  updated_at: string;
+  like_count: number;
+  tags: ApiTag[];
+  topic: ApiTopic;
 }
 
 interface UserData {
@@ -204,11 +239,13 @@ export default function ThreadPage() {
   const [replyToMain, setReplyToMain] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
-  const [thread, setThread] = useState<ThreadData>(MOCK_THREAD)
-  const [replies, setReplies] = useState<ThreadReply[]>(MOCK_REPLIES)
+  const [thread, setThread] = useState<ThreadData | null>(null)
+  const [replies, setReplies] = useState<ThreadReply[]>([])
   const [mediaPreview, setMediaPreview] = useState<string | null>(null)
   const [mediaFile, setMediaFile] = useState<File | null>(null)
   const [sortBy, setSortBy] = useState<'best' | 'top' | 'new' | 'old'>('best')
+  const [isLoading, setIsLoading] = useState(true)
+  const [loadError, setLoadError] = useState<string | null>(null)
   
   // Add state for reaction UI
   const [showReactionPicker, setShowReactionPicker] = useState<{ type: 'thread' | 'reply'; id: number } | null>(null)
@@ -227,7 +264,100 @@ export default function ThreadPage() {
   ]
   
   const fileInputRef = useRef<HTMLInputElement>(null)
-
+  
+  // Fetch thread details when ID is available
+  useEffect(() => {
+    const fetchThreadDetails = async () => {
+      if (!id) return
+      
+      setIsLoading(true)
+      setLoadError(null)
+      
+      try {
+        const response = await axios.get(`${API_URL}/api/forum/threads/${id}/`)
+        
+        if (response.data.success) {
+          const apiThread = response.data.thread
+          const apiReplies = response.data.replies
+          
+          // Format thread data from API to match our UI requirements
+          const formattedThread: ThreadData = {
+            id: apiThread.id,
+            title: apiThread.title,
+            content: apiThread.content,
+            author: {
+              username: apiThread.author,
+              avatar: "/images/avatars/default.png", // Default avatar
+              joinDate: "Unknown", // Not provided by API
+              postCount: 0, // Not provided by API
+              isVerified: false // Not provided by API
+            },
+            date: new Date(apiThread.created_at).toLocaleDateString(),
+            timeAgo: timeAgoFromDate(new Date(apiThread.created_at)),
+            views: 0, // Not provided by API yet
+            likes: apiThread.like_count,
+            upvotes: apiThread.like_count, // Using like_count for upvotes
+            downvotes: 0, // Not provided by API yet
+            tags: apiThread.tags.map((tag: ApiTag) => tag.name),
+            status: "open" // Assuming open by default
+          }
+          
+          // Format replies from API
+          const formattedReplies: ThreadReply[] = apiReplies.map((reply: ApiReply) => ({
+            id: reply.id,
+            content: reply.content,
+            author: {
+              username: reply.author,
+              avatar: "/images/avatars/default.png", // Default avatar
+              joinDate: "Unknown", // Not provided by API
+              postCount: 0, // Not provided by API
+              isVerified: false // Not provided by API
+            },
+            date: new Date(reply.created_at).toLocaleDateString(),
+            timeAgo: timeAgoFromDate(new Date(reply.created_at)),
+            likes: reply.like_count,
+            upvotes: reply.like_count, // Using like_count for upvotes
+            downvotes: 0, // Not provided by API yet
+            isVerified: false, // Not provided by API
+            media: null, // Not provided by API yet
+            replies: [] // Not provided by API yet
+          }))
+          
+          setThread(formattedThread)
+          setReplies(formattedReplies)
+        } else {
+          setLoadError(response.data.message || "Failed to load thread details")
+          // Fallback to mock data for development
+          setThread(MOCK_THREAD)
+          setReplies(MOCK_REPLIES)
+        }
+      } catch (error) {
+        console.error("Error fetching thread details:", error)
+        setLoadError("An error occurred while loading the thread details")
+        // Fallback to mock data for development
+        setThread(MOCK_THREAD)
+        setReplies(MOCK_REPLIES)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+    
+    // Helper function to calculate time ago string
+    const timeAgoFromDate = (date: Date): string => {
+      const now = new Date()
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000)
+      
+      if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`
+      if (diffInSeconds < 2592000) return `${Math.floor(diffInSeconds / 86400)} days ago`
+      if (diffInSeconds < 31536000) return `${Math.floor(diffInSeconds / 2592000)} months ago`
+      return `${Math.floor(diffInSeconds / 31536000)} years ago`
+    }
+    
+    fetchThreadDetails()
+  }, [id])
+  
   // Function to handle reply submission
   const handleSubmitReply = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -365,12 +495,15 @@ export default function ThreadPage() {
   
   // Function to handle voting
   const handleVote = (type: 'thread' | 'reply', id: number, isUpvote: boolean) => {
-    if (type === 'thread') {
-      setThread(prev => ({
-        ...prev,
-        upvotes: isUpvote ? (prev.upvotes || 0) + 1 : prev.upvotes,
-        downvotes: !isUpvote ? (prev.downvotes || 0) + 1 : prev.downvotes
-      }))
+    if (type === 'thread' && thread) {
+      setThread(prev => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          upvotes: isUpvote ? (prev.upvotes || 0) + 1 : prev.upvotes,
+          downvotes: !isUpvote ? (prev.downvotes || 0) + 1 : prev.downvotes
+        };
+      });
     } else {
       // Deep clone of replies to ensure we don't mutate state directly
       const updatedReplies = JSON.parse(JSON.stringify(replies)) as ThreadReply[]
@@ -419,8 +552,10 @@ export default function ThreadPage() {
       return
     }
     
-    if (type === 'thread') {
+    if (type === 'thread' && thread) {
       setThread(prev => {
+        if (!prev) return prev;
+        
         // Create reactions array if it doesn't exist
         const reactions = prev.reactions || []
         const username = user.username || 'anonymous'
@@ -448,11 +583,11 @@ export default function ThreadPage() {
               updatedReactions[existingIndex] = {
                 ...updatedReactions[existingIndex],
                 users: updatedUsers,
-                count: updatedReactions[existingIndex].count - 1
+                count: updatedUsers.length
               }
             }
           } else {
-            // Add user to existing emoji
+            // User has not reacted with this emoji yet, add their reaction
             updatedReactions[existingIndex] = {
               ...updatedReactions[existingIndex],
               users: [...updatedReactions[existingIndex].users, username],
@@ -460,7 +595,7 @@ export default function ThreadPage() {
             }
           }
         } else {
-          // This emoji doesn't exist yet, add it
+          // This emoji hasn't been used yet, add it
           updatedReactions.push({
             emoji,
             count: 1,
@@ -468,14 +603,8 @@ export default function ThreadPage() {
           })
         }
         
-        // Sort reactions by count
-        updatedReactions.sort((a, b) => b.count - a.count)
-        
-        // Visual feedback
+        // Animate the new reaction
         setReactionAdded(Date.now())
-        
-        // Hide the reaction picker
-        setShowReactionPicker(null)
         
         return {
           ...prev,
@@ -486,11 +615,10 @@ export default function ThreadPage() {
       // Deep clone of replies to ensure we don't mutate state directly
       const updatedReplies = JSON.parse(JSON.stringify(replies)) as ThreadReply[]
       
-      // Recursive function to find and update the reaction
+      // Recursive function to find and update the reactions for a reply
       const updateReactions = (replies: ThreadReply[]): boolean => {
         for (let i = 0; i < replies.length; i++) {
           if (replies[i].id === id) {
-            // Create reactions array if it doesn't exist
             const reactions = replies[i].reactions || []
             const username = user.username || 'anonymous'
             
@@ -514,11 +642,11 @@ export default function ThreadPage() {
                   reactions[existingIndex] = {
                     ...reactions[existingIndex],
                     users: updatedUsers,
-                    count: reactions[existingIndex].count - 1
+                    count: updatedUsers.length
                   }
                 }
               } else {
-                // Add user to existing emoji
+                // User has not reacted with this emoji yet, add their reaction
                 reactions[existingIndex] = {
                   ...reactions[existingIndex],
                   users: [...reactions[existingIndex].users, username],
@@ -526,7 +654,7 @@ export default function ThreadPage() {
                 }
               }
             } else {
-              // This emoji doesn't exist yet, add it
+              // This emoji hasn't been used yet, add it
               reactions.push({
                 emoji,
                 count: 1,
@@ -534,17 +662,11 @@ export default function ThreadPage() {
               })
             }
             
-            // Sort reactions by count
-            reactions.sort((a, b) => b.count - a.count)
-            
             // Update the reply with the new reactions
             replies[i].reactions = reactions
             
-            // Visual feedback
+            // Animate the new reaction
             setReactionAdded(Date.now())
-            
-            // Hide the reaction picker
-            setShowReactionPicker(null)
             
             return true
           }
@@ -566,20 +688,41 @@ export default function ThreadPage() {
   
   // Function to check if current user has reacted with a specific emoji
   const hasUserReacted = (reactions: Reaction[] | undefined, emoji: string): boolean => {
-    if (!user || !reactions) return false
+    if (!user || !reactions) return false;
     
-    const username = user.username || 'anonymous'
-    const reaction = reactions.find(r => r.emoji === emoji)
+    const username = user.username || 'anonymous';
+    const reaction = reactions.find(r => r.emoji === emoji);
     
-    return reaction ? reaction.users.includes(username) : false
-  }
+    return reaction ? reaction.users.includes(username) : false;
+  };
   
-  // Loading state for SSR
-  if (router.isFallback) {
+  // Loading state for data fetching or SSR
+  if (isLoading || router.isFallback) {
     return (
       <Layout>
         <div className="flex justify-center items-center min-h-screen">
-          <div className="spinner"></div>
+          <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+        </div>
+      </Layout>
+    )
+  }
+  
+  // Error state
+  if (loadError || !thread) {
+    return (
+      <Layout>
+        <div className="max-w-5xl mx-auto px-4 py-16 text-center">
+          <div className="bg-destructive/10 text-destructive p-6 rounded-xl mb-6 inline-flex">
+            <AlertCircle size={24} className="mr-2" />
+          </div>
+          <h1 className="text-2xl font-bold mb-4">Thread Not Found</h1>
+          <p className="text-muted-foreground mb-6">{loadError || "The thread you're looking for doesn't exist or has been removed."}</p>
+          <Link href="/forum" passHref>
+            <Button>
+              <ArrowLeft size={16} className="mr-2" />
+              Return to Forum
+            </Button>
+          </Link>
         </div>
       </Layout>
     )

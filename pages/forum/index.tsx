@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import Layout from "@/components/Layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,11 +10,13 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useUser } from "@/contexts/UserContext"
-import { Plus, MessageSquare, AlertCircle, Users, Tag, ThumbsUp, ThumbsDown, Search, BookmarkIcon, ArrowUp, ArrowDown, Sparkles, TrendingUp, Clock, Filter, X, ChevronRight, CheckCircle2 } from "lucide-react"
+import { Plus, MessageSquare, AlertCircle, Users, Tag, ThumbsUp, ThumbsDown, Search, BookmarkIcon, ArrowUp, ArrowDown, Sparkles, TrendingUp, Clock, Filter, X, ChevronRight, CheckCircle2, Check } from "lucide-react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/router"
 import Link from "next/link"
 import Image from "next/image"
+import axios from "axios"
+import Cookies from "js-cookie"
 
 // Mock data for topics/tags (would come from API)
 const MOCK_TOPICS = [
@@ -221,6 +223,33 @@ const MOCK_THREADS = [
   },
 ]
 
+// Constants
+const API_URL = "http://localhost:8000"
+
+// Interface for tag data
+interface Tag {
+  id: number;
+  name: string;
+  use_count: number;
+}
+
+// Interface for thread data from API
+interface ThreadData {
+  id: number;
+  title: string;
+  author: string;
+  created_at: string;
+  replies_count: number;
+  like_count: number;
+}
+
+// Interface for pagination data
+interface PaginationData {
+  current_page: number;
+  total_pages: number;
+  total_items: number;
+}
+
 export default function ForumPage() {
   const { user } = useUser()
   const router = useRouter()
@@ -228,19 +257,128 @@ export default function ForumPage() {
   const [isCreatingThread, setIsCreatingThread] = useState(false)
   const [title, setTitle] = useState("")
   const [content, setContent] = useState("")
-  const [selectedTopics, setSelectedTopics] = useState<number[]>([])
+  const [selectedTopic, setSelectedTopic] = useState<number | null>(null)
+  const [selectedTags, setSelectedTags] = useState<number[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState("")
+  const [successMessage, setSuccessMessage] = useState("")
   const [activeSort, setActiveSort] = useState<'hot' | 'new' | 'top'>('hot')
   const [searchInput, setSearchInput] = useState("")
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null)
+  const [tags, setTags] = useState<Tag[]>([])
+  const [isLoadingTags, setIsLoadingTags] = useState(false)
+  const [threads, setThreads] = useState<typeof MOCK_THREADS>([])
+  const [isLoadingThreads, setIsLoadingThreads] = useState(false)
+  const [pagination, setPagination] = useState<PaginationData | null>(null)
+  const [currentPage, setCurrentPage] = useState(1)
+  const [currentTopicId, setCurrentTopicId] = useState<number | null>(null)
   
-  // Function to handle topic selection
+  // Fetch tags when component mounts
+  useEffect(() => {
+    const fetchTags = async () => {
+      setIsLoadingTags(true)
+      try {
+        const response = await axios.get(`${API_URL}/api/forum/tags/`)
+        if (response.data.success) {
+          setTags(response.data.tags)
+        } else {
+          console.error("Failed to fetch tags:", response.data.message)
+        }
+      } catch (error) {
+        console.error("Error fetching tags:", error)
+      } finally {
+        setIsLoadingTags(false)
+      }
+    }
+
+    fetchTags()
+  }, [])
+  
+  // Fetch threads when component mounts or filter changes
+  useEffect(() => {
+    const fetchThreads = async () => {
+      setIsLoadingThreads(true)
+      try {
+        // Construct query parameters
+        const params = new URLSearchParams()
+        params.append('page', currentPage.toString())
+        params.append('items', '20')
+        
+        if (currentTopicId) {
+          params.append('topic_id', currentTopicId.toString())
+        }
+        
+        const response = await axios.get(`${API_URL}/api/forum/threads/?${params.toString()}`)
+        
+        if (response.data.success) {
+          // We need to transform the API response to match our current thread structure
+          // but keep existing mock data for fields not in the API response
+          const apiThreads = response.data.threads;
+          
+          // For now, merge API data with mock data to maintain structure
+          // Later this will be fully replaced with API data
+          const mergedThreads = apiThreads.map((apiThread: ThreadData) => {
+            // Find a mock thread to use as a template
+            const mockThread = MOCK_THREADS.find(mock => mock.id === apiThread.id) || MOCK_THREADS[0];
+            
+            // Create a new thread object with API data, filling in missing fields from mock data
+            return {
+              ...mockThread,
+              id: apiThread.id,
+              title: apiThread.title,
+              author: { 
+                ...mockThread.author,
+                username: apiThread.author
+              },
+              replies: apiThread.replies_count,
+              upvotes: apiThread.like_count,
+              // Format the date as a timeAgo string - for now just using the date
+              date: new Date(apiThread.created_at).toISOString().split('T')[0],
+              timeAgo: timeAgoFromDate(new Date(apiThread.created_at))
+            };
+          });
+          
+          setThreads(mergedThreads.length ? mergedThreads : MOCK_THREADS);
+          setPagination(response.data.pagination);
+        } else {
+          console.error("Failed to fetch threads:", response.data.message)
+          // Fallback to mock data
+          setThreads(MOCK_THREADS)
+        }
+      } catch (error) {
+        console.error("Error fetching threads:", error)
+        // Fallback to mock data
+        setThreads(MOCK_THREADS)
+      } finally {
+        setIsLoadingThreads(false)
+      }
+    }
+    
+    // Simple function to calculate time ago
+    const timeAgoFromDate = (date: Date): string => {
+      const now = new Date();
+      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+      
+      if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    }
+
+    fetchThreads()
+  }, [currentPage, currentTopicId])
+
+  // Function to handle topic selection - modified to allow only one selection
   const handleTopicSelection = (topicId: number) => {
-    setSelectedTopics(prev => 
-      prev.includes(topicId) 
-        ? prev.filter(id => id !== topicId) 
-        : [...prev, topicId]
+    setSelectedTopic(selectedTopic === topicId ? null : topicId)
+  }
+
+  // Function to handle tag selection
+  const handleTagSelection = (tagId: number) => {
+    setSelectedTags(prev => 
+      prev.includes(tagId) 
+        ? prev.filter(id => id !== tagId) 
+        : [...prev, tagId]
     )
   }
 
@@ -259,7 +397,7 @@ export default function ForumPage() {
   }
 
   // Get threads to display based on search results or default threads
-  const threadsToDisplay = MOCK_THREADS.filter(thread => {
+  const threadsToDisplay = threads.filter(thread => {
     return !selectedFilter || thread.tags.includes(selectedFilter);
   });
   
@@ -288,6 +426,10 @@ export default function ForumPage() {
   const handleSubmitThread = async (e: React.FormEvent) => {
     e.preventDefault()
     
+    // Reset messages
+    setErrorMessage("")
+    setSuccessMessage("")
+    
     if (!title.trim()) {
       setErrorMessage("Please enter a title for your thread.")
       return
@@ -298,37 +440,76 @@ export default function ForumPage() {
       return
     }
     
-    if (selectedTopics.length === 0) {
-      setErrorMessage("Please select at least one topic.")
+    if (!selectedTopic) {
+      setErrorMessage("Please select a topic for your thread.")
       return
     }
     
     setIsSubmitting(true)
-    setErrorMessage("")
     
     try {
-      // Placeholder for actual API call
-      // await api.postThread({ title, content, topics: selectedTopics })
+      const accessToken = Cookies.get('accessToken')
       
-      // Simulate API call delay
-      await new Promise(resolve => setTimeout(resolve, 1000))
+      if (!accessToken) {
+        setErrorMessage("Authentication required. Please log in.")
+        setIsSubmitting(false)
+        return
+      }
       
-      // Reset form
-      setTitle("")
-      setContent("")
-      setSelectedTopics([])
-      setIsCreatingThread(false)
+      // Prepare request data
+      const threadData = {
+        title,
+        content,
+        topic_id: selectedTopic,
+        tags: selectedTags
+      }
       
-      // This would be replaced with actual data from the API response
-      console.log("New thread submitted:", { title, content, topics: selectedTopics })
+      // Make API request
+      const response = await axios.post(
+        `${API_URL}/api/forum/threads/create/`, 
+        threadData,
+        {
+          headers: {
+            'Authorization': `Bearer ${accessToken}`,
+            'Content-Type': 'application/json'
+          }
+        }
+      )
       
-      // Show success message or redirect
-      // router.push(`/forum/thread/${newThreadId}`)
+      if (response.data.success) {
+        // Show success message without redirection
+        setSuccessMessage("Thread submitted for approval. It will be visible after moderation.")
+        
+        // Reset form
+        setTitle("")
+        setContent("")
+        setSelectedTopic(null)
+        setSelectedTags([])
+        
+        // Close the thread creation form after a delay
+        setTimeout(() => {
+          setIsCreatingThread(false)
+        }, 3000)
+      } else {
+        setErrorMessage(response.data.message || "Failed to create thread")
+      }
     } catch (error) {
       console.error("Error creating thread:", error)
-      setErrorMessage("An error occurred while creating your thread. Please try again.")
+      if (axios.isAxiosError(error)) {
+        setErrorMessage(error.response?.data?.message || "An error occurred while creating your thread. Please try again.")
+      } else {
+        setErrorMessage("An error occurred while creating your thread. Please try again.")
+      }
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  // Function to handle page changes
+  const handlePageChange = (page: number) => {
+    if (page >= 1 && (!pagination || page <= pagination.total_pages)) {
+      setCurrentPage(page);
+      window.scrollTo(0, 0); // Scroll to top when changing pages
     }
   }
 
@@ -509,6 +690,14 @@ export default function ForumPage() {
                     <CardContent>
                       <form onSubmit={handleSubmitThread}>
                         <div className="space-y-4">
+                          {/* Success message */}
+                          {successMessage && (
+                            <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-lg text-sm flex items-center">
+                              <Check size={16} className="mr-2" />
+                              {successMessage}
+                            </div>
+                          )}
+                          
                           <div>
                             <Label htmlFor="title">Thread Title</Label>
                             <Input 
@@ -533,14 +722,14 @@ export default function ForumPage() {
                           </div>
                           
                           <div>
-                            <Label className="block mb-2">Select Topics</Label>
+                            <Label className="block mb-2">Select Topic (required)</Label>
                             <div className="bg-background rounded-xl p-4 border border-input">
                               <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                 {MOCK_TOPICS.map(topic => (
                                   <div key={topic.id} className="flex items-start space-x-2">
                                     <Checkbox 
                                       id={`topic-${topic.id}`}
-                                      checked={selectedTopics.includes(topic.id)}
+                                      checked={selectedTopic === topic.id}
                                       onCheckedChange={() => handleTopicSelection(topic.id)}
                                     />
                                     <div className="grid gap-1.5 leading-none">
@@ -560,6 +749,46 @@ export default function ForumPage() {
                             </div>
                           </div>
                           
+                          {/* Tags Selection */}
+                          <div>
+                            <Label className="block mb-2">Select Tags</Label>
+                            <div className="bg-background rounded-xl p-4 border border-input">
+                              {isLoadingTags ? (
+                                <div className="flex justify-center py-4">
+                                  <div className="loader"></div>
+                                </div>
+                              ) : tags.length > 0 ? (
+                                <div className="flex flex-wrap gap-2">
+                                  {tags.map(tag => (
+                                    <Badge 
+                                      key={tag.id} 
+                                      variant={selectedTags.includes(tag.id) ? "default" : "outline"}
+                                      className="cursor-pointer hover:bg-primary/20"
+                                      onClick={() => handleTagSelection(tag.id)}
+                                    >
+                                      {tag.name} ({tag.use_count})
+                                      {selectedTags.includes(tag.id) && (
+                                        <Button 
+                                          variant="ghost" 
+                                          size="sm" 
+                                          className="ml-1 h-4 w-4 p-0" 
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            handleTagSelection(tag.id);
+                                          }}
+                                        >
+                                          <X size={10} />
+                                        </Button>
+                                      )}
+                                    </Badge>
+                                  ))}
+                                </div>
+                              ) : (
+                                <p className="text-sm text-muted-foreground py-2">No tags available</p>
+                              )}
+                            </div>
+                          </div>
+                          
                           {errorMessage && (
                             <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center">
                               <AlertCircle size={16} className="mr-2" />
@@ -572,13 +801,13 @@ export default function ForumPage() {
                             type="button" 
                             variant="outline" 
                             onClick={() => setIsCreatingThread(false)}
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !!successMessage}
                           >
                             Cancel
                           </Button>
                           <Button 
                             type="submit"
-                            disabled={isSubmitting}
+                            disabled={isSubmitting || !!successMessage}
                           >
                             {isSubmitting ? "Submitting..." : "Submit Thread"}
                           </Button>
@@ -623,7 +852,11 @@ export default function ForumPage() {
               </div>
               
               {/* Only show popular topics if not in search mode */}
-              {sortedThreads.length === 0 ? (
+              {isLoadingThreads ? (
+                <div className="flex justify-center py-16">
+                  <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
+                </div>
+              ) : sortedThreads.length === 0 ? (
                 <Card className="py-16 flex flex-col items-center justify-center text-center">
                   <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                     <Search size={32} className="text-muted-foreground" />
@@ -767,8 +1000,61 @@ export default function ForumPage() {
                 </div>
               )}
               
+              {/* Pagination */}
+              {pagination && pagination.total_pages > 1 && (
+                <div className="mt-8 flex justify-center">
+                  <div className="flex items-center gap-2">
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={currentPage === 1}
+                      onClick={() => handlePageChange(currentPage - 1)}
+                    >
+                      Previous
+                    </Button>
+                    
+                    {Array.from({ length: pagination.total_pages }, (_, i) => i + 1)
+                      .filter(page => 
+                        page === 1 || 
+                        page === pagination.total_pages || 
+                        (page >= currentPage - 1 && page <= currentPage + 1)
+                      )
+                      .map((page, index, array) => {
+                        // Add ellipsis between non-consecutive pages
+                        const prevPage = array[index - 1];
+                        const showEllipsis = prevPage && page - prevPage > 1;
+                        
+                        return (
+                          <React.Fragment key={page}>
+                            {showEllipsis && (
+                              <span className="text-muted-foreground">...</span>
+                            )}
+                            <Button
+                              variant={currentPage === page ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => handlePageChange(page)}
+                            >
+                              {page}
+                            </Button>
+                          </React.Fragment>
+                        );
+                      })
+                    }
+                    
+                    <Button 
+                      variant="outline" 
+                      size="sm"
+                      disabled={!pagination || currentPage === pagination.total_pages}
+                      onClick={() => handlePageChange(currentPage + 1)}
+                    >
+                      Next
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
               {/* Show load more button only if there are threads and not in search mode or if search has more results */}
-              {sortedThreads.length > 0 && (
+              {sortedThreads.length > 0 && !pagination && (
                 <div className="mt-8 flex justify-center">
                   <Button variant="outline">Load More</Button>
                 </div>
