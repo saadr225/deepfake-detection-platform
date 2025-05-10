@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import Layout from "@/components/Layout"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -10,10 +10,11 @@ import { Badge } from "@/components/ui/badge"
 import { Label } from "@/components/ui/label"
 import { Checkbox } from "@/components/ui/checkbox"
 import { useUser } from "@/contexts/UserContext"
-import { AlertCircle, ArrowLeft, Check, X } from "lucide-react"
+import { AlertCircle, ArrowLeft, Check, X, Image as ImageIcon } from "lucide-react"
 import { motion } from "framer-motion"
 import { useRouter } from "next/router"
 import Link from "next/link"
+import Image from "next/image"
 import axios from "axios"
 import Cookies from "js-cookie"
 
@@ -73,6 +74,13 @@ export default function CreateThreadPage() {
   const [isLoadingTags, setIsLoadingTags] = useState(false)
   const [isLoadingTopics, setIsLoadingTopics] = useState(false)
   const [isSuccess, setIsSuccess] = useState(false)
+  
+  // Add state for image file and preview
+  const [mediaFile, setMediaFile] = useState<File | null>(null)
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
+  
+  // Reference for file input element
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   // Redirect if user is not logged in
   useEffect(() => {
@@ -137,7 +145,47 @@ export default function CreateThreadPage() {
     )
   }
   
-  // Function to handle thread submission
+  // Function to handle file upload
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    // Check file type and size
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    
+    if (!validTypes.includes(file.type)) {
+      setErrorMessage("Please upload only image files (JPEG, PNG, GIF, WEBP).")
+      return
+    }
+    
+    if (file.size > maxSize) {
+      setErrorMessage("File size must be less than 5MB.")
+      return
+    }
+    
+    setMediaFile(file)
+    
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setMediaPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+    
+    setErrorMessage("")
+  }
+  
+  // Function to remove uploaded media
+  const removeMedia = () => {
+    setMediaPreview(null)
+    setMediaFile(null)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ""
+    }
+  }
+  
+  // Function to handle thread submission - Update to include media file
   const handleSubmitThread = async (e: React.FormEvent) => {
     e.preventDefault()
     
@@ -172,23 +220,31 @@ export default function CreateThreadPage() {
         return
       }
       
-      // Prepare request data
-      const threadData = {
-        title: title.trim(),
-        content: content.trim(),
-        topic_id: selectedTopic,
-        tags: selectedTags,
-        is_pinned: false
+      // Create form data for the request
+      const formData = new FormData()
+      formData.append('title', title.trim())
+      formData.append('content', content.trim())
+      formData.append('topic_id', selectedTopic.toString())
+      formData.append('is_pinned', 'false')
+      
+      // Add selected tags
+      selectedTags.forEach(tagId => {
+        formData.append('tags', tagId.toString())
+      })
+      
+      // Add media file if available
+      if (mediaFile) {
+        formData.append('media_file', mediaFile)
       }
       
       // Make API request
       const response = await axios.post<ThreadCreateResponse>(
         `${API_URL}/api/forum/threads/create/`, 
-        threadData,
+        formData,
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
+            'Content-Type': 'multipart/form-data'
           }
         }
       )
@@ -202,6 +258,8 @@ export default function CreateThreadPage() {
         setContent("")
         setSelectedTopic(null)
         setSelectedTags([])
+        setMediaFile(null)
+        setMediaPreview(null)
       } else {
         setErrorMessage(response.data.message)
       }
@@ -317,6 +375,58 @@ export default function CreateThreadPage() {
                       className="mt-1.5 min-h-[250px] rounded-xl"
                       required
                     />
+                  </div>
+                  
+                  {/* Image Upload Section */}
+                  <div>
+                    <Label className="text-base block mb-3">Attach Image (Optional)</Label>
+                    <div className="flex flex-col gap-3">
+                      <div>
+                        <Button 
+                          type="button" 
+                          variant="outline" 
+                          onClick={() => fileInputRef.current?.click()}
+                          className="flex items-center gap-2"
+                        >
+                          <ImageIcon className="h-4 w-4" />
+                          {mediaFile ? "Change Image" : "Upload Image"}
+                        </Button>
+                        
+                        {/* Hidden file input */}
+                        <input
+                          type="file"
+                          ref={fileInputRef}
+                          className="hidden"
+                          accept="image/*"
+                          onChange={handleFileUpload}
+                        />
+                        
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Supported formats: JPEG, PNG, GIF, WEBP. Maximum size: 5MB.
+                        </p>
+                      </div>
+                      
+                      {/* Media preview */}
+                      {mediaPreview && (
+                        <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
+                          <Button 
+                            variant="destructive" 
+                            size="sm" 
+                            className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                            onClick={removeMedia}
+                          >
+                            <X className="h-4 w-4" />
+                          </Button>
+                          <Image 
+                            src={mediaPreview} 
+                            alt="Media preview"
+                            width={400}
+                            height={300}
+                            className="object-contain"
+                          />
+                        </div>
+                      )}
+                    </div>
                   </div>
                   
                   <div>

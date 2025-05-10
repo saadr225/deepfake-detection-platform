@@ -57,8 +57,10 @@ interface ThreadReply {
   reactions: Reaction[];
   user_liked: boolean;
   user_disliked: boolean;
-  media_url: string | null;
-  media_type: string | null;
+  media: {
+    url: string | null;
+    type: string | null;
+  } | null;
   is_solution: boolean;
 }
 
@@ -89,6 +91,10 @@ interface ThreadData {
     description: string;
     icon: string | null;
   };
+  media: {
+    url: string | null;
+    type: string | null;
+  } | null;
   replies: ThreadReply[];
   reply_count: number;
   user_liked: boolean;
@@ -140,138 +146,6 @@ interface Tag {
   name: string;
   thread_count: number;
 }
-
-// Mock data for the thread
-const MOCK_THREAD: ThreadData = {
-  id: 1,
-  title: "New detection method for face swaps",
-  content: `I've been working on a new technique to detect face-swapped deepfakes by analyzing the inconsistencies in facial features. The method combines traditional computer vision techniques with deep learning models.
-
-The approach focuses on three key areas:
-1. Eye and eyebrow region analysis
-2. Mouth movement consistency
-3. Skin texture transitions
-
-Initial results are promising, with our model achieving 94% accuracy on the FaceForensics++ dataset. We're still working on improving performance on heavily compressed videos, which remain challenging.
-
-Has anyone else been exploring similar methods? I'd love to get feedback from the community.`,
-  author: {
-    username: "researcher93",
-    avatar: "/images/avatars/avatar-1.png",
-    joinDate: "January 2022",
-    postCount: 142,
-    isVerified: true
-  },
-  date: "April 15, 2023",
-  timeAgo: "3 days ago",
-  views: 156,
-  likes: 32,
-  dislikes: 8,
-  net_count: 24,
-  tags: ["Detection Methods", "Research"],
-  status: "open",
-  reactions: [
-    { emoji: "👍", count: 24, users: ["user1", "user2"] },
-    { emoji: "🔥", count: 18, users: ["user3"] },
-    { emoji: "👏", count: 12, users: [] },
-    { emoji: "🧠", count: 9, users: [] }
-  ]
-}
-
-// Mock data for replies
-const MOCK_REPLIES: ThreadReply[] = [
-  {
-    id: 1,
-    content: "This sounds really promising! Have you tried validating your approach on the WildDeepfake dataset as well? It contains more in-the-wild samples that might present different challenges than FaceForensics++.",
-    author: {
-      username: "aiexpert",
-      avatar: "/images/avatars/avatar-2.png",
-      joinDate: "March 2021",
-      postCount: 256,
-      isVerified: true
-    },
-    date: "April 15, 2023",
-    timeAgo: "3 days ago",
-    likes: 8,
-    dislikes: 2,
-    net_count: 6,
-    isVerified: true,
-    media_url: null,
-    media_type: null,
-    is_solution: false,
-    reactions: [
-      { emoji: "👍", count: 8, users: ["user1"] },
-      { emoji: "👀", count: 5, users: [] }
-    ]
-  },
-  {
-    id: 2,
-    content: "I've been working on something similar but focusing more on temporal inconsistencies across video frames. Your spatial approach could complement our work nicely. Would you be open to collaboration?",
-    author: {
-      username: "deeplearn42",
-      avatar: "/images/avatars/avatar-3.png",
-      joinDate: "November 2022",
-      postCount: 87,
-      isVerified: false
-    },
-    date: "April 16, 2023",
-    timeAgo: "2 days ago",
-    likes: 12,
-    dislikes: 0,
-    net_count: 12,
-    isVerified: false,
-    media_url: "/images/forum/temporal-inconsistency.png",
-    media_type: "image/png",
-    is_solution: false,
-    replies: [
-      {
-        id: 21,
-        content: "I'd be very interested in seeing how these approaches could work together. Let's connect!",
-        author: {
-          username: "researcher93",
-          avatar: "/images/avatars/avatar-1.png",
-          joinDate: "January 2022",
-          postCount: 144,
-          isVerified: true
-        },
-        date: "April 16, 2023",
-        timeAgo: "2 days ago",
-        likes: 3,
-        dislikes: 0,
-        net_count: 3,
-        isVerified: false,
-        media_url: null,
-        media_type: null,
-        is_solution: false,
-        reactions: [
-          { emoji: "👍", count: 3, users: ["researcher93"] },
-          { emoji: "👏", count: 3, users: [] }
-        ]
-      }
-    ]
-  },
-  {
-    id: 3,
-    content: "Have you considered how your method performs against different types of deepfakes? For example, Whole-GAN approaches vs face-swapping methods might leave different artifacts.",
-    author: {
-      username: "security_researcher",
-      avatar: "/images/avatars/avatar-4.png",
-      joinDate: "June 2020",
-      postCount: 324,
-      isVerified: true
-    },
-    date: "April 17, 2023",
-    timeAgo: "1 day ago",
-    likes: 5,
-    dislikes: 1,
-    net_count: 4,
-    isVerified: true,
-    media_url: null,
-    media_type: null,
-    is_solution: false,
-    replies: []
-  }
-]
 
 // Add a recursive component to render replies and their nested replies
 const ReplyItem = ({ 
@@ -455,11 +329,11 @@ const ReplyItem = ({
           )}
           
           {/* Display media if any */}
-          {reply.media_url && !isEditing && !isConfirmingDelete && (
+          {reply.media && reply.media.url && !isEditing && !isConfirmingDelete && (
             <div className="mb-4">
               <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
                 <Image 
-                  src={reply.media_url} 
+                  src={reply.media.url} 
                   alt="Attached media"
                   width={400}
                   height={300}
@@ -879,8 +753,7 @@ export default function ThreadPage() {
             dislikes: 0,
             net_count: 0,
             is_solution: false,
-            media_url: response.data.media_url || null,
-            media_type: response.data.media_type || null,
+            media: null,
             reactions: [],
             user_liked: false,
             user_disliked: false,
@@ -1854,6 +1727,21 @@ export default function ThreadPage() {
                       <p key={idx}>{paragraph}</p>
                     ))}
                   </div>
+                  
+                  {/* Display thread image if any */}
+                  {thread?.media && thread.media.url && (
+                    <div className="mb-6">
+                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
+                        <Image 
+                          src={thread.media.url} 
+                          alt="Thread image"
+                          width={600}
+                          height={400}
+                          className="object-contain"
+                        />
+                      </div>
+                    </div>
+                  )}
                   
                   {/* Add Thread Reactions and Stats */}
                   <div className="flex flex-wrap items-center justify-between mt-4 pt-3 border-t border-border">
