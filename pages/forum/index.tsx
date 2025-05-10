@@ -226,11 +226,32 @@ const MOCK_THREADS = [
 // Constants
 const API_URL = "http://localhost:8000"
 
-// Interface for tag data
+// Update the interfaces to match API responses
 interface Tag {
   id: number;
   name: string;
-  use_count: number;
+  thread_count: number;
+}
+
+interface Topic {
+  id: number;
+  name: string;
+  description: string;
+  thread_count: number;
+}
+
+interface TagsResponse {
+  code: string;
+  message: string;
+  success: boolean;
+  tags: Tag[];
+}
+
+interface TopicsResponse {
+  code: string;
+  message: string;
+  success: boolean;
+  topics: Topic[];
 }
 
 // Interface for thread data from API
@@ -239,8 +260,45 @@ interface ThreadData {
   title: string;
   author: string;
   created_at: string;
-  replies_count: number;
-  like_count: number;
+  last_active: string;
+  reply_count: number;
+  net_count: number;
+  view_count: number;
+  user_liked: boolean;
+  user_disliked: boolean;
+  topic: {
+    id: number;
+    name: string;
+  };
+  tags: {
+    id: number;
+    name: string;
+  }[];
+  approval_status: string;
+  content_preview: string;
+  preview?: string;      // For search results
+  like_count?: number;   // For search results
+}
+
+interface ThreadResponse {
+  status: string;
+  code: string;
+  message: string;
+  threads: ThreadData[];
+  page: number;
+  pages: number;
+  total: number;
+  query?: string;
+}
+
+interface ReactionResponse {
+  code: string;
+  message: string;
+  reaction_counts: {
+    emoji: string;
+    count: number;
+    users: string[];
+  }[];
 }
 
 // Interface for pagination data
@@ -250,35 +308,95 @@ interface PaginationData {
   total_items: number;
 }
 
+// Interface for thread creation response
+interface ThreadCreateResponse {
+  code: string;
+  message: string;
+  success: boolean;
+  thread_id: number;
+  approval_status: string;
+}
+
+interface VoteResponse {
+  code: string;
+  message: string;
+  success: boolean;
+  action: "added" | "removed" | "changed";
+  like_type: "like" | "dislike";
+  net_count: number;
+}
+
+// Function to calculate time ago
+const timeAgoFromDate = (date: Date): string => {
+  const now = new Date();
+  const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+  
+  if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
+  if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+  if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+  return `${Math.floor(diffInSeconds / 86400)} days ago`;
+}
+
+// Update the DisplayThread interface to include tagIds field
+interface DisplayThread {
+  id: number;
+  title: string;
+  content: string;
+  author: {
+    username: string;
+    avatar: string;
+    isVerified: boolean;
+  };
+  date: string;
+  timeAgo: string;
+  replies: number;
+  views: number;
+  upvotes: number;
+  downvotes: number;
+  user_liked: boolean;
+  user_disliked: boolean;
+  topic: {
+    id: number;
+    name: string;
+  };
+  tags: string[];
+  tagIds: number[];
+  isSticky: boolean;
+  isHot: boolean;
+  reactions: {
+    emoji: string;
+    count: number;
+    users: string[];
+  }[];
+}
+
 export default function ForumPage() {
   const { user } = useUser()
   const router = useRouter()
   
-  const [isCreatingThread, setIsCreatingThread] = useState(false)
-  const [title, setTitle] = useState("")
-  const [content, setContent] = useState("")
-  const [selectedTopic, setSelectedTopic] = useState<number | null>(null)
-  const [selectedTags, setSelectedTags] = useState<number[]>([])
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const [successMessage, setSuccessMessage] = useState("")
   const [activeSort, setActiveSort] = useState<'hot' | 'new' | 'top'>('hot')
   const [searchInput, setSearchInput] = useState("")
+  const [isSearching, setIsSearching] = useState(false)
+  const [searchQuery, setSearchQuery] = useState("")
   const [selectedFilter, setSelectedFilter] = useState<string | null>(null)
   const [tags, setTags] = useState<Tag[]>([])
+  const [topics, setTopics] = useState<Topic[]>([])
   const [isLoadingTags, setIsLoadingTags] = useState(false)
-  const [threads, setThreads] = useState<typeof MOCK_THREADS>([])
+  const [isLoadingTopics, setIsLoadingTopics] = useState(false)
+  const [threads, setThreads] = useState<DisplayThread[]>([])
   const [isLoadingThreads, setIsLoadingThreads] = useState(false)
   const [pagination, setPagination] = useState<PaginationData | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const [currentTopicId, setCurrentTopicId] = useState<number | null>(null)
+  const [selectedTagId, setSelectedTagId] = useState<number | null>(null)
+  const [showMyThreads, setShowMyThreads] = useState(false)
   
   // Fetch tags when component mounts
   useEffect(() => {
     const fetchTags = async () => {
       setIsLoadingTags(true)
       try {
-        const response = await axios.get(`${API_URL}/api/forum/tags/`)
+        const response = await axios.get<TagsResponse>(`${API_URL}/api/forum/tags/`)
         if (response.data.success) {
           setTags(response.data.tags)
         } else {
@@ -293,181 +411,270 @@ export default function ForumPage() {
 
     fetchTags()
   }, [])
+
+  // Fetch topics when component mounts
+  useEffect(() => {
+    const fetchTopics = async () => {
+      setIsLoadingTopics(true)
+      try {
+        const response = await axios.get<TopicsResponse>(`${API_URL}/api/forum/topics/`)
+        if (response.data.success) {
+          setTopics(response.data.topics)
+        } else {
+          console.error("Failed to fetch topics:", response.data.message)
+        }
+      } catch (error) {
+        console.error("Error fetching topics:", error)
+      } finally {
+        setIsLoadingTopics(false)
+      }
+    }
+
+    fetchTopics()
+  }, [])
   
   // Fetch threads when component mounts or filter changes
-  useEffect(() => {
-    const fetchThreads = async () => {
-      setIsLoadingThreads(true)
-      try {
-        // Construct query parameters
-        const params = new URLSearchParams()
-        params.append('page', currentPage.toString())
-        params.append('items', '20')
-        
+  const fetchThreads = async () => {
+    setIsLoadingThreads(true)
+    try {
+      // Construct query parameters
+      const params = new URLSearchParams()
+      params.append('page', currentPage.toString())
+      params.append('items', '20')
+      
+      // Get access token for authorization
+      const accessToken = Cookies.get('accessToken')
+      
+      // Determine which endpoint to use
+      let endpoint = `${API_URL}/api/forum/threads/`
+      
+      // Add search param if searching
+      if (isSearching && searchQuery) {
+        endpoint = `${API_URL}/api/forum/search/`
+        params.append('query', searchQuery)
+      } else {
+        // Only add topic and tag filters if not searching
         if (currentTopicId) {
           params.append('topic_id', currentTopicId.toString())
         }
         
-        const response = await axios.get(`${API_URL}/api/forum/threads/?${params.toString()}`)
-        
-        if (response.data.success) {
-          // We need to transform the API response to match our current thread structure
-          // but keep existing mock data for fields not in the API response
-          const apiThreads = response.data.threads;
-          
-          // For now, merge API data with mock data to maintain structure
-          // Later this will be fully replaced with API data
-          const mergedThreads = apiThreads.map((apiThread: ThreadData) => {
-            // Find a mock thread to use as a template
-            const mockThread = MOCK_THREADS.find(mock => mock.id === apiThread.id) || MOCK_THREADS[0];
-            
-            // Create a new thread object with API data, filling in missing fields from mock data
-            return {
-              ...mockThread,
-              id: apiThread.id,
-              title: apiThread.title,
-              author: { 
-                ...mockThread.author,
-                username: apiThread.author
-              },
-              replies: apiThread.replies_count,
-              upvotes: apiThread.like_count,
-              // Format the date as a timeAgo string - for now just using the date
-              date: new Date(apiThread.created_at).toISOString().split('T')[0],
-              timeAgo: timeAgoFromDate(new Date(apiThread.created_at))
-            };
-          });
-          
-          setThreads(mergedThreads.length ? mergedThreads : MOCK_THREADS);
-          setPagination(response.data.pagination);
-        } else {
-          console.error("Failed to fetch threads:", response.data.message)
-          // Fallback to mock data
-          setThreads(MOCK_THREADS)
+        if (selectedTagId) {
+          params.append('tag_id', selectedTagId.toString())
         }
-      } catch (error) {
-        console.error("Error fetching threads:", error)
-        // Fallback to mock data
-        setThreads(MOCK_THREADS)
-      } finally {
-        setIsLoadingThreads(false)
       }
-    }
-    
-    // Simple function to calculate time ago
-    const timeAgoFromDate = (date: Date): string => {
-      const now = new Date();
-      const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
       
-      if (diffInSeconds < 60) return `${diffInSeconds} seconds ago`;
-      if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} minutes ago`;
-      if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} hours ago`;
-      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+      // Only show my threads if the user is logged in and the showMyThreads option is selected
+      // Don't apply "my threads" filter during search
+      const isMyThreadsRequest = !isSearching && showMyThreads && !!user && !!accessToken
+      
+      // Prepare headers and request options
+      let headers: Record<string, string> = {}
+      let requestURL = `${endpoint}?${params.toString()}`
+      
+      if (isMyThreadsRequest) {
+        // Add authorization header only for "My Threads" requests
+        headers['Authorization'] = `Bearer ${accessToken}`
+        // Add my_threads parameter for filtering user's threads
+        params.append('my_threads', 'true')
+        requestURL = `${endpoint}?${params.toString()}`
+        console.log("Fetching MY threads with params:", params.toString())
+      } else if (isSearching && accessToken) {
+        // Add auth header for search when logged in to get user-specific like info
+        headers['Authorization'] = `Bearer ${accessToken}`
+      } else {
+        console.log("Fetching ALL threads with params:", params.toString())
+      }
+      
+      console.log("Request URL:", requestURL)
+      console.log("Authorization header present:", !!headers['Authorization'])
+      
+      const response = await axios.get<ThreadResponse>(requestURL, { headers })
+      
+      console.log("Threads API response status:", response.status)
+      console.log("Threads API response data structure:", {
+        threadsCount: response.data?.threads?.length || 0,
+        page: response.data?.page,
+        pages: response.data?.pages,
+        total: response.data?.total
+      })
+      
+      if (response.data && response.data.threads) {
+        const transformedThreads = await Promise.all(response.data.threads.map(async (thread) => {
+          try {
+            // Don't send authorization for reaction requests either for public threads
+            const reactionsHeaders = isMyThreadsRequest ? headers : {}
+            
+            // Get reactions for the thread
+            const reactionsResponse = await axios.get<ReactionResponse>(
+              `${API_URL}/api/forum/threads/${thread.id}/reactions/`,
+              { headers: reactionsHeaders }
+            )
+            
+            return {
+              id: thread.id,
+              title: thread.title,
+              content: thread.content_preview || thread.preview || "", // Handle both normal and search responses
+              author: { 
+                username: thread.author,
+                avatar: '/images/avatars/default.png',
+                isVerified: false
+              },
+              date: thread.created_at,
+              timeAgo: timeAgoFromDate(new Date(thread.created_at)),
+              replies: thread.reply_count,
+              views: thread.view_count || 0, // View count might not be in search results
+              upvotes: thread.net_count || thread.like_count || 0, // Handle both formats
+              downvotes: 0,
+              user_liked: thread.user_liked || false, // May not be in search results
+              user_disliked: thread.user_disliked || false, // May not be in search results
+              topic: thread.topic,
+              tags: thread.tags.map(tag => tag.name),
+              tagIds: thread.tags.map(tag => tag.id),
+              isSticky: false,
+              isHot: false,
+              reactions: reactionsResponse.data.reaction_counts.map(reaction => ({
+                emoji: reaction.emoji,
+                count: reaction.count,
+                users: reaction.users
+              }))
+            }
+          } catch (error) {
+            console.error(`Error fetching reactions for thread ${thread.id}:`, error)
+            return {
+              id: thread.id,
+              title: thread.title,
+              content: thread.content_preview || thread.preview || "",
+              author: { 
+                username: thread.author,
+                avatar: '/images/avatars/default.png',
+                isVerified: false
+              },
+              date: thread.created_at,
+              timeAgo: timeAgoFromDate(new Date(thread.created_at)),
+              replies: thread.reply_count,
+              views: thread.view_count || 0,
+              upvotes: thread.net_count || thread.like_count || 0,
+              downvotes: 0,
+              user_liked: thread.user_liked || false,
+              user_disliked: thread.user_disliked || false,
+              topic: thread.topic,
+              tags: thread.tags.map(tag => tag.name),
+              tagIds: thread.tags.map(tag => tag.id),
+              isSticky: false,
+              isHot: false,
+              reactions: []
+            }
+          }
+        }))
+        
+        setThreads(transformedThreads)
+        setPagination({
+          current_page: response.data.page,
+          total_pages: response.data.pages,
+          total_items: response.data.total
+        })
+      } else {
+        console.error("Invalid response format:", response.data)
+        setThreads([])
+      }
+    } catch (error) {
+      console.error("Error fetching threads:", error)
+      setThreads([])
+    } finally {
+      setIsLoadingThreads(false)
     }
+  }
 
+  useEffect(() => {
     fetchThreads()
-  }, [currentPage, currentTopicId])
+  }, [currentPage, currentTopicId, selectedTagId, showMyThreads, searchQuery])
 
-  // Function to handle topic selection - modified to allow only one selection
-  const handleTopicSelection = (topicId: number) => {
-    setSelectedTopic(selectedTopic === topicId ? null : topicId)
+  // Function to handle topic selection for filtering threads
+  const handleTopicFilter = (topicId: number | null) => {
+    // Clear search when filtering by topic
+    setSearchQuery("")
+    setSearchInput("")
+    setIsSearching(false)
+    
+    setCurrentTopicId(topicId === currentTopicId ? null : topicId)
+    setCurrentPage(1) // Reset pagination when changing filters
   }
 
-  // Function to handle tag selection
-  const handleTagSelection = (tagId: number) => {
-    setSelectedTags(prev => 
-      prev.includes(tagId) 
-        ? prev.filter(id => id !== tagId) 
-        : [...prev, tagId]
-    )
+  // Function to handle tag selection for filtering threads
+  const handleTagFilter = (tagId: number | null) => {
+    // Clear search when filtering by tag
+    setSearchQuery("")
+    setSearchInput("")
+    setIsSearching(false)
+    
+    setSelectedTagId(tagId === selectedTagId ? null : tagId)
+    setCurrentPage(1) // Reset pagination when changing filters
   }
 
-  // Function to handle filter selection
+  // Function to handle filter selection (legacy - can be removed if not needed)
   const handleFilterSelection = (tag: string) => {
     const newFilter = selectedFilter === tag ? null : tag;
     setSelectedFilter(newFilter);
   }
   
-  // Function to handle search submission
+  // Update the search function
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (searchInput.trim()) {
-      router.push(`/forum/search?q=${encodeURIComponent(searchInput.trim())}`)
+    
+    if (searchInput.trim().length < 3) {
+      // Show minimum character requirement notification
+      return
     }
+    
+    // Clear other filters when searching
+    setCurrentTopicId(null)
+    setSelectedTagId(null)
+    setShowMyThreads(false)
+    
+    // Set search query and trigger search
+    setSearchQuery(searchInput.trim())
+    setIsSearching(true)
+    setCurrentPage(1) // Reset to page 1 for new search
+  }
+  
+  // Clear search and reset to normal threads view
+  const clearSearch = () => {
+    setSearchInput("")
+    setSearchQuery("")
+    setIsSearching(false)
+    setCurrentPage(1)
+    fetchThreads() // Reload threads without search
   }
 
-  // Get threads to display based on search results or default threads
-  const threadsToDisplay = threads.filter(thread => {
-    return !selectedFilter || thread.tags.includes(selectedFilter);
-  });
-  
-  // Sort threads based on selected sort option
-  const sortedThreads = [...threadsToDisplay].sort((a, b) => {
+  // Get threads to display
+  const displayThreads = [...threads].sort((a, b) => {
     if (activeSort === 'hot') {
-      // Sort by upvotes and recency (weighted)
-      return (b.upvotes / (b.upvotes + b.downvotes + 1) * 1000 + new Date(b.date).getTime() / (1000 * 60 * 60 * 24)) - 
-             (a.upvotes / (a.upvotes + a.downvotes + 1) * 1000 + new Date(a.date).getTime() / (1000 * 60 * 60 * 24));
+      // Sort by reply count (comments)
+      return b.replies - a.replies;
     } else if (activeSort === 'new') {
-      // Sort by date
+      // Sort by last active time (most recent first)
       return new Date(b.date).getTime() - new Date(a.date).getTime();
     } else {
-      // Sort by upvotes
-      return b.upvotes - a.upvotes;
+      // Sort by view count
+      return b.views - a.views;
     }
   });
-  
+
   // Function to handle upvoting/downvoting threads
-  const handleVote = (threadId: number, isUpvote: boolean) => {
-    // Placeholder for API call
-    console.log(`${isUpvote ? 'Upvoted' : 'Downvoted'} thread ${threadId}`)
-  }
-  
-  // Function to handle thread submission
-  const handleSubmitThread = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    // Reset messages
-    setErrorMessage("")
-    setSuccessMessage("")
-    
-    if (!title.trim()) {
-      setErrorMessage("Please enter a title for your thread.")
-      return
-    }
-    
-    if (!content.trim()) {
-      setErrorMessage("Please enter content for your thread.")
-      return
-    }
-    
-    if (!selectedTopic) {
-      setErrorMessage("Please select a topic for your thread.")
-      return
-    }
-    
-    setIsSubmitting(true)
-    
+  const handleVote = async (threadId: number, isUpvote: boolean) => {
     try {
       const accessToken = Cookies.get('accessToken')
       
       if (!accessToken) {
-        setErrorMessage("Authentication required. Please log in.")
-        setIsSubmitting(false)
+        router.push('/login')
         return
       }
+
+      const endpoint = isUpvote ? `${API_URL}/api/forum/like/` : `${API_URL}/api/forum/dislike/`
       
-      // Prepare request data
-      const threadData = {
-        title,
-        content,
-        topic_id: selectedTopic,
-        tags: selectedTags
-      }
-      
-      // Make API request
-      const response = await axios.post(
-        `${API_URL}/api/forum/threads/create/`, 
-        threadData,
+      const response = await axios.post<VoteResponse>(
+        endpoint,
+        { thread_id: threadId },
         {
           headers: {
             'Authorization': `Bearer ${accessToken}`,
@@ -475,42 +682,48 @@ export default function ForumPage() {
           }
         }
       )
-      
+
       if (response.data.success) {
-        // Show success message without redirection
-        setSuccessMessage("Thread submitted for approval. It will be visible after moderation.")
-        
-        // Reset form
-        setTitle("")
-        setContent("")
-        setSelectedTopic(null)
-        setSelectedTags([])
-        
-        // Close the thread creation form after a delay
-        setTimeout(() => {
-          setIsCreatingThread(false)
-        }, 3000)
-      } else {
-        setErrorMessage(response.data.message || "Failed to create thread")
+        // Update the thread's net count in the UI and set the liked/disliked status
+        setThreads(prevThreads => 
+          prevThreads.map(thread => {
+            if (thread.id === threadId) {
+              // Set the new vote status based on the action and like_type
+              const userLiked = isUpvote && 
+                (response.data.action === "added" || response.data.action === "changed");
+              
+              const userDisliked = !isUpvote && 
+                (response.data.action === "added" || response.data.action === "changed");
+              
+              return { 
+                ...thread, 
+                upvotes: response.data.net_count,
+                downvotes: 0,
+                user_liked: userLiked,
+                user_disliked: userDisliked
+              };
+            }
+            return thread;
+          })
+        );
       }
     } catch (error) {
-      console.error("Error creating thread:", error)
-      if (axios.isAxiosError(error)) {
-        setErrorMessage(error.response?.data?.message || "An error occurred while creating your thread. Please try again.")
-      } else {
-        setErrorMessage("An error occurred while creating your thread. Please try again.")
-      }
-    } finally {
-      setIsSubmitting(false)
+      console.error(`Error ${isUpvote ? 'liking' : 'disliking'} thread:`, error)
     }
   }
-
+  
   // Function to handle page changes
   const handlePageChange = (page: number) => {
     if (page >= 1 && (!pagination || page <= pagination.total_pages)) {
       setCurrentPage(page);
       window.scrollTo(0, 0); // Scroll to top when changing pages
     }
+  }
+
+  // Function to toggle between all threads and user's threads
+  const toggleMyThreads = () => {
+    setShowMyThreads(prev => !prev)
+    setCurrentPage(1) // Reset to first page when switching view
   }
 
   return (
@@ -584,25 +797,40 @@ export default function ForumPage() {
                   </p>
                 </div>
                 
-                {user ? (
-                  <Button 
-                    onClick={() => setIsCreatingThread(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Plus size={16} />
-                    New Thread
-                  </Button>
-                ) : (
-                  <Link href="/login" passHref>
-                    <Button variant="outline" className="flex items-center gap-2">
-                      <Plus size={16} />
-                      Login to Post
+                <div className="flex items-center gap-2">
+                  {user && (
+                    <Button 
+                      variant={showMyThreads ? "default" : "outline"}
+                      onClick={toggleMyThreads}
+                      className="flex items-center gap-2"
+                      disabled={isSearching}
+                    >
+                      <Users size={16} />
+                      {showMyThreads ? "All Threads" : "My Threads"}
                     </Button>
-                  </Link>
-                )}
+                  )}
+                  
+                  {user ? (
+                    <Link href="/forum/create" passHref>
+                      <Button 
+                        className="flex items-center gap-2"
+                      >
+                        <Plus size={16} />
+                        New Thread
+                      </Button>
+                    </Link>
+                  ) : (
+                    <Link href="/login" passHref>
+                      <Button variant="outline" className="flex items-center gap-2">
+                        <Plus size={16} />
+                        Login to Post
+                      </Button>
+                    </Link>
+                  )}
+                </div>
               </div>
 
-              {/* Prominent search bar */}
+              {/* Updated search bar */}
               <Card className="mb-6">
                 <CardContent className="p-4">
                   <form onSubmit={handleSearchSubmit}>
@@ -610,7 +838,7 @@ export default function ForumPage() {
                       <div className="relative flex-1">
                         <Search className="absolute left-3 top-3 h-5 w-5 text-muted-foreground" />
                         <Input
-                          placeholder="Search for threads, topics, or keywords..."
+                          placeholder="Search for threads, topics, or keywords... (min 3 characters)"
                           className="pl-10 h-12"
                           value={searchInput}
                           onChange={(e) => setSearchInput(e.target.value)}
@@ -630,270 +858,182 @@ export default function ForumPage() {
                       <Button 
                         type="submit" 
                         className="h-12"
-                        disabled={!searchInput.trim()}
+                        disabled={searchInput.trim().length < 3}
                       >
                         Search
                       </Button>
+                      
+                      {isSearching && (
+                        <Button 
+                          type="button"
+                          variant="outline"
+                          className="h-12"
+                          onClick={clearSearch}
+                        >
+                          Clear Search
+                        </Button>
+                      )}
                     </div>
                   </form>
                 </CardContent>
               </Card>
 
-              {/* Filters */}
-              <div className="flex flex-wrap gap-2 mb-6">
-                {/* Active tags/filters */}
-                {MOCK_TOPICS.slice(0, 4).map(topic => (
-                  <Badge 
-                    key={topic.id} 
-                    variant={selectedFilter === topic.name ? "default" : "outline"}
-                    className="cursor-pointer hover:bg-primary/20"
-                    onClick={() => handleFilterSelection(topic.name)}
-                  >
-                    {topic.name}
-                    {selectedFilter === topic.name && (
-                      <Button 
-                        variant="ghost" 
-                        size="sm" 
-                        className="ml-1 h-4 w-4 p-0" 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setSelectedFilter(null);
-                        }}
-                      >
-                        <X size={10} />
-                      </Button>
-                    )}
-                  </Badge>
-                ))}
-                {/* <Link href="/forum/search" passHref>
-                  <Badge variant="outline" className="cursor-pointer hover:bg-accent">
-                    <Filter size={12} className="mr-1" />
-                    Advanced Search
-                  </Badge>
-                </Link> */}
-              </div>
-          
-              {/* Thread Creation Form */}
-              {isCreatingThread && user && (
-                <motion.div
-                  initial={{ opacity: 0, height: 0 }}
-                  animate={{ opacity: 1, height: "auto" }}
-                  exit={{ opacity: 0, height: 0 }}
-                  transition={{ duration: 0.3 }}
-                  className="mb-8"
-                >
-                  <Card className="bg-card border-primary/20">
-                    <CardHeader>
-                      <CardTitle>Create New Thread</CardTitle>
-                      <CardDescription>Share your knowledge or ask questions to the community</CardDescription>
-                    </CardHeader>
-                    <CardContent>
-                      <form onSubmit={handleSubmitThread}>
-                        <div className="space-y-4">
-                          {/* Success message */}
-                          {successMessage && (
-                            <div className="bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 p-3 rounded-lg text-sm flex items-center">
-                              <Check size={16} className="mr-2" />
-                              {successMessage}
-                            </div>
-                          )}
-                          
-                          <div>
-                            <Label htmlFor="title">Thread Title</Label>
-                            <Input 
-                              id="title"
-                              value={title}
-                              onChange={(e) => setTitle(e.target.value)}
-                              placeholder="Enter a descriptive title"
-                              className="mt-1"
-                              required
-                            />
-                          </div>
-                          <div>
-                            <Label htmlFor="content">Content</Label>
-                            <Textarea 
-                              id="content"
-                              value={content}
-                              onChange={(e) => setContent(e.target.value)}
-                              placeholder="Describe your topic in detail..."
-                              className="mt-1 min-h-[150px] rounded-xl"
-                              required
-                            />
-                          </div>
-                          
-                          <div>
-                            <Label className="block mb-2">Select Topic (required)</Label>
-                            <div className="bg-background rounded-xl p-4 border border-input">
-                              <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                {MOCK_TOPICS.map(topic => (
-                                  <div key={topic.id} className="flex items-start space-x-2">
-                                    <Checkbox 
-                                      id={`topic-${topic.id}`}
-                                      checked={selectedTopic === topic.id}
-                                      onCheckedChange={() => handleTopicSelection(topic.id)}
-                                    />
-                                    <div className="grid gap-1.5 leading-none">
-                                      <label
-                                        htmlFor={`topic-${topic.id}`}
-                                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                                      >
-                                        {topic.name}
-                                      </label>
-                                      <p className="text-xs text-muted-foreground">
-                                        {topic.description}
-                                      </p>
-                                    </div>
-                                  </div>
-                                ))}
-                              </div>
-                            </div>
-                          </div>
-                          
-                          {/* Tags Selection */}
-                          <div>
-                            <Label className="block mb-2">Select Tags</Label>
-                            <div className="bg-background rounded-xl p-4 border border-input">
-                              {isLoadingTags ? (
-                                <div className="flex justify-center py-4">
-                                  <div className="loader"></div>
-                                </div>
-                              ) : tags.length > 0 ? (
-                                <div className="flex flex-wrap gap-2">
-                                  {tags.map(tag => (
-                                    <Badge 
-                                      key={tag.id} 
-                                      variant={selectedTags.includes(tag.id) ? "default" : "outline"}
-                                      className="cursor-pointer hover:bg-primary/20"
-                                      onClick={() => handleTagSelection(tag.id)}
-                                    >
-                                      {tag.name} ({tag.use_count})
-                                      {selectedTags.includes(tag.id) && (
-                                        <Button 
-                                          variant="ghost" 
-                                          size="sm" 
-                                          className="ml-1 h-4 w-4 p-0" 
-                                          onClick={(e) => {
-                                            e.stopPropagation();
-                                            handleTagSelection(tag.id);
-                                          }}
-                                        >
-                                          <X size={10} />
-                                        </Button>
-                                      )}
-                                    </Badge>
-                                  ))}
-                                </div>
-                              ) : (
-                                <p className="text-sm text-muted-foreground py-2">No tags available</p>
-                              )}
-                            </div>
-                          </div>
-                          
-                          {errorMessage && (
-                            <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center">
-                              <AlertCircle size={16} className="mr-2" />
-                              {errorMessage}
-                            </div>
-                          )}
-                        </div>
-                        <div className="flex justify-end gap-3 mt-6">
-                          <Button 
-                            type="button" 
-                            variant="outline" 
-                            onClick={() => setIsCreatingThread(false)}
-                            disabled={isSubmitting || !!successMessage}
-                          >
-                            Cancel
-                          </Button>
-                          <Button 
-                            type="submit"
-                            disabled={isSubmitting || !!successMessage}
-                          >
-                            {isSubmitting ? "Submitting..." : "Submit Thread"}
-                          </Button>
-                        </div>
-                      </form>
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              )}
-              
-              {/* Sorting options */}
-              <div className="border-b border-border mb-6">
-                <div className="flex gap-2 -mb-px">
-                  <Button
-                    variant="ghost"
+              {/* Active search indicator */}
+              {isSearching && (
+                <div className="mb-6 flex items-center justify-between bg-muted/50 rounded-lg px-4 py-2">
+                  <div className="flex items-center">
+                    <Search className="h-4 w-4 mr-2 text-muted-foreground" />
+                    <span className="text-sm">
+                      Search results for: <span className="font-medium">{searchQuery}</span>
+                    </span>
+                  </div>
+                  <Button 
+                    variant="ghost" 
                     size="sm"
-                    className={`rounded-none border-b-2 px-4 ${activeSort === 'hot' ? 'border-primary text-primary' : 'border-transparent'}`}
-                    onClick={() => setActiveSort('hot')}
+                    onClick={clearSearch}
+                    className="h-8 text-xs"
                   >
-                    <Sparkles size={16} className="mr-2" />
-                    Hot
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`rounded-none border-b-2 px-4 ${activeSort === 'new' ? 'border-primary text-primary' : 'border-transparent'}`}
-                    onClick={() => setActiveSort('new')}
-                  >
-                    <Clock size={16} className="mr-2" />
-                    New
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    className={`rounded-none border-b-2 px-4 ${activeSort === 'top' ? 'border-primary text-primary' : 'border-transparent'}`}
-                    onClick={() => setActiveSort('top')}
-                  >
-                    <TrendingUp size={16} className="mr-2" />
-                    Top
+                    <X className="h-4 w-4 mr-1" />
+                    Clear
                   </Button>
                 </div>
-              </div>
+              )}
+
+              {/* Tags Filter - Hide during search */}
+              {!isSearching && (
+                <div className="flex flex-wrap gap-2 mb-6">
+                  {isLoadingTags ? (
+                    <div className="w-full py-2 text-center text-muted-foreground">Loading tags...</div>
+                  ) : tags.length > 0 ? (
+                    <>
+                      {tags.map(tag => (
+                        <Badge 
+                          key={tag.id} 
+                          variant={selectedTagId === tag.id ? "default" : "outline"}
+                          className="cursor-pointer hover:bg-primary/20"
+                          onClick={() => handleTagFilter(tag.id)}
+                        >
+                          {tag.name} ({tag.thread_count})
+                          {selectedTagId === tag.id && (
+                            <Button 
+                              variant="ghost" 
+                              size="sm" 
+                              className="ml-1 h-4 w-4 p-0" 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleTagFilter(null);
+                              }}
+                            >
+                              <X size={10} />
+                            </Button>
+                          )}
+                        </Badge>
+                      ))}
+                    </>
+                  ) : (
+                    <div className="text-sm text-muted-foreground">No tags available</div>
+                  )}
+                </div>
+              )}
               
-              {/* Only show popular topics if not in search mode */}
+              {/* Sorting options - Hide during search */}
+              {!isSearching && (
+                <div className="border-b border-border mb-6">
+                  <div className="flex gap-2 -mb-px">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`rounded-none border-b-2 px-4 ${activeSort === 'hot' ? 'border-primary text-primary' : 'border-transparent'}`}
+                      onClick={() => setActiveSort('hot')}
+                    >
+                      <Sparkles size={16} className="mr-2" />
+                      Hot
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`rounded-none border-b-2 px-4 ${activeSort === 'new' ? 'border-primary text-primary' : 'border-transparent'}`}
+                      onClick={() => setActiveSort('new')}
+                    >
+                      <Clock size={16} className="mr-2" />
+                      New
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className={`rounded-none border-b-2 px-4 ${activeSort === 'top' ? 'border-primary text-primary' : 'border-transparent'}`}
+                      onClick={() => setActiveSort('top')}
+                    >
+                      <TrendingUp size={16} className="mr-2" />
+                      Top
+                    </Button>
+                  </div>
+                </div>
+              )}
+              
+              {/* Loading and empty states */}
               {isLoadingThreads ? (
                 <div className="flex justify-center py-16">
                   <div className="w-12 h-12 border-4 border-primary border-t-transparent rounded-full animate-spin"></div>
                 </div>
-              ) : sortedThreads.length === 0 ? (
+              ) : displayThreads.length === 0 ? (
                 <Card className="py-16 flex flex-col items-center justify-center text-center">
                   <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
                     <Search size={32} className="text-muted-foreground" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">No Threads Found</h3>
                   <p className="text-muted-foreground max-w-md mb-6">
-                    {searchInput 
-                      ? `We couldn't find any threads matching "${searchInput}"${selectedFilter ? ` in ${selectedFilter}` : ''}.` 
-                      : `We couldn't find any threads${selectedFilter ? ` in ${selectedFilter}` : ''}.`}
+                    {isSearching 
+                      ? `We couldn't find any threads matching "${searchQuery}".` 
+                      : searchInput.trim().length > 0
+                        ? `We couldn't find any threads matching "${searchInput}".`
+                        : selectedTagId
+                          ? "We couldn't find any threads with the selected tag."
+                          : currentTopicId 
+                            ? "We couldn't find any threads in the selected topic."
+                            : showMyThreads
+                              ? "You haven't created any threads yet."
+                              : "No threads available at the moment."}
                   </p>
                   <div className="flex gap-3">
-                    <Button variant="outline" onClick={() => setSearchInput("")}>Clear Search</Button>
+                    {isSearching && (
+                      <Button variant="outline" onClick={clearSearch}>Clear Search</Button>
+                    )}
                     {user && (
-                      <Button onClick={() => setIsCreatingThread(true)}>Create Thread</Button>
+                      <Link href="/forum/create" passHref>
+                        <Button>Create Thread</Button>
+                      </Link>
                     )}
                   </div>
                 </Card>
               ) : (
                 /* Thread Listing (Reddit-style) */
                 <div className="space-y-4">
-                  {sortedThreads.map(thread => (
+                  {displayThreads.map((thread: DisplayThread) => (
                     <div key={thread.id} className="flex gap-3 bg-card rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 overflow-hidden">
                       {/* Voting buttons */}
                       <div className="flex flex-col items-center justify-start bg-muted/30 py-4 px-2">
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-primary hover:bg-transparent"
+                          className={`h-8 w-8 p-0 ${
+                            thread.user_liked 
+                              ? "text-primary bg-primary/10" 
+                              : "text-muted-foreground hover:text-primary hover:bg-transparent"
+                          }`}
                           onClick={() => handleVote(thread.id, true)}
                         >
                           <ArrowUp size={20} />
                         </Button>
-                        <span className="text-sm font-medium my-1">{thread.upvotes - thread.downvotes}</span>
+                        <span className="text-sm font-medium my-1">{thread.upvotes}</span>
                         <Button 
                           variant="ghost" 
                           size="sm"
-                          className="h-8 w-8 p-0 text-muted-foreground hover:text-destructive hover:bg-transparent"
+                          className={`h-8 w-8 p-0 ${
+                            thread.user_disliked 
+                              ? "text-destructive bg-destructive/10" 
+                              : "text-muted-foreground hover:text-destructive hover:bg-transparent"
+                          }`}
                           onClick={() => handleVote(thread.id, false)}
                         >
                           <ArrowDown size={20} />
@@ -1054,14 +1194,14 @@ export default function ForumPage() {
               )}
               
               {/* Show load more button only if there are threads and not in search mode or if search has more results */}
-              {sortedThreads.length > 0 && !pagination && (
+              {displayThreads.length > 0 && !pagination && (
                 <div className="mt-8 flex justify-center">
                   <Button variant="outline">Load More</Button>
                 </div>
               )}
             </div>
             
-            {/* Right sidebar (topics) - moved from left to right */}
+            {/* Right sidebar (topics) */}
             <div className="hidden lg:block lg:col-span-3">
               <div className="sticky top-24">
                 {/* Topics section */}
@@ -1070,22 +1210,42 @@ export default function ForumPage() {
                     <CardTitle className="text-xl">Topics</CardTitle>
                   </CardHeader>
                   <CardContent className="pt-0">
-                    <div className="space-y-3">
-                      {MOCK_TOPICS.map(topic => (
-                        <div key={topic.id} className="flex items-center justify-between hover:bg-accent/30 px-2 py-1.5 rounded-md">
-                          <Link href={`/forum?topic=${topic.name}`} className="flex-1">
-                            <div className="font-medium">{topic.name}</div>
-                            <div className="text-xs text-muted-foreground">{topic.members.toLocaleString()} members</div>
-                          </Link>
-                        </div>
-                      ))}
-                    </div>
+                    {isLoadingTopics ? (
+                      <div className="flex justify-center py-4">
+                        <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
+                      </div>
+                    ) : (
+                      <div className="space-y-3">
+                        {topics.map(topic => (
+                          <div 
+                            key={topic.id} 
+                            className={`flex items-center justify-between hover:bg-accent/30 px-2 py-1.5 rounded-md cursor-pointer ${
+                              currentTopicId === topic.id ? 'bg-accent/50' : ''
+                            }`}
+                            onClick={() => handleTopicFilter(topic.id)}
+                          >
+                            <div>
+                              <div className="font-medium">{topic.name}</div>
+                              <div className="text-xs text-muted-foreground">{topic.thread_count} threads</div>
+                            </div>
+                            {currentTopicId === topic.id && (
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                className="h-6 w-6 p-0" 
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTopicFilter(null);
+                                }}
+                              >
+                                <X size={14} />
+                              </Button>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </CardContent>
-                  <CardFooter>
-                    <Button variant="ghost" size="sm" className="w-full">
-                      View All Topics
-                    </Button>
-                  </CardFooter>
                 </Card>
 
                 {/* Forum stats
