@@ -178,7 +178,12 @@ const ReplyItem = ({
   confirmDeleteReply,
   cancelDeleteReply,
   deleteReply,
-  isDeletingReply
+  isDeletingReply,
+  inlineMediaFile,
+  inlineMediaPreview,
+  inlineFileInputRef,
+  handleInlineFileUpload,
+  removeInlineMedia
 }: { 
   reply: ThreadReply; 
   level?: number; 
@@ -210,6 +215,11 @@ const ReplyItem = ({
   cancelDeleteReply: () => void;
   deleteReply: (replyId: number) => void;
   isDeletingReply: boolean;
+  inlineMediaFile: File | null;
+  inlineMediaPreview: string | null;
+  inlineFileInputRef: React.RefObject<HTMLInputElement>;
+  handleInlineFileUpload: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  removeInlineMedia: () => void;
 }) => {
   const isNested = level > 0;
   const isEditing = editingReplyId === reply.id;
@@ -217,7 +227,29 @@ const ReplyItem = ({
   const isCurrentUserAuthor = user?.username === reply.author.username;
   
   return (
-    <div className={`mb-3 ${isNested ? 'ml-8' : ''}`}>
+    <div className={`mb-3 ${isNested ? 'pl-4 sm:pl-8' : ''} ${level > 0 ? 'relative' : ''}`}>
+      {/* Connection Line for nested replies */}
+      {level > 0 && (
+        <div 
+          className="absolute left-0 top-0 bottom-0 w-[1px] bg-border"
+          style={{ 
+            top: '0',
+            bottom: '0', 
+            left: '10px'
+          }}
+        ></div>
+      )}
+      
+      {/* Horizontal connection line */}
+      {level > 0 && (
+        <div 
+          className="absolute left-0 top-8 w-[10px] h-[1px] bg-border"
+          style={{ 
+            left: '10px'
+          }}
+        ></div>
+      )}
+      
       {/* Main reply */}
       <div className="flex gap-3 bg-card rounded-xl shadow-sm overflow-hidden">
         {/* Voting buttons */}
@@ -337,7 +369,7 @@ const ReplyItem = ({
                   alt="Attached media"
                   width={400}
                   height={300}
-                  className="object-contain"
+                  className="object-contain w-full"
                 />
               </div>
             </div>
@@ -473,15 +505,58 @@ const ReplyItem = ({
                 onChange={(e) => setInlineReplyContent(e.target.value)}
               />
               
+              {/* Media upload preview for inline reply */}
+              {inlineMediaPreview && (
+                <div className="relative rounded-lg overflow-hidden border border-border max-w-md mb-3">
+                  <Button 
+                    variant="destructive" 
+                    size="sm" 
+                    className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                    onClick={removeInlineMedia}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                  <Image 
+                    src={inlineMediaPreview} 
+                    alt="Media preview"
+                    width={400}
+                    height={300}
+                    className="object-contain w-full"
+                  />
+                </div>
+              )}
+              
               <div className="flex justify-between items-center">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={cancelReplyToComment}
-                >
-                  Cancel
-                </Button>
+                <div className="flex items-center gap-2">
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => inlineFileInputRef.current?.click()}
+                    className="flex items-center gap-1"
+                  >
+                    <ImageIcon className="h-3 w-3 mr-1" />
+                    {inlineMediaFile ? "Change" : "Attach Image"}
+                  </Button>
+                  
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={cancelReplyToComment}
+                  >
+                    Cancel
+                  </Button>
+                  
+                  {/* Hidden file input for inline replies */}
+                  <input
+                    type="file"
+                    ref={inlineFileInputRef}
+                    className="hidden"
+                    accept="image/*"
+                    onChange={handleInlineFileUpload}
+                  />
+                </div>
                 
                 <Button 
                   onClick={handleSubmitReply}
@@ -505,7 +580,7 @@ const ReplyItem = ({
       
       {/* Nested replies */}
       {reply.replies && reply.replies.length > 0 && (
-        <div className="mt-2 space-y-2">
+        <div className="mt-2 space-y-2 relative">
           {reply.replies.map(nestedReply => (
             <ReplyItem 
               key={nestedReply.id} 
@@ -539,6 +614,11 @@ const ReplyItem = ({
               cancelDeleteReply={cancelDeleteReply}
               deleteReply={deleteReply}
               isDeletingReply={isDeletingReply}
+              inlineMediaFile={inlineMediaFile}
+              inlineMediaPreview={inlineMediaPreview}
+              inlineFileInputRef={inlineFileInputRef}
+              handleInlineFileUpload={handleInlineFileUpload}
+              removeInlineMedia={removeInlineMedia}
             />
           ))}
         </div>
@@ -606,7 +686,14 @@ export default function ThreadPage() {
   ]
   
   const fileInputRef = useRef<HTMLInputElement>(null)
-
+  
+  // Add state for inline reply media
+  const [inlineMediaFile, setInlineMediaFile] = useState<File | null>(null)
+  const [inlineMediaPreview, setInlineMediaPreview] = useState<string | null>(null)
+  
+  // Add ref for inline file input
+  const inlineFileInputRef = useRef<HTMLInputElement>(null)
+  
   // Fetch thread data
   useEffect(() => {
     const fetchThread = async () => {
@@ -703,9 +790,11 @@ export default function ThreadPage() {
         formData.append('parent_reply_id', String(replyTo))
       }
       
-      // Add media file if available
-      if (mediaFile) {
+      // Add media file if available - choose the appropriate media file based on reply type
+      if (replyToMain && mediaFile) {
         formData.append('media_file', mediaFile)
+      } else if (!replyToMain && inlineMediaFile) {
+        formData.append('media_file', inlineMediaFile)
       }
       
       // Make API request
@@ -737,43 +826,43 @@ export default function ThreadPage() {
         } else {
           // If we can't fetch the whole thread, at least show the new reply
           // This is a fallback in case the thread fetch fails
-      const newReply: ThreadReply = {
+          const newReply: ThreadReply = {
             id: response.data.reply_id,
-        content: content,
-        author: {
-          username: user?.username || "current_user",
+            content: content,
+            author: {
+              username: user?.username || "current_user",
               avatar: user?.avatar || "/images/avatars/default.png",
               joinDate: new Date().toISOString(),
-          isVerified: false
-        },
+              isVerified: false
+            },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
-        timeAgo: "Just now",
-        likes: 0,
+            timeAgo: "Just now",
+            likes: 0,
             dislikes: 0,
             net_count: 0,
             is_solution: false,
-            media: null,
+            media: response.data.media || null,
             reactions: [],
             user_liked: false,
             user_disliked: false,
-        replies: []
-      }
-      
+            replies: []
+          }
+          
           if (thread) {
-      if (replyToMain) {
-        // Adding reply to main thread
+            if (replyToMain) {
+              // Adding reply to main thread
               setThread({
                 ...thread,
                 replies: [...thread.replies, newReply],
                 reply_count: thread.reply_count + 1
               })
-      } else if (replyTo) {
-        // Adding nested reply
+            } else if (replyTo) {
+              // Adding nested reply
               const updateReplies = (replies: ThreadReply[]): ThreadReply[] => {
                 return replies.map(reply => {
                   if (reply.id === replyTo) {
-            return {
+                    return {
                       ...reply,
                       replies: [...(reply.replies || []), newReply]
                     }
@@ -797,15 +886,17 @@ export default function ThreadPage() {
               })
             }
           }
-      }
+        }
       
-      // Reset form
-      setReplyContent("")
-      setInlineReplyContent("")
-      setReplyTo(null)
-      setReplyToMain(true)
-      setMediaPreview(null)
-      setMediaFile(null)
+        // Reset form
+        setReplyContent("")
+        setInlineReplyContent("")
+        setReplyTo(null)
+        setReplyToMain(true)
+        setMediaPreview(null)
+        setMediaFile(null)
+        setInlineMediaPreview(null)
+        setInlineMediaFile(null)
         
         // Scroll to the new reply if needed
         // This could be implemented with useRef and scrollIntoView
@@ -873,6 +964,8 @@ export default function ThreadPage() {
     setReplyTo(null)
     setReplyToMain(true)
     setInlineReplyContent("")
+    setInlineMediaFile(null)
+    setInlineMediaPreview(null)
   }
   
   // Function to handle vote
@@ -1451,6 +1544,46 @@ export default function ThreadPage() {
     }
   }
   
+  // Function to handle file upload for inline replies
+  const handleInlineFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    
+    // Check file type and size
+    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    
+    if (!validTypes.includes(file.type)) {
+      setErrorMessage("Please upload only image files (JPEG, PNG, GIF, WEBP).")
+      return
+    }
+    
+    if (file.size > maxSize) {
+      setErrorMessage("File size must be less than 5MB.")
+      return
+    }
+    
+    setInlineMediaFile(file)
+    
+    // Create preview
+    const reader = new FileReader()
+    reader.onloadend = () => {
+      setInlineMediaPreview(reader.result as string)
+    }
+    reader.readAsDataURL(file)
+    
+    setErrorMessage("")
+  }
+  
+  // Function to remove uploaded inline media
+  const removeInlineMedia = () => {
+    setInlineMediaPreview(null)
+    setInlineMediaFile(null)
+    if (inlineFileInputRef.current) {
+      inlineFileInputRef.current.value = ""
+    }
+  }
+  
   // Loading state
   if (isLoading) {
     return (
@@ -1737,7 +1870,7 @@ export default function ThreadPage() {
                           alt="Thread image"
                           width={600}
                           height={400}
-                          className="object-contain"
+                          className="object-contain w-full"
                         />
                       </div>
                     </div>
@@ -1885,90 +2018,89 @@ export default function ThreadPage() {
           
           {/* Reply form at the top */}
           {user ? (
-            <Card className="bg-card mb-6" id="reply-form-top">
-              <CardContent className="p-4">
-                <div className="flex gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden">
-                    <Image 
-                      src={user?.avatar || "/images/avatars/default.png"}
-                      alt={user?.username || "User"}
-                      width={40}
-                      height={40}
-                      className="object-cover"
-                    />
-                  </div>
-                  
-                  <div className="flex-1">
+            <Card className="bg-card mb-6" id="reply-form">
+              <CardHeader className="pb-3">
+                <CardTitle>Post a Comment</CardTitle>
+                <CardDescription>
+                  Join the discussion on this topic
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <form onSubmit={handleSubmitReply}>
+                  <div className="space-y-4">
                     <Textarea 
-                      placeholder="What are your thoughts on this discussion?"
-                      className="min-h-[100px] rounded-xl mb-3"
                       value={replyToMain ? replyContent : ""}
                       onChange={(e) => replyToMain && setReplyContent(e.target.value)}
+                      placeholder="What are your thoughts on this discussion?"
+                      className="min-h-[80px] rounded-xl"
                       onClick={() => {
                         setReplyTo(null);
                         setReplyToMain(true);
                       }}
+                      required
                     />
                     
+                    {/* Media upload preview */}
+                    {mediaPreview && replyToMain && (
+                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
+                        <Button 
+                          variant="destructive" 
+                          size="sm" 
+                          className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
+                          onClick={removeMedia}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                        <Image 
+                          src={mediaPreview} 
+                          alt="Media preview"
+                          width={400}
+                          height={300}
+                          className="object-contain w-full"
+                        />
+                      </div>
+                    )}
+                    
+                    {errorMessage && replyToMain && (
+                      <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center">
+                        <AlertCircle size={16} className="mr-2" />
+                        {errorMessage}
+                      </div>
+                    )}
+                    
                     <div className="flex justify-between items-center">
+                      {/* Hidden file input */}
+                      <input
+                        type="file"
+                        ref={fileInputRef}
+                        className="hidden"
+                        accept="image/*"
+                        onChange={handleFileUpload}
+                      />
+                      
+                      {/* Media upload button */}
                       <Button 
                         type="button" 
                         variant="outline" 
                         onClick={() => fileInputRef.current?.click()}
                         className="flex items-center gap-2"
-                        size="sm"
+                        disabled={isSubmitting || !replyToMain}
                       >
-                        <ImageIcon className="h-4 w-4" />
-                        Attach Image
+                        <Upload className="h-4 w-4" />
+                        Attach Media
                       </Button>
                       
                       <Button 
-                        onClick={handleSubmitReply}
+                        type="submit"
                         disabled={!replyContent.trim() || isSubmitting || !replyToMain}
-                        size="sm"
+                        className="flex items-center gap-2"
                       >
-                        {isSubmitting ? "Posting..." : "Comment"}
+                        {isSubmitting ? "Posting..." : "Post Comment"}
+                        <Send className="h-4 w-4" />
                       </Button>
                     </div>
                   </div>
-                </div>
-                
-                {/* Hidden file input */}
-                <input
-                  type="file"
-                  ref={fileInputRef}
-                  className="hidden"
-                  accept="image/*"
-                  onChange={handleFileUpload}
-                />
-                
-                {/* Media preview */}
-                {mediaPreview && replyToMain && (
-                  <div className="mt-3 relative rounded-lg overflow-hidden border border-border max-w-md ml-12">
-                    <Button 
-                      variant="destructive" 
-                      size="sm" 
-                      className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
-                      onClick={removeMedia}
-                    >
-                      <X className="h-4 w-4" />
-                    </Button>
-                    <Image 
-                      src={mediaPreview} 
-                      alt="Media preview"
-                      width={400}
-                      height={300}
-                      className="object-contain"
-                    />
-                  </div>
-                )}
-                
-                {errorMessage && replyToMain && (
-                  <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center mt-3 ml-12">
-                    <AlertCircle size={16} className="mr-2" />
-                    {errorMessage}
-                  </div>
-                )}
+                </form>
               </CardContent>
             </Card>
           ) : (
@@ -2070,98 +2202,14 @@ export default function ThreadPage() {
                 cancelDeleteReply={cancelDeleteReply}
                 deleteReply={deleteReply}
                 isDeletingReply={isDeletingReply}
+                inlineMediaFile={inlineMediaFile}
+                inlineMediaPreview={inlineMediaPreview}
+                inlineFileInputRef={inlineFileInputRef}
+                handleInlineFileUpload={handleInlineFileUpload}
+                removeInlineMedia={removeInlineMedia}
               />
             ))}
           </div>
-          
-          {/* Reply form at the bottom */}
-          {user && (
-            <Card className="bg-card" id="reply-form">
-              <CardHeader className="pb-3">
-                <CardTitle>Post a Comment</CardTitle>
-                <CardDescription>
-                  Join the discussion on this topic
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <form onSubmit={handleSubmitReply}>
-                  <div className="space-y-4">
-                    <Textarea 
-                      value={replyToMain ? replyContent : ""}
-                      onChange={(e) => replyToMain && setReplyContent(e.target.value)}
-                      placeholder="What are your thoughts on this discussion?"
-                      className="min-h-[150px] rounded-xl"
-                      onClick={() => {
-                        setReplyTo(null);
-                        setReplyToMain(true);
-                      }}
-                      required
-                    />
-                    
-                    {/* Media upload preview */}
-                    {mediaPreview && replyToMain && (
-                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
-                        <Button 
-                          variant="destructive" 
-                          size="sm" 
-                          className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
-                          onClick={removeMedia}
-                        >
-                          <X className="h-4 w-4" />
-                        </Button>
-                        <Image 
-                          src={mediaPreview} 
-                          alt="Media preview"
-                          width={400}
-                          height={300}
-                          className="object-contain"
-                        />
-                      </div>
-                    )}
-                    
-                    {errorMessage && replyToMain && (
-                      <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center">
-                        <AlertCircle size={16} className="mr-2" />
-                        {errorMessage}
-                      </div>
-                    )}
-                    
-                    <div className="flex justify-between items-center">
-                      {/* Hidden file input */}
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                      />
-                      
-                      {/* Media upload button */}
-                      <Button 
-                        type="button" 
-                        variant="outline" 
-                        onClick={() => fileInputRef.current?.click()}
-                        className="flex items-center gap-2"
-                        disabled={isSubmitting || !replyToMain}
-                      >
-                        <Upload className="h-4 w-4" />
-                        Attach Media
-                      </Button>
-                      
-                      <Button 
-                        type="submit"
-                        disabled={!replyContent.trim() || isSubmitting || !replyToMain}
-                        className="flex items-center gap-2"
-                      >
-                        {isSubmitting ? "Posting..." : "Post Comment"}
-                        <Send className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </div>
-                </form>
-              </CardContent>
-            </Card>
-          )}
         </motion.div>
       </div>
     </Layout>

@@ -471,16 +471,17 @@ export default function ForumPage() {
       let headers: Record<string, string> = {}
       let requestURL = `${endpoint}?${params.toString()}`
       
-      if (isMyThreadsRequest) {
-        // Add authorization header only for "My Threads" requests
+      // ALWAYS include Authorization header when user is logged in
+      // This ensures we get user_liked and user_disliked flags from the API
+      if (accessToken) {
         headers['Authorization'] = `Bearer ${accessToken}`
-        // Add my_threads parameter for filtering user's threads
+      }
+      
+      // Add my_threads parameter for filtering user's threads if needed
+      if (isMyThreadsRequest) {
         params.append('my_threads', 'true')
         requestURL = `${endpoint}?${params.toString()}`
         console.log("Fetching MY threads with params:", params.toString())
-      } else if (isSearching && accessToken) {
-        // Add auth header for search when logged in to get user-specific like info
-        headers['Authorization'] = `Bearer ${accessToken}`
       } else {
         console.log("Fetching ALL threads with params:", params.toString())
       }
@@ -525,8 +526,8 @@ export default function ForumPage() {
               views: thread.view_count || 0, // View count might not be in search results
               upvotes: thread.net_count || thread.like_count || 0, // Handle both formats
               downvotes: 0,
-              user_liked: thread.user_liked || false, // May not be in search results
-              user_disliked: thread.user_disliked || false, // May not be in search results
+              user_liked: thread.user_liked || false, // Use the API's user_liked value
+              user_disliked: thread.user_disliked || false, // Use the API's user_disliked value
               topic: thread.topic,
               tags: thread.tags.map(tag => tag.name),
               tagIds: thread.tags.map(tag => tag.id),
@@ -555,8 +556,8 @@ export default function ForumPage() {
               views: thread.view_count || 0,
               upvotes: thread.net_count || thread.like_count || 0,
               downvotes: 0,
-              user_liked: thread.user_liked || false,
-              user_disliked: thread.user_disliked || false,
+              user_liked: thread.user_liked || false, // Use the API's user_liked value
+              user_disliked: thread.user_disliked || false, // Use the API's user_disliked value
               topic: thread.topic,
               tags: thread.tags.map(tag => tag.name),
               tagIds: thread.tags.map(tag => tag.id),

@@ -422,7 +422,7 @@ export default function CreateThreadPage() {
                             alt="Media preview"
                             width={400}
                             height={300}
-                            className="object-contain"
+                            className="object-contain w-full"
                           />
                         </div>
                       )}
