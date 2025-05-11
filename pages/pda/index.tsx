@@ -324,7 +324,7 @@ const handleFaceImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
 
   // Handle category change
   const handleCategoryChange = (value: string) => {
-    setSelectedCategory(value)
+    setSelectedCategory(value === "All Categories" ? "" : value)
     setCurrentPage(1) // Reset to first page on category change
   }
 
