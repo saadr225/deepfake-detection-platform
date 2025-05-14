@@ -66,7 +66,7 @@ export default function KnowledgeBaseSearch() {
   const [totalPages, setTotalPages] = useState(1);
   const [totalResults, setTotalResults] = useState(0);
   const [error, setError] = useState<string | null>(null);
-  
+
   const itemsPerPage = 10;
 
   // Initialize search query and page from URL parameters
@@ -94,7 +94,7 @@ export default function KnowledgeBaseSearch() {
   }, [searchQuery, currentPage]);
 
   const performSearch = async () => {
-    setIsLoading(true);
+      setIsLoading(true);
     setError(null);
     
     try {
@@ -118,7 +118,7 @@ export default function KnowledgeBaseSearch() {
       console.error('Error searching articles:', err);
       if (err.response?.data?.error) {
         setError(err.response.data.error);
-      } else {
+    } else {
         setError('An error occurred while searching');
       }
       setResults([]);
@@ -220,7 +220,7 @@ export default function KnowledgeBaseSearch() {
           )}
           
           {/* Search Results */}
-          <motion.div
+          <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
@@ -231,12 +231,12 @@ export default function KnowledgeBaseSearch() {
                 <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </div>
             ) : searchQuery && results.length === 0 && !error ? (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
+                  <motion.div 
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.5 }}
                 className="text-center py-12"
-              >
+                    >
                 <h2 className="text-2xl font-bold mb-2">No results found</h2>
                 <p className="text-muted-foreground mb-6">
                   We couldn't find any articles matching '{searchQuery}'
@@ -255,8 +255,8 @@ export default function KnowledgeBaseSearch() {
                   >
                     Browse Knowledge Base
                   </Button>
-                </div>
-              </motion.div>
+                      </div>
+                    </motion.div>
             ) : searchQuery && results.length > 0 ? (
               <>
                 <div className="flex items-center justify-between">
@@ -264,31 +264,31 @@ export default function KnowledgeBaseSearch() {
                     {totalResults} {totalResults === 1 ? 'Result' : 'Results'} for "{searchQuery}"
                   </h2>
                 </div>
-                
-                <div className="space-y-4">
+                    
+                    <div className="space-y-4">
                   {results.map((article, index) => (
-                    <motion.div
+                        <motion.div
                       key={article.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
+                          initial={{ opacity: 0, y: 20 }}
+                          animate={{ opacity: 1, y: 0 }}
                       transition={{ duration: 0.3, delay: 0.1 * index }}
-                      whileHover={{ scale: 1.01 }}
-                      className="transition-all"
-                    >
-                      <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                        <CardHeader className="pb-2">
-                          <div className="flex justify-between items-start">
+                          whileHover={{ scale: 1.01 }}
+                          className="transition-all"
+                        >
+                          <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                            <CardHeader className="pb-2">
+                              <div className="flex justify-between items-start">
                             <CardTitle 
                               className="text-xl font-bold hover:text-primary cursor-pointer"
                               onClick={() => router.push(`/knowledge-base/post/${article.id}`)}
                             >
                               {article.title}
-                            </CardTitle>
-                            <Button variant="ghost" size="icon" className="h-8 w-8">
-                              <Bookmark className="h-4 w-4" />
-                            </Button>
-                          </div>
-                          <div className="flex items-center text-sm text-muted-foreground mt-1 gap-3">
+                                </CardTitle>
+                                <Button variant="ghost" size="icon" className="h-8 w-8">
+                                  <Bookmark className="h-4 w-4" />
+                                </Button>
+                              </div>
+                              <div className="flex items-center text-sm text-muted-foreground mt-1 gap-3">
                             <span>{article.created_at}</span>
                             <span>•</span>
                             {article.read_time && (
@@ -307,92 +307,92 @@ export default function KnowledgeBaseSearch() {
                                 </span>
                               </>
                             )}
-                          </div>
-                        </CardHeader>
-                        <CardContent>
+                              </div>
+                            </CardHeader>
+                            <CardContent>
                           <p className="text-muted-foreground">{article.preview}</p>
-                        </CardContent>
-                        <CardFooter className="flex flex-wrap gap-2 pt-0">
-                          <Badge 
-                            variant="secondary"
-                            className="cursor-pointer"
+                            </CardContent>
+                            <CardFooter className="flex flex-wrap gap-2 pt-0">
+                              <Badge 
+                                variant="secondary" 
+                                className="cursor-pointer"
                             onClick={() => router.push(`/knowledge-base?topic=${encodeURIComponent(article.topic.id)}`)}
-                          >
+                              >
                             {article.topic.name}
-                          </Badge>
-                        </CardFooter>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </div>
-                
-                {/* Pagination */}
-                {totalPages > 1 && (
+                                </Badge>
+                            </CardFooter>
+                          </Card>
+                        </motion.div>
+                      ))}
+                    </div>
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && (
                   <Pagination>
-                    <PaginationContent>
-                      <PaginationItem>
-                        <PaginationPrevious 
-                          href="#" 
-                          onClick={(e) => {
-                            e.preventDefault();
-                            if (currentPage > 1) handlePageChange(currentPage - 1);
-                          }}
-                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                      
-                      {Array.from({ length: totalPages }).map((_, i) => {
-                        // Show first page, last page, current page, and pages adjacent to current
-                        if (
-                          i === 0 || 
-                          i === totalPages - 1 || 
-                          i === currentPage - 1 || 
-                          i === currentPage - 2 || 
-                          i === currentPage
-                        ) {
-                          return (
-                            <PaginationItem key={i}>
-                              <PaginationLink 
+                          <PaginationContent>
+                            <PaginationItem>
+                              <PaginationPrevious 
                                 href="#" 
                                 onClick={(e) => {
                                   e.preventDefault();
-                                  handlePageChange(i + 1);
+                            if (currentPage > 1) handlePageChange(currentPage - 1);
                                 }}
-                                isActive={currentPage === i + 1}
-                              >
-                                {i + 1}
-                              </PaginationLink>
+                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                              />
                             </PaginationItem>
-                          );
-                        }
-                        
-                        // Show ellipsis if there's a gap
-                        if (
-                          (i === 1 && currentPage > 3) || 
-                          (i === totalPages - 2 && currentPage < totalPages - 2)
-                        ) {
-                          return (
-                            <PaginationItem key={i}>
-                              <PaginationEllipsis />
-                            </PaginationItem>
-                          );
-                        }
-                        
-                        return null;
-                      })}
-                      
-                      <PaginationItem>
-                        <PaginationNext 
-                          href="#" 
-                          onClick={(e) => {
-                            e.preventDefault();
+                            
+                            {Array.from({ length: totalPages }).map((_, i) => {
+                              // Show first page, last page, current page, and pages adjacent to current
+                              if (
+                                i === 0 || 
+                                i === totalPages - 1 || 
+                                i === currentPage - 1 || 
+                                i === currentPage - 2 || 
+                                i === currentPage
+                              ) {
+                                return (
+                                  <PaginationItem key={i}>
+                                    <PaginationLink 
+                                      href="#" 
+                                      onClick={(e) => {
+                                        e.preventDefault();
+                                  handlePageChange(i + 1);
+                                      }}
+                                      isActive={currentPage === i + 1}
+                                    >
+                                      {i + 1}
+                                    </PaginationLink>
+                                  </PaginationItem>
+                                );
+                              }
+                              
+                              // Show ellipsis if there's a gap
+                              if (
+                                (i === 1 && currentPage > 3) || 
+                                (i === totalPages - 2 && currentPage < totalPages - 2)
+                              ) {
+                                return (
+                                  <PaginationItem key={i}>
+                                    <PaginationEllipsis />
+                                  </PaginationItem>
+                                );
+                              }
+                              
+                              return null;
+                            })}
+                            
+                            <PaginationItem>
+                              <PaginationNext 
+                                href="#" 
+                                onClick={(e) => {
+                                  e.preventDefault();
                             if (currentPage < totalPages) handlePageChange(currentPage + 1);
-                          }}
-                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                        />
-                      </PaginationItem>
-                    </PaginationContent>
-                  </Pagination>
+                                }}
+                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                              />
+                            </PaginationItem>
+                          </PaginationContent>
+                        </Pagination>
                 )}
               </>
             ) : null}

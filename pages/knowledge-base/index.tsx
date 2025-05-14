@@ -15,7 +15,7 @@ import {
 import { Badge } from "../../components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
 import { Button } from "../../components/ui/button";
-import { Search, Bookmark, FileText, CheckCircle2, AlertCircle } from "lucide-react";
+import { Search, Bookmark, FileText, CheckCircle2, AlertCircle, Calendar, Clock, Eye } from "lucide-react";
 import KnowledgeBaseBreadcrumb from "../../components/KnowledgeBaseBreadcrumb";
 import axios from "axios";
 
@@ -47,6 +47,7 @@ interface Article {
   view_count: number;
   has_attachments: boolean;
   read_time?: number;
+  banner_image?: string;
 }
 
 interface ArticlesResponse {
@@ -88,8 +89,27 @@ export default function KnowledgeBase() {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sortOption, setSortOption] = useState<SortOption>("Most Recent");
+  const [placeholderImage, setPlaceholderImage] = useState('/placeholder.png');
   
   const itemsPerPage = 10;
+
+  // Load placeholder image once to prevent multiple requests
+  useEffect(() => {
+    // Create a new Image object to preload the placeholder
+    const img = new Image();
+    img.src = '/placeholder.png';
+    
+    // Once the placeholder is loaded, we can use it without generating new requests
+    img.onload = () => {
+      setPlaceholderImage('/placeholder.png');
+    };
+    
+    // If loading fails, use a simple color instead
+    img.onerror = () => {
+      console.warn('Failed to load placeholder image');
+      setPlaceholderImage('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjBmMCIvPjwvc3ZnPg==');
+    };
+  }, []);
 
   // Fetch topics on initial load
   useEffect(() => {
@@ -451,7 +471,7 @@ export default function KnowledgeBase() {
                 </motion.div>
               ) : (
                 <>
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between mb-6">
                     <h2 className="text-xl font-semibold">
                       {totalArticles} {totalArticles === 1 ? 'Article' : 'Articles'} {selectedTopicName ? `in ${selectedTopicName}` : ''}
                     </h2>
@@ -469,59 +489,167 @@ export default function KnowledgeBase() {
                     </div>
                   </div>
                 
-                  <div className="grid grid-cols-1 gap-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6" 
+                    style={{ gap: '1.5rem' }}
+                  >
                     {sortedArticles.map((article, index) => (
                       <motion.div
                         key={article.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.1 * index }}
-                        whileHover={{ scale: 1.01 }}
-                        className="transition-all"
+                        transition={{ duration: 0.3, delay: 0.1 * (index % 3) }}
+                        whileHover={{ y: -5 }}
+                        className="h-full knowledge-article-card"
                       >
-                        <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                          <CardHeader className="pb-2">
-                            <div className="flex justify-between items-start">
-                              <CardTitle className="text-xl font-bold hover:text-primary cursor-pointer" onClick={() => router.push(`/knowledge-base/post/${article.id}`)}>
-                                {article.title}
-                              </CardTitle>
-                              <Button variant="ghost" size="icon" className="h-8 w-8">
-                                <Bookmark className="h-4 w-4" />
-                              </Button>
+                        <Card className="overflow-hidden h-full flex flex-col hover:shadow-md transition-all">
+                          <div 
+                            className="relative overflow-hidden"
+                            onClick={() => router.push(`/knowledge-base/post/${article.id}`)}
+                            style={{ 
+                              height: '200px',
+                              cursor: 'pointer',
+                              width: '100%',
+                              borderRadius: 0,
+                              borderTopLeftRadius: 0,
+                              borderTopRightRadius: 0
+                            }}
+                          >
+                            {article.banner_image ? (
+                              <img 
+                                src={article.banner_image}
+                                alt={article.title}
+                                className="w-full h-full object-cover transition-transform hover:scale-105"
+                                style={{ 
+                                  width: '100%',
+                                  height: '100%',
+                                  objectFit: 'cover',
+                                  borderRadius: 0,
+                                  borderTopLeftRadius: 0,
+                                  borderTopRightRadius: 0
+                                }}
+                                onError={(e) => {
+                                  // Use the preloaded placeholder or data URI
+                                  e.currentTarget.src = placeholderImage;
+                                  // Prevent further error callbacks
+                                  e.currentTarget.onerror = null;
+                                }}
+                              />
+                            ) : (
+                              <div 
+                                className="w-full h-full flex items-center justify-center bg-primary/5"
+                                style={{ 
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: 0,
+                                  borderTopLeftRadius: 0,
+                                  borderTopRightRadius: 0
+                                }}
+                              >
+                                <FileText className="h-12 w-12 text-primary/40" />
+                              </div>
+                            )}
+                            <div className="absolute top-3 left-3">
+                              <Badge 
+                                className="cursor-pointer"
+                                variant="secondary"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  handleTopicClick(article.topic.id);
+                                }}
+                              >
+                                {article.topic.name}
+                              </Badge>
                             </div>
-                            <div className="flex items-center text-sm text-muted-foreground mt-1 gap-3">
-                              <span>{article.created_at}</span>
-                              <span>•</span>
+                          </div>
+
+                          <CardContent className="flex flex-col flex-1 p-5">
+                            <div className="flex flex-wrap items-center text-xs text-muted-foreground mb-2 gap-2">
+                              <span className="flex items-center">
+                                <Calendar className="h-3 w-3 mr-1" />
+                                {article.created_at}
+                              </span>
                               {article.read_time && (
-                                <>
-                                  <span>{article.read_time} min read</span>
-                                  <span>•</span>
-                                </>
+                                <span className="flex items-center">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {article.read_time} min read
+                                </span>
                               )}
-                              <span>{article.view_count} views</span>
+                              <span className="flex items-center">
+                                <Eye className="h-3 w-3 mr-1" />
+                                {article.view_count} views
+                              </span>
                               {article.has_attachments && (
-                                <>
-                                  <span>•</span>
-                                  <span className="flex items-center">
-                                    <FileText className="h-3 w-3 mr-1" />
-                                    Has attachments
-                                  </span>
-                                </>
+                                <span className="flex items-center">
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  Attachments
+                                </span>
                               )}
                             </div>
-                          </CardHeader>
-                          <CardContent>
-                            <p className="text-muted-foreground">{article.preview}</p>
-                          </CardContent>
-                          <CardFooter className="flex flex-wrap gap-2 pt-0">
-                            <Badge 
-                              variant="secondary" 
-                              className="cursor-pointer"
-                              onClick={() => handleTopicClick(article.topic.id)}
+                            
+                            <h3 
+                              className="text-lg font-bold mb-2 line-clamp-2 hover:text-primary cursor-pointer transition-colors"
+                              onClick={() => router.push(`/knowledge-base/post/${article.id}`)}
                             >
-                              {article.topic.name}
-                            </Badge>
-                          </CardFooter>
+                              {article.title}
+                            </h3>
+                            
+                            <p className="text-muted-foreground text-sm mb-4 line-clamp-3">
+                              {article.preview}
+                            </p>
+                            
+                            <div className="mt-auto flex items-center">
+                              {article.author.avatar ? (
+                                <img 
+                                  src={article.author.avatar} 
+                                  alt={article.author.username}
+                                  className="rounded-full mr-2 border border-border"
+                                  style={{ 
+                                    width: '20px', 
+                                    height: '20px', 
+                                    minWidth: '20px',
+                                    minHeight: '20px',
+                                    maxWidth: '20px',
+                                    maxHeight: '20px',
+                                    objectFit: 'cover',
+                                    display: 'block'
+                                  }}
+                                  onError={(e) => {
+                                    // Hide this image and show the fallback letter avatar
+                                    e.currentTarget.style.display = 'none';
+                                    const nextElement = e.currentTarget.nextElementSibling as HTMLElement;
+                                    if (nextElement) nextElement.style.display = 'flex';
+                                  }}
+                                />
+                              ) : null}
+                              <div 
+                                style={{ 
+                                  width: '20px', 
+                                  height: '20px',
+                                  minWidth: '20px',
+                                  minHeight: '20px',
+                                  maxWidth: '20px',
+                                  maxHeight: '20px',
+                                  display: article.author.avatar ? 'none' : 'flex',
+                                  borderRadius: '50%',
+                                  marginRight: '0.5rem',
+                                  backgroundColor: 'hsl(var(--primary))',
+                                  color: 'hsl(var(--primary-foreground))',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.75rem',
+                                  fontWeight: '600'
+                                }}
+                              >
+                                {article.author.username.charAt(0).toUpperCase()}
+                              </div>
+                              <span className="text-xs font-medium text-muted-foreground">
+                                By {article.author.username}
+                                {article.author.is_verified && (
+                                  <span className="text-blue-500 ml-1">✓</span>
+                                )}
+                              </span>
+                            </div>
+                          </CardContent>
                         </Card>
                       </motion.div>
                     ))}

@@ -61,8 +61,11 @@ interface RelatedArticle {
   id: number;
   title: string;
   created_at: string;
-  read_time: number;
+  read_time?: number;
   topic: Topic;
+  banner_image?: string;
+  author: string;
+  preview: string;
 }
 
 interface Article {
@@ -105,16 +108,35 @@ export default function PostDetail() {
   const { id } = router.query;
   const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [isBookmarked, setIsBookmarked] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
   const [shareLinks, setShareLinks] = useState<ShareLinks | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [shareError, setShareError] = useState<string | null>(null);
+  const [placeholderImage, setPlaceholderImage] = useState('/placeholder.png');
+  const [showAllRelated, setShowAllRelated] = useState(false);
 
   // Create refs for DOM elements we'll focus
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
+
+  // Preload placeholder image once to prevent multiple requests
+  useEffect(() => {
+    // Create a new Image object to preload the placeholder
+    const img = new Image();
+    img.src = '/placeholder.png';
+    
+    // Once the placeholder is loaded, we can use it without generating new requests
+    img.onload = () => {
+      setPlaceholderImage('/placeholder.png');
+    };
+    
+    // If loading fails, use a simple data URI instead
+    img.onerror = () => {
+      console.warn('Failed to load placeholder image');
+      setPlaceholderImage('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgZmlsbD0iI2YwZjBmMCIvPjwvc3ZnPg==');
+    };
+  }, []);
 
   // Fetch article details when id is available
   useEffect(() => {
@@ -383,7 +405,7 @@ export default function PostDetail() {
               className="bg-card rounded-lg shadow-sm overflow-hidden"
             >
               {article.banner_image && (
-                <div className="w-full h-64 md:h-80 bg-gray-100 relative overflow-hidden">
+                <div className="w-full h-96 md:h-[30rem] bg-gray-100 relative overflow-hidden">
                   <img 
                     src={article.banner_image} 
                     alt={article.title}
@@ -448,14 +470,6 @@ export default function PostDetail() {
                     transition={{ duration: 0.3, delay: 0.5 }}
                     className="flex items-center space-x-2"
                   >
-                    <Button 
-                      variant="ghost" 
-                      size="icon"
-                      onClick={() => setIsBookmarked(!isBookmarked)}
-                    >
-                      <Bookmark className={`h-5 w-5 ${isBookmarked ? "fill-current" : ""}`} />
-                    </Button>
-                    
                     {/* Share button */}
                     <Button 
                       variant="ghost" 
@@ -553,44 +567,184 @@ export default function PostDetail() {
           >
             <div className="sticky top-24 space-y-6">
               {/* Related Articles */}
-              {article.related_articles && article.related_articles.length > 0 && (
-                <Card className="overflow-hidden">
-                  <div className="p-6">
-                    <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
-                    <div className="space-y-4">
-                      {article.related_articles.map(related => (
-                        <div 
-                          key={related.id}
-                          className="border-b pb-4 last:border-0 last:pb-0"
-                        >
-                          <h4 
-                            className="font-medium hover:text-primary transition-colors cursor-pointer line-clamp-2"
-                            onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
-                          >
-                            {related.title}
-                          </h4>
-                          <div className="flex items-center mt-2 text-sm text-muted-foreground">
-                            <Badge 
-                              variant="outline" 
-                              className="mr-2 cursor-pointer"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                router.push(`/knowledge-base?topic=${related.topic.id}`);
-                              }}
+              <Card className="overflow-hidden">
+                <div className="p-6">
+                  <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
+                  
+                  {article.related_articles && article.related_articles.length > 0 ? (
+                    <div className="space-y-6">
+                      {showAllRelated ? (
+                        <>
+                          {article.related_articles.map(related => (
+                            <div 
+                              key={related.id}
+                              className="border-b pb-4 last:border-0 last:pb-0"
                             >
-                              {related.topic.name}
-                            </Badge>
-                            <span className="flex items-center">
-                              <Clock className="h-3 w-3 mr-1" />
-                              {related.read_time} min read
-                            </span>
-                          </div>
-                        </div>
-                      ))}
+                              <div 
+                                className="relative h-40 mb-3 rounded-lg overflow-hidden cursor-pointer"
+                                onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
+                              >
+                                {related.banner_image ? (
+                                  <img 
+                                    src={related.banner_image}
+                                    alt={related.title}
+                                    className="w-full h-full object-cover transition-transform hover:scale-105"
+                                    onError={(e) => {
+                                      // Use the preloaded placeholder
+                                      (e.target as HTMLImageElement).src = placeholderImage;
+                                      // Prevent further error callbacks
+                                      (e.target as HTMLImageElement).onerror = null;
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-primary/5">
+                                    <FileText className="h-12 w-12 text-primary/40" />
+                                  </div>
+                                )}
+                                <div className="absolute top-2 left-2">
+                                  <Badge 
+                                    variant="secondary"
+                                    className="cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      router.push(`/knowledge-base?topic=${related.topic.id}`);
+                                    }}
+                                  >
+                                    {related.topic.name}
+                                  </Badge>
+                                </div>
+                              </div>
+                              
+                              <h4 
+                                className="font-semibold text-lg hover:text-primary transition-colors cursor-pointer line-clamp-2 mb-2"
+                                onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
+                              >
+                                {related.title}
+                              </h4>
+                              
+                              <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                                {related.preview}
+                              </p>
+                              
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>By {related.author}</span>
+                                <div className="flex items-center">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  {related.created_at}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {article.related_articles.length > 2 && (
+                            <div className="text-center py-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm"
+                                onClick={() => setShowAllRelated(false)}
+                              >
+                                See Less
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      ) : (
+                        <>
+                          {article.related_articles.slice(0, 2).map(related => (
+                            <div 
+                              key={related.id}
+                              className="border-b pb-6 last:border-0 last:pb-0"
+                            >
+                              <div 
+                                className="relative h-40 mb-3 rounded-lg overflow-hidden cursor-pointer"
+                                onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
+                              >
+                                {related.banner_image ? (
+                                  <img 
+                                    src={related.banner_image}
+                                    alt={related.title}
+                                    className="w-full h-full object-cover transition-transform hover:scale-105"
+                                    onError={(e) => {
+                                      // Use the preloaded placeholder
+                                      (e.target as HTMLImageElement).src = placeholderImage;
+                                      // Prevent further error callbacks
+                                      (e.target as HTMLImageElement).onerror = null;
+                                    }}
+                                  />
+                                ) : (
+                                  <div className="w-full h-full flex items-center justify-center bg-primary/5">
+                                    <FileText className="h-12 w-12 text-primary/40" />
+                                  </div>
+                                )}
+                                <div className="absolute top-2 left-2">
+                                  <Badge 
+                                    variant="secondary"
+                                    className="cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      router.push(`/knowledge-base?topic=${related.topic.id}`);
+                                    }}
+                                  >
+                                    {related.topic.name}
+                                  </Badge>
+                                </div>
+                              </div>
+                              
+                              <h4 
+                                className="font-semibold text-lg hover:text-primary transition-colors cursor-pointer line-clamp-2 mb-2"
+                                onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
+                              >
+                                {related.title}
+                              </h4>
+                              
+                              <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
+                                {related.preview}
+                              </p>
+                              
+                              <div className="flex items-center justify-between text-xs text-muted-foreground">
+                                <span>By {related.author}</span>
+                                <div className="flex items-center">
+                                  <Calendar className="h-3 w-3 mr-1" />
+                                  {related.created_at}
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                          {article.related_articles.length > 2 && (
+                            <div className="text-center py-4">
+                              <Button 
+                                variant="outline" 
+                                size="sm" 
+                                className="w-full"
+                                onClick={() => setShowAllRelated(true)}
+                              >
+                                See More ({article.related_articles.length - 2} more)
+                              </Button>
+                            </div>
+                          )}
+                        </>
+                      )}
                     </div>
-                  </div>
-                </Card>
-              )}
+                  ) : (
+                    <div className="text-center py-8 px-4">
+                      <div className="mb-4 flex justify-center">
+                        <FileText className="h-12 w-12 text-muted-foreground/60" />
+                      </div>
+                      <h4 className="text-base font-medium mb-2">No Related Articles</h4>
+                      <p className="text-sm text-muted-foreground">
+                        There are no related articles available for this topic yet.
+                      </p>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="mt-4"
+                        onClick={() => router.push('/knowledge-base')}
+                      >
+                        Browse Knowledge Base
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </Card>
             </div>
           </motion.div>
         </div>
