@@ -105,6 +105,9 @@ const [faceSearchImage, setFaceSearchImage] = useState<File | null>(null);
 const [isFaceSearching, setIsFaceSearching] = useState(false);
 const [faceSearchError, setFaceSearchError] = useState<string | null>(null);
 
+// Add flag to track when face search is active
+const [isFaceSearchActive, setIsFaceSearchActive] = useState(false)
+
   // Calculate total pages
   const totalPages = Math.ceil(totalItems / itemsPerPage)
 
@@ -525,7 +528,7 @@ const handleFaceSearchImageSelect = (e: React.ChangeEvent<HTMLInputElement>) => 
   }
 };
 
-// Add this function to perform the face search
+// Update the performFaceSearch function
 const performFaceSearch = async () => {
   if (!faceSearchImage) {
     setFaceSearchError("Please select an image first");
@@ -567,6 +570,7 @@ const performFaceSearch = async () => {
       setTotalItems(0);
       setIsFaceSearchModalOpen(false);
       setIsFaceSearching(false);
+      setIsFaceSearchActive(true); // Set the flag to true even for empty results
       return;
     }
     
@@ -596,6 +600,7 @@ const performFaceSearch = async () => {
     setSubmissions(matchedSubmissions);
     setTotalItems(matchedSubmissions.length);
     setIsFaceSearchModalOpen(false);
+    setIsFaceSearchActive(true); // Set the flag to true
     
   } catch (error) {
     console.error("Error performing face search:", error);
@@ -607,6 +612,20 @@ const performFaceSearch = async () => {
   } finally {
     setIsFaceSearching(false);
   }
+};
+
+// Update the resetPage function
+const resetPage = () => {
+  // Reset all state variables related to face search
+  setFaceSearchImage(null);
+  setFaceSearchError(null);
+  setSearchQuery("");
+  setSelectedCategory("");
+  setCurrentPage(1);
+  setIsFaceSearchActive(false); // Reset the flag
+  
+  // Fetch all submissions again
+  fetchSubmissions();
 };
 
   return (
@@ -729,7 +748,6 @@ const performFaceSearch = async () => {
 
             {/* Results count */}
             {/* Update the results count display */}
-{/* Update the results count display */}
 <div className="text-sm text-muted-foreground">
   {isFaceMatchEnabled ? (
     <>
@@ -738,13 +756,23 @@ const performFaceSearch = async () => {
         <span className="text-destructive ml-2">({faceMatchError})</span>
       )}
     </>
-  ) : faceSearchImage ? (
-    <>
-      Showing {submissions.length} submissions
-      {faceSearchError && (
-        <span className="text-destructive ml-2">({faceSearchError})</span>
-      )}
-    </>
+  ) : isFaceSearchActive ? (
+    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between">
+      <div>
+        Showing {submissions.length} submissions matching the face in your search
+        {faceSearchError && (
+          <span className="text-destructive ml-2">({faceSearchError})</span>
+        )}
+      </div>
+      <Button 
+        variant="outline" 
+        size="sm" 
+        className="mt-2 sm:mt-0"
+        onClick={resetPage}
+      >
+        Show All Submissions
+      </Button>
+    </div>
   ) : (
     <>
       Showing {submissions.length} of {totalItems} results
@@ -881,16 +909,32 @@ const performFaceSearch = async () => {
 ) : (!isFaceMatchEnabled && submissions.length === 0) ? (
   <div className="text-center py-12">
     <p className="text-xl font-semibold mb-2">No results found</p>
-    <p className="text-muted-foreground mb-4">Try adjusting your search or filter criteria</p>
-    <Button
-      variant="outline"
-      onClick={() => {
-        setSearchQuery("")
-        setSelectedCategory("")
-      }}
-    >
-      Clear Filters
-    </Button>
+    <p className="text-muted-foreground mb-4">
+      {isFaceSearchActive 
+        ? "No submissions match the face in your search image" 
+        : "Try adjusting your search or filter criteria"}
+    </p>
+    <div className="flex flex-col sm:flex-row justify-center gap-3">
+      {!isFaceSearchActive && (
+        <Button
+          variant="outline"
+          onClick={() => {
+            setSearchQuery("")
+            setSelectedCategory("")
+          }}
+        >
+          Clear Filters
+        </Button>
+      )}
+      {(faceSearchImage || isFaceSearchActive) && (
+        <Button
+          variant="default"
+          onClick={resetPage}
+        >
+          Show All Submissions
+        </Button>
+      )}
+    </div>
   </div>
 ) : (
   <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">

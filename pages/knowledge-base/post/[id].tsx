@@ -34,6 +34,41 @@ import {
 import { toast } from "../../../components/ui/use-toast";
 import axios from "axios";
 
+// Add custom styles to ensure content doesn't overflow
+const articleContentStyles = `
+  .article-content {
+    width: 100%;
+    overflow-wrap: break-word;
+    word-wrap: break-word;
+    word-break: break-word;
+    hyphens: auto;
+  }
+  
+  .article-content * {
+    max-width: 100%;
+    overflow-wrap: break-word;
+  }
+  
+  .article-content pre, 
+  .article-content code {
+    white-space: pre-wrap;
+    word-break: break-all;
+  }
+  
+  .article-content img, 
+  .article-content video,
+  .article-content iframe {
+    max-width: 100%;
+    height: auto;
+  }
+  
+  .article-content table {
+    display: block;
+    overflow-x: auto;
+    width: 100%;
+  }
+`;
+
 // API base URL
 const API_BASE_URL = "http://127.0.0.1:8000";
 
@@ -271,10 +306,10 @@ export default function PostDetail() {
         if (platform === 'email') {
           window.location.href = shareUrl;
         } else {
-          window.open(shareUrl, '_blank', 'width=600,height=450');
-        }
-        // Close the modal
-        setShareModalOpen(false);
+      window.open(shareUrl, '_blank', 'width=600,height=450');
+    }
+    // Close the modal
+    setShareModalOpen(false);
       } catch (err) {
         console.error(`Error sharing to ${platform}:`, err);
         setShareError(`Failed to share to ${platform}. Please try again.`);
@@ -374,6 +409,9 @@ export default function PostDetail() {
 
   return (
     <Layout>
+      {/* Add style tag for custom styles */}
+      <style jsx global>{articleContentStyles}</style>
+      
       <motion.div 
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
@@ -390,11 +428,11 @@ export default function PostDetail() {
           >
             <Button 
               variant="ghost" 
-              size="sm" 
+              size="lg" 
               className="mb-4 pl-0 hover:bg-transparent"
               onClick={() => router.push("/knowledge-base")}
             >
-              <ArrowLeft className="mr-2 h-4 w-4" />
+              <ArrowLeft className="mr-2 h-5 w-5" />
               Back to Knowledge Base
             </Button>
             
@@ -496,9 +534,9 @@ export default function PostDetail() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <div className="w-full h-full flex items-center justify-center text-xl font-semibold bg-primary text-primary-foreground">
+                    <div className="w-full h-full flex items-center justify-center text-xl font-semibold bg-primary text-primary-foreground">
                         {article.author.username.charAt(0).toUpperCase()}
-                      </div>
+                    </div>
                     )}
                   </div>
                   <div>
@@ -518,11 +556,16 @@ export default function PostDetail() {
                   </div>
                 </motion.div>
                 
-                <motion.div 
+                <motion.div
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
-                  className="prose prose-lg dark:prose-invert max-w-none"
+                  className="prose prose-lg dark:prose-invert max-w-none overflow-hidden break-words article-content"
+                  style={{ 
+                    width: '100%', 
+                    wordWrap: 'break-word', 
+                    overflowWrap: 'break-word' 
+                  }}
                   dangerouslySetInnerHTML={{ __html: article.content }}
                 />
                 
@@ -619,8 +662,8 @@ export default function PostDetail() {
                                 className="font-semibold text-lg hover:text-primary transition-colors cursor-pointer line-clamp-2 mb-2"
                                 onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
                               >
-                                {related.title}
-                              </h4>
+                            {related.title}
+                          </h4>
                               
                               <p className="text-muted-foreground text-sm mb-3 line-clamp-2">
                                 {related.preview}
@@ -632,8 +675,8 @@ export default function PostDetail() {
                                   <Calendar className="h-3 w-3 mr-1" />
                                   {related.created_at}
                                 </div>
-                              </div>
-                            </div>
+                          </div>
+                        </div>
                           ))}
                           {article.related_articles.length > 2 && (
                             <div className="text-center py-4">
@@ -676,16 +719,16 @@ export default function PostDetail() {
                                   </div>
                                 )}
                                 <div className="absolute top-2 left-2">
-                                  <Badge 
+                      <Badge 
                                     variant="secondary"
-                                    className="cursor-pointer"
+                        className="cursor-pointer"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       router.push(`/knowledge-base?topic=${related.topic.id}`);
                                     }}
-                                  >
+                      >
                                     {related.topic.name}
-                                  </Badge>
+                      </Badge>
                                 </div>
                               </div>
                               
@@ -712,7 +755,7 @@ export default function PostDetail() {
                           {article.related_articles.length > 2 && (
                             <div className="text-center py-4">
                               <Button 
-                                variant="outline" 
+                    variant="outline"
                                 size="sm" 
                                 className="w-full"
                                 onClick={() => setShowAllRelated(true)}
@@ -734,7 +777,7 @@ export default function PostDetail() {
                         There are no related articles available for this topic yet.
                       </p>
                       <Button 
-                        variant="outline" 
+                    variant="outline"
                         size="sm" 
                         className="mt-4"
                         onClick={() => router.push('/knowledge-base')}
@@ -749,23 +792,23 @@ export default function PostDetail() {
           </motion.div>
         </div>
       </motion.div>
-      
+
       {/* Share Modal */}
       <AnimatePresence>
         {shareModalOpen && (
-          <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
             className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-          >
-            <motion.div 
-              ref={modalRef}
-              initial={{ opacity: 0, scale: 0.95 }}
-              animate={{ opacity: 1, scale: 1 }}
-              exit={{ opacity: 0, scale: 0.95 }}
-              transition={{ duration: 0.2 }}
+            >
+              <motion.div
+                ref={modalRef}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ duration: 0.2 }}
               className="bg-background rounded-lg shadow-lg p-6 max-w-md w-full"
             >
               <div className="flex justify-between items-center mb-4">
@@ -777,7 +820,7 @@ export default function PostDetail() {
                 >
                   <X className="h-5 w-5" />
                 </button>
-              </div>
+                </div>
               
               {/* Copy Success Message */}
               {copySuccess && (
@@ -818,31 +861,31 @@ export default function PostDetail() {
                 <Button 
                   variant="outline"
                   className="flex items-center justify-center gap-2"
-                  onClick={() => shareOnSocial('facebook')}
-                >
-                  <Facebook className="h-5 w-5" /> 
+                    onClick={() => shareOnSocial('facebook')}
+                  >
+                    <Facebook className="h-5 w-5" />
                   Facebook
                 </Button>
                 
                 <Button 
                   variant="outline"
                   className="flex items-center justify-center gap-2"
-                  onClick={() => shareOnSocial('linkedin')}
-                >
-                  <Linkedin className="h-5 w-5" /> 
+                    onClick={() => shareOnSocial('linkedin')}
+                  >
+                    <Linkedin className="h-5 w-5" />
                   LinkedIn
                 </Button>
                 
-                <Button 
+                  <Button 
                   variant="outline"
                   className="flex items-center justify-center gap-2"
                   onClick={() => shareOnSocial('email')}
-                >
+                  >
                   <MessageSquare className="h-5 w-5" /> 
                   Email
-                </Button>
-              </div>
-              
+                  </Button>
+                </div>
+                
               <div className="flex flex-col space-y-4">
                 <div className="flex bg-muted p-2 rounded-md items-center">
                   <span className="truncate flex-1 pl-2 text-sm">
