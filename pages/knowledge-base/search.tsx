@@ -15,135 +15,140 @@ import {
   PaginationNext, 
   PaginationPrevious 
 } from "../../components/ui/pagination";
-import { Search, Bookmark, Tag } from "lucide-react";
+import { Search, Bookmark, FileText, AlertCircle } from "lucide-react";
 import KnowledgeBaseBreadcrumb from "../../components/KnowledgeBaseBreadcrumb";
+import axios from "axios";
 
-// Mock data for search results - in a real app, this would come from API
-const mockPosts = [
-  {
-    id: 1,
-    title: "Introduction to Deepfake Detection Methods",
-    excerpt: "Learn about the latest methods used to detect deepfakes in digital media...",
-    author: "Dr. Emily Chen",
-    date: "2023-10-15",
-    readTime: "8 min read",
-    topic: "Deepfake Detection",
-    category: "Tutorials",
-    tags: ["deepfake", "detection", "machinelearning"],
-    views: 1245
-  },
-  {
-    id: 2,
-    title: "AI Content Detection: Current Challenges and Solutions",
-    excerpt: "Explore the challenges in AI-generated content detection and the solutions being developed...",
-    author: "James Wilson",
-    date: "2023-09-28",
-    readTime: "12 min read",
-    topic: "AI Content Detection",
-    category: "Research",
-    tags: ["detection", "aiethics", "machinelearning"],
-    views: 980
-  },
-  {
-    id: 3,
-    title: "Media Forensics Tools for Everyday Users",
-    excerpt: "A comprehensive guide to accessible media forensics tools that anyone can use...",
-    author: "Sarah Johnson",
-    date: "2023-10-02",
-    readTime: "10 min read",
-    topic: "Media Forensics",
-    category: "Tools",
-    tags: ["forensics", "verification", "detection"],
-    views: 865
-  },
-  {
-    id: 4,
-    title: "Ethical Implications of Deepfake Technology",
-    excerpt: "A deep dive into the ethical concerns surrounding deepfake technology and its impact...",
-    author: "Dr. Michael Roberts",
-    date: "2023-09-18",
-    readTime: "15 min read",
-    topic: "Ethics in AI",
-    category: "Research",
-    tags: ["aiethics", "deepfake", "privacy"],
-    views: 1120
-  },
-  {
-    id: 5,
-    title: "Building Digital Literacy in the Age of Synthetic Media",
-    excerpt: "Strategies for improving digital literacy to combat misinformation in synthetic media...",
-    author: "Lisa Thompson",
-    date: "2023-10-10",
-    readTime: "9 min read",
-    topic: "Digital Media Literacy",
-    category: "Best Practices",
-    tags: ["disinformation", "verification", "privacy"],
-    views: 735
-  },
-  {
-    id: 6,
-    title: "Advanced Techniques in Voice Deepfake Detection",
-    excerpt: "Learn about sophisticated methods for detecting voice deepfakes and audio manipulations...",
-    author: "Dr. Emily Chen",
-    date: "2023-10-08",
-    readTime: "11 min read",
-    topic: "Deepfake Detection",
-    category: "Research",
-    tags: ["deepfake", "detection", "forensics"],
-    views: 890
-  },
-];
+// API base URL
+const API_BASE_URL = "http://127.0.0.1:8000";
+
+// Types for API responses
+interface Author {
+  username: string;
+  avatar: string;
+  is_verified: boolean;
+}
+
+interface Topic {
+  id: number;
+  name: string;
+}
+
+interface Article {
+  id: number;
+  title: string;
+  author: Author;
+  created_at: string;
+  topic: Topic;
+  preview: string;
+  view_count: number;
+  has_attachments: boolean;
+  read_time?: number;
+}
+
+interface SearchResponse {
+  success: boolean;
+  articles: Article[];
+  page: number;
+  pages: number;
+  total: number;
+  code: string;
+}
 
 export default function KnowledgeBaseSearch() {
   const router = useRouter();
-  const { q: queryParam } = router.query;
+  const { q: queryParam, page: pageParam } = router.query;
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const [results, setResults] = useState<any[]>([]);
+  const [results, setResults] = useState<Article[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const resultsPerPage = 5;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalResults, setTotalResults] = useState(0);
+  const [error, setError] = useState<string | null>(null);
+  
+  const itemsPerPage = 10;
 
-  // Initialize search query from URL parameter
+  // Initialize search query and page from URL parameters
   useEffect(() => {
     if (queryParam && typeof queryParam === 'string') {
       setSearchQuery(queryParam);
     }
-  }, [queryParam]);
+    
+    if (pageParam && typeof pageParam === 'string') {
+      const page = parseInt(pageParam);
+      if (!isNaN(page) && page > 0) {
+        setCurrentPage(page);
+      }
+    }
+  }, [queryParam, pageParam]);
 
   // Perform search when query changes
   useEffect(() => {
-    if (searchQuery) {
-      setIsLoading(true);
-      
-      // Simulate API call with timeout
-      const timeoutId = setTimeout(() => {
-        const filteredResults = mockPosts.filter(post => 
-          post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
-        setResults(filteredResults);
-        setIsLoading(false);
-        setCurrentPage(1); // Reset to first page on new search
-      }, 500);
-      
-      return () => clearTimeout(timeoutId);
-    } else {
+    if (searchQuery && searchQuery.length >= 3) {
+      performSearch();
+    } else if (searchQuery) {
+      setError("Search query must be at least 3 characters");
       setResults([]);
     }
-  }, [searchQuery]);
+  }, [searchQuery, currentPage]);
+
+  const performSearch = async () => {
+    setIsLoading(true);
+    setError(null);
+    
+    try {
+      const { data } = await axios.get<SearchResponse>(`${API_BASE_URL}/api/knowledge-base/search/`, {
+        params: {
+          query: searchQuery,
+          page: currentPage,
+          items_per_page: itemsPerPage
+        }
+      });
+      
+      if (data.success) {
+        setResults(data.articles);
+        setTotalPages(data.pages);
+        setTotalResults(data.total);
+      } else {
+        setError('Failed to search articles');
+        setResults([]);
+      }
+    } catch (err: any) {
+      console.error('Error searching articles:', err);
+      if (err.response?.data?.error) {
+        setError(err.response.data.error);
+      } else {
+        setError('An error occurred while searching');
+      }
+      setResults([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    router.push(`/knowledge-base/search?q=${encodeURIComponent(searchQuery)}`);
+    if (searchQuery.trim().length >= 3) {
+      router.push({
+        pathname: '/knowledge-base/search',
+        query: { q: searchQuery }
+      });
+    }
   };
 
-  // Pagination calculation
-  const indexOfLastResult = currentPage * resultsPerPage;
-  const indexOfFirstResult = indexOfLastResult - resultsPerPage;
-  const currentResults = results.slice(indexOfFirstResult, indexOfLastResult);
-  const totalPages = Math.ceil(results.length / resultsPerPage);
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    router.push({
+      pathname: '/knowledge-base/search',
+      query: { 
+        q: searchQuery,
+        page: page > 1 ? page.toString() : undefined
+      }
+    }, undefined, { shallow: true });
+  };
 
   return (
     <Layout>
@@ -200,216 +205,197 @@ export default function KnowledgeBaseSearch() {
               <Button
                 type="submit"
                 className="absolute right-1 top-1/2 -translate-y-1/2 h-10"
-                disabled={isLoading}
               >
-                {isLoading ? "Searching..." : "Search"}
+                Search
               </Button>
             </div>
           </motion.form>
           
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center p-4 mb-4 text-sm text-red-800 bg-red-100 rounded-lg dark:bg-red-900/50 dark:text-red-200" role="alert">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              <span>{error}</span>
+            </div>
+          )}
+          
           {/* Search Results */}
-          <motion.div 
+          <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="mt-4"
+            className="space-y-6"
           >
             {isLoading ? (
-              <div className="space-y-4">
-                {[...Array(3)].map((_, i) => (
-                  <div key={i} className="animate-pulse">
-                    <div className="h-6 bg-gray-200 rounded w-3/4 mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-1/4 mb-3"></div>
-                    <div className="h-4 bg-gray-200 rounded w-full mb-2"></div>
-                    <div className="h-4 bg-gray-200 rounded w-5/6 mb-4"></div>
-                    <div className="flex gap-2">
-                      <div className="h-6 bg-gray-200 rounded w-16"></div>
-                      <div className="h-6 bg-gray-200 rounded w-16"></div>
-                    </div>
-                  </div>
-                ))}
+              <div className="flex justify-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
               </div>
-            ) : (
+            ) : searchQuery && results.length === 0 && !error ? (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="text-center py-12"
+              >
+                <h2 className="text-2xl font-bold mb-2">No results found</h2>
+                <p className="text-muted-foreground mb-6">
+                  We couldn't find any articles matching '{searchQuery}'
+                </p>
+                <div className="flex flex-col gap-4 items-center">
+                  <p className="text-sm text-muted-foreground">Try:</p>
+                  <ul className="list-disc text-left max-w-xs space-y-2 text-sm">
+                    <li>Checking your spelling</li>
+                    <li>Using more general keywords</li>
+                    <li>Exploring topics in the knowledge base</li>
+                  </ul>
+                  <Button 
+                    variant="outline" 
+                    className="mt-4" 
+                    onClick={() => router.push("/knowledge-base")}
+                  >
+                    Browse Knowledge Base
+                  </Button>
+                </div>
+              </motion.div>
+            ) : searchQuery && results.length > 0 ? (
               <>
-                {results.length > 0 ? (
-                  <motion.div 
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.5 }}
-                    className="space-y-6"
-                  >
-                    <motion.div 
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3, delay: 0.6 }}
-                      className="flex items-center justify-between"
+                <div className="flex items-center justify-between">
+                  <h2 className="text-xl font-semibold">
+                    {totalResults} {totalResults === 1 ? 'Result' : 'Results'} for "{searchQuery}"
+                  </h2>
+                </div>
+                
+                <div className="space-y-4">
+                  {results.map((article, index) => (
+                    <motion.div
+                      key={article.id}
+                      initial={{ opacity: 0, y: 20 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.3, delay: 0.1 * index }}
+                      whileHover={{ scale: 1.01 }}
+                      className="transition-all"
                     >
-                      <h2 className="text-xl font-semibold">
-                        {results.length} {results.length === 1 ? 'Result' : 'Results'} for "{searchQuery}"
-                      </h2>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm text-muted-foreground">Sort by:</span>
-                        <select className="text-sm border rounded-md p-1 bg-background">
-                          <option>Relevance</option>
-                          <option>Most Recent</option>
-                          <option>Most Viewed</option>
-                        </select>
-                      </div>
+                      <Card className="overflow-hidden hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-2">
+                          <div className="flex justify-between items-start">
+                            <CardTitle 
+                              className="text-xl font-bold hover:text-primary cursor-pointer"
+                              onClick={() => router.push(`/knowledge-base/post/${article.id}`)}
+                            >
+                              {article.title}
+                            </CardTitle>
+                            <Button variant="ghost" size="icon" className="h-8 w-8">
+                              <Bookmark className="h-4 w-4" />
+                            </Button>
+                          </div>
+                          <div className="flex items-center text-sm text-muted-foreground mt-1 gap-3">
+                            <span>{article.created_at}</span>
+                            <span>•</span>
+                            {article.read_time && (
+                              <>
+                                <span>{article.read_time} min read</span>
+                                <span>•</span>
+                              </>
+                            )}
+                            <span>{article.view_count} views</span>
+                            {article.has_attachments && (
+                              <>
+                                <span>•</span>
+                                <span className="flex items-center">
+                                  <FileText className="h-3 w-3 mr-1" />
+                                  Has attachments
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </CardHeader>
+                        <CardContent>
+                          <p className="text-muted-foreground">{article.preview}</p>
+                        </CardContent>
+                        <CardFooter className="flex flex-wrap gap-2 pt-0">
+                          <Badge 
+                            variant="secondary"
+                            className="cursor-pointer"
+                            onClick={() => router.push(`/knowledge-base?topic=${encodeURIComponent(article.topic.id)}`)}
+                          >
+                            {article.topic.name}
+                          </Badge>
+                        </CardFooter>
+                      </Card>
                     </motion.div>
-                    
-                    <div className="space-y-4">
-                      {currentResults.map((post, index) => (
-                        <motion.div
-                          key={post.id}
-                          initial={{ opacity: 0, y: 20 }}
-                          animate={{ opacity: 1, y: 0 }}
-                          transition={{ duration: 0.4, delay: 0.6 + (index * 0.1) }}
-                          whileHover={{ scale: 1.01 }}
-                          className="transition-all"
-                        >
-                          <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                            <CardHeader className="pb-2">
-                              <div className="flex justify-between items-start">
-                                <CardTitle className="text-xl font-bold hover:text-primary cursor-pointer" onClick={() => router.push(`/knowledge-base/post/${post.id}`)}>
-                                  {post.title}
-                                </CardTitle>
-                                <Button variant="ghost" size="icon" className="h-8 w-8">
-                                  <Bookmark className="h-4 w-4" />
-                                </Button>
-                              </div>
-                              <div className="flex items-center text-sm text-muted-foreground mt-1 gap-3">
-                                <span>{post.date}</span>
-                                <span>•</span>
-                                <span>{post.readTime}</span>
-                                <span>•</span>
-                                <span>{post.views} views</span>
-                              </div>
-                            </CardHeader>
-                            <CardContent>
-                              <p className="text-muted-foreground">{post.excerpt}</p>
-                            </CardContent>
-                            <CardFooter className="flex flex-wrap gap-2 pt-0">
-                              <Badge 
-                                variant="secondary" 
-                                className="cursor-pointer"
-                                onClick={() => router.push(`/knowledge-base?topic=${encodeURIComponent(post.topic)}`)}
+                  ))}
+                </div>
+                
+                {/* Pagination */}
+                {totalPages > 1 && (
+                  <Pagination>
+                    <PaginationContent>
+                      <PaginationItem>
+                        <PaginationPrevious 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage > 1) handlePageChange(currentPage - 1);
+                          }}
+                          className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                      
+                      {Array.from({ length: totalPages }).map((_, i) => {
+                        // Show first page, last page, current page, and pages adjacent to current
+                        if (
+                          i === 0 || 
+                          i === totalPages - 1 || 
+                          i === currentPage - 1 || 
+                          i === currentPage - 2 || 
+                          i === currentPage
+                        ) {
+                          return (
+                            <PaginationItem key={i}>
+                              <PaginationLink 
+                                href="#" 
+                                onClick={(e) => {
+                                  e.preventDefault();
+                                  handlePageChange(i + 1);
+                                }}
+                                isActive={currentPage === i + 1}
                               >
-                                {post.topic}
-                              </Badge>
-                              {post.tags.map((tag: string, i: number) => (
-                                <Badge 
-                                  key={i} 
-                                  variant="outline"
-                                  className="cursor-pointer flex items-center"
-                                  onClick={() => router.push(`/knowledge-base?tag=${encodeURIComponent(tag)}`)}
-                                >
-                                  <Tag className="h-3 w-3 mr-1" />
-                                  {tag}
-                                </Badge>
-                              ))}
-                            </CardFooter>
-                          </Card>
-                        </motion.div>
-                      ))}
-                    </div>
-                    
-                    {/* Pagination */}
-                    {totalPages > 1 && (
-                      <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ duration: 0.3, delay: 0.8 }}
-                      >
-                        <Pagination className="mt-8">
-                          <PaginationContent>
-                            <PaginationItem>
-                              <PaginationPrevious 
-                                href="#" 
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (currentPage > 1) setCurrentPage(currentPage - 1);
-                                }}
-                                className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
-                              />
+                                {i + 1}
+                              </PaginationLink>
                             </PaginationItem>
-                            
-                            {Array.from({ length: totalPages }).map((_, i) => {
-                              // Show first page, last page, current page, and pages adjacent to current
-                              if (
-                                i === 0 || 
-                                i === totalPages - 1 || 
-                                i === currentPage - 1 || 
-                                i === currentPage - 2 || 
-                                i === currentPage
-                              ) {
-                                return (
-                                  <PaginationItem key={i}>
-                                    <PaginationLink 
-                                      href="#" 
-                                      onClick={(e) => {
-                                        e.preventDefault();
-                                        setCurrentPage(i + 1);
-                                      }}
-                                      isActive={currentPage === i + 1}
-                                    >
-                                      {i + 1}
-                                    </PaginationLink>
-                                  </PaginationItem>
-                                );
-                              }
-                              
-                              // Show ellipsis if there's a gap
-                              if (
-                                (i === 1 && currentPage > 3) || 
-                                (i === totalPages - 2 && currentPage < totalPages - 2)
-                              ) {
-                                return (
-                                  <PaginationItem key={i}>
-                                    <PaginationEllipsis />
-                                  </PaginationItem>
-                                );
-                              }
-                              
-                              return null;
-                            })}
-                            
-                            <PaginationItem>
-                              <PaginationNext 
-                                href="#" 
-                                onClick={(e) => {
-                                  e.preventDefault();
-                                  if (currentPage < totalPages) setCurrentPage(currentPage + 1);
-                                }}
-                                className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
-                              />
+                          );
+                        }
+                        
+                        // Show ellipsis if there's a gap
+                        if (
+                          (i === 1 && currentPage > 3) || 
+                          (i === totalPages - 2 && currentPage < totalPages - 2)
+                        ) {
+                          return (
+                            <PaginationItem key={i}>
+                              <PaginationEllipsis />
                             </PaginationItem>
-                          </PaginationContent>
-                        </Pagination>
-                      </motion.div>
-                    )}
-                  </motion.div>
-                ) : (
-                  <motion.div 
-                    initial={{ opacity: 0, scale: 0.95 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.4, delay: 0.5 }}
-                    className={searchQuery ? "bg-muted p-8 rounded-lg text-center" : "hidden"}
-                  >
-                    <h3 className="text-xl font-semibold mb-2">No results found</h3>
-                    <p className="text-muted-foreground">
-                      No posts match your search query "{searchQuery}". Try different keywords or browse all content.
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      className="mt-4" 
-                      onClick={() => router.push("/knowledge-base")}
-                    >
-                      Browse all content
-                    </Button>
-                  </motion.div>
+                          );
+                        }
+                        
+                        return null;
+                      })}
+                      
+                      <PaginationItem>
+                        <PaginationNext 
+                          href="#" 
+                          onClick={(e) => {
+                            e.preventDefault();
+                            if (currentPage < totalPages) handlePageChange(currentPage + 1);
+                          }}
+                          className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
+                        />
+                      </PaginationItem>
+                    </PaginationContent>
+                  </Pagination>
                 )}
               </>
-            )}
+            ) : null}
           </motion.div>
         </div>
       </motion.div>

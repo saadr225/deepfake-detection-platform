@@ -20,7 +20,10 @@ import {
   Twitter,
   Linkedin,
   Link as LinkIcon,
-  X
+  X,
+  AlertCircle,
+  FileText,
+  Check
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -29,224 +32,139 @@ import {
   DropdownMenuTrigger,
 } from "../../../components/ui/dropdown-menu";
 import { toast } from "../../../components/ui/use-toast";
+import axios from "axios";
 
-// Mock post data
-const mockPosts = [
-  {
-    id: "1",
-    title: "Introduction to Deepfake Detection Methods",
-    content: `
-      <h2>Introduction</h2>
-      <p>Deepfakes represent one of the most challenging threats to information integrity in the digital age. As artificial intelligence technologies advance, the ability to create convincing fake media has become increasingly accessible, raising significant concerns for privacy, security, and public trust.</p>
-      
-      <p>This article provides an overview of current deepfake detection methods, explaining key approaches and their effectiveness.</p>
-      
-      <figure class="my-8">
-        <img src="/images/knowledge-base/deepfake-example.jpg" alt="Example of a deepfake detection visualization" class="rounded-lg shadow-md w-full" />
-        <figcaption class="text-sm text-center mt-2 text-muted-foreground">Fig 1: Visual analysis of deepfake artifacts</figcaption>
-      </figure>
-      
-      <h2>Visual Artifact Analysis</h2>
-      <p>One of the most basic approaches to deepfake detection involves identifying visual artifacts or inconsistencies in manipulated media. Even sophisticated deepfakes often contain subtle errors that can be detected:</p>
-      
-      <ul>
-        <li>Inconsistent blinking patterns</li>
-        <li>Unnatural facial movements</li>
-        <li>Lighting inconsistencies</li>
-        <li>Blurring around facial boundaries</li>
-        <li>Unrealistic skin texture</li>
-      </ul>
-      
-      <figure class="my-8">
-        <img src="/images/knowledge-base/facial-analysis.jpg" alt="Facial analysis for deepfake detection" class="rounded-lg shadow-md w-full" />
-        <figcaption class="text-sm text-center mt-2 text-muted-foreground">Fig 2: Facial feature analysis in deepfake detection</figcaption>
-      </figure>
-      
-      <h2>Deep Learning-Based Detection</h2>
-      <p>Advanced detection systems utilize neural networks trained to identify deepfakes:</p>
-      
-      <ul>
-        <li><strong>Convolutional Neural Networks (CNNs):</strong> These networks analyze spatial features in images to identify manipulation patterns.</li>
-        <li><strong>Recurrent Neural Networks (RNNs):</strong> These are effective for analyzing temporal inconsistencies in video sequences.</li>
-        <li><strong>Generative Adversarial Networks (GANs):</strong> Ironically, the same technology used to create deepfakes can be used to detect them.</li>
-      </ul>
-      
-      <h2>Biological Signal Analysis</h2>
-      <p>Humans exhibit certain biological signals that are difficult to fake convincingly:</p>
-      
-      <ul>
-        <li><strong>Pulse detection:</strong> Analyzing subtle color changes in skin that correspond to blood flow.</li>
-        <li><strong>Eye movement patterns:</strong> Natural eye movements follow specific patterns that deepfakes often fail to replicate accurately.</li>
-        <li><strong>Micro-expressions:</strong> Brief facial expressions that occur involuntarily are difficult for AI to simulate perfectly.</li>
-      </ul>
-      
-      <h2>Metadata Analysis</h2>
-      <p>Digital media contains metadata that can provide clues about manipulation:</p>
-      
-      <ul>
-        <li>Compression artifacts</li>
-        <li>Noise patterns</li>
-        <li>Digital fingerprints</li>
-        <li>File modification history</li>
-      </ul>
-      
-      <h2>Conclusion</h2>
-      <p>As deepfake technology evolves, detection methods must continuously improve. A multi-modal approach combining various detection techniques currently offers the most robust defense against sophisticated deepfakes. Ongoing research in this field remains crucial for maintaining trust in digital media.</p>
-    `,
-    author: {
-      name: "Dr. Emily Chen",
-      avatar: "/avatars/emily-chen.jpg",
-      title: "AI Research Scientist"
-    },
-    date: "2023-10-15",
-    readTime: "8 min read",
-    topic: "Deepfake Detection",
-    category: "Tutorials",
-    tags: ["deepfake", "detection", "machinelearning"],
-    views: 1245,
-    likes: 87,
-    comments: 23,
-    relatedPosts: [3, 6]
-  },
-  {
-    id: "2",
-    title: "AI Content Detection: Current Challenges and Solutions",
-    content: `<p>This is a sample content for the second article...</p>`,
-    author: {
-      name: "James Wilson",
-      avatar: "/avatars/james-wilson.jpg",
-      title: "Digital Forensics Expert"
-    },
-    date: "2023-09-28",
-    readTime: "12 min read",
-    topic: "AI Content Detection",
-    category: "Research",
-    tags: ["detection", "aiethics", "machinelearning"],
-    views: 980,
-    likes: 65,
-    comments: 18,
-    relatedPosts: [4, 5]
-  },
-  {
-    id: "3",
-    title: "Media Forensics Tools for Everyday Users",
-    content: `<p>This is a sample content for the third article...</p>`,
-    author: {
-      name: "Sarah Johnson",
-      avatar: "/avatars/sarah-johnson.jpg",
-      title: "Cybersecurity Analyst"
-    },
-    date: "2023-10-02",
-    readTime: "10 min read",
-    topic: "Media Forensics",
-    category: "Tools",
-    tags: ["forensics", "verification", "detection"],
-    views: 865,
-    likes: 42,
-    comments: 15,
-    relatedPosts: [1, 6]
-  },
-  {
-    id: "4",
-    title: "Ethical Implications of Deepfake Technology",
-    content: `<p>This is a sample content for the fourth article...</p>`,
-    author: {
-      name: "Dr. Michael Roberts",
-      avatar: "/avatars/michael-roberts.jpg",
-      title: "Ethics Professor"
-    },
-    date: "2023-09-18",
-    readTime: "15 min read",
-    topic: "Ethics in AI",
-    category: "Research",
-    tags: ["aiethics", "deepfake", "privacy"],
-    views: 1120,
-    likes: 92,
-    comments: 31,
-    relatedPosts: [2, 5]
-  },
-  {
-    id: "5",
-    title: "Building Digital Literacy in the Age of Synthetic Media",
-    content: `<p>This is a sample content for the fifth article...</p>`,
-    author: {
-      name: "Lisa Thompson",
-      avatar: "/avatars/lisa-thompson.jpg",
-      title: "Media Education Specialist"
-    },
-    date: "2023-10-10",
-    readTime: "9 min read",
-    topic: "Digital Media Literacy",
-    category: "Best Practices",
-    tags: ["disinformation", "verification", "privacy"],
-    views: 735,
-    likes: 56,
-    comments: 12,
-    relatedPosts: [2, 4]
-  },
-  {
-    id: "6",
-    title: "Advanced Techniques in Voice Deepfake Detection",
-    content: `<p>This is a sample content for the sixth article...</p>`,
-    author: {
-      name: "Dr. Emily Chen",
-      avatar: "/avatars/emily-chen.jpg",
-      title: "AI Research Scientist"
-    },
-    date: "2023-10-08",
-    readTime: "11 min read",
-    topic: "Deepfake Detection",
-    category: "Research",
-    tags: ["deepfake", "detection", "forensics"],
-    views: 890,
-    likes: 64,
-    comments: 19,
-    relatedPosts: [1, 3]
-  }
-];
+// API base URL
+const API_BASE_URL = "http://127.0.0.1:8000";
+
+// Types for API responses
+interface Author {
+  username: string;
+  avatar: string;
+  is_verified: boolean;
+  join_date: string;
+}
+
+interface Topic {
+  id: number;
+  name: string;
+}
+
+interface Attachment {
+  id: number;
+  filename: string;
+  file_url: string;
+  file_type: string;
+}
+
+interface RelatedArticle {
+  id: number;
+  title: string;
+  created_at: string;
+  read_time: number;
+  topic: Topic;
+}
+
+interface Article {
+  id: number;
+  title: string;
+  banner_image?: string;
+  author: Author;
+  created_at: string;
+  updated_at: string;
+  topic: Topic;
+  content: string;
+  read_time: number;
+  view_count: number;
+  attachments: Attachment[];
+  related_articles: RelatedArticle[];
+}
+
+interface ArticleDetailResponse {
+  success: boolean;
+  article: Article;
+  code: string;
+}
+
+interface ShareLinks {
+  twitter: string;
+  facebook: string;
+  linkedin: string;
+  email: string;
+}
+
+interface ShareLinksResponse {
+  success: boolean;
+  share_links: ShareLinks;
+  error?: string;
+  code: string;
+}
 
 export default function PostDetail() {
   const router = useRouter();
   const { id } = router.query;
-  const [post, setPost] = useState<any>(null);
+  const [article, setArticle] = useState<Article | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [relatedPosts, setRelatedPosts] = useState<any[]>([]);
-  const [activeTab, setActiveTab] = useState("article");
   const [isBookmarked, setIsBookmarked] = useState(false);
-  const [likes, setLikes] = useState(0);
   const [shareModalOpen, setShareModalOpen] = useState(false);
-  const [postUrl, setPostUrl] = useState('');
+  const [shareLinks, setShareLinks] = useState<ShareLinks | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copySuccess, setCopySuccess] = useState(false);
+  const [shareError, setShareError] = useState<string | null>(null);
+
   // Create refs for DOM elements we'll focus
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const modalRef = useRef<HTMLDivElement>(null);
 
+  // Fetch article details when id is available
   useEffect(() => {
-    if (id) {
+    if (id && typeof id === 'string') {
       setIsLoading(true);
-      // Simulating API call to fetch post details
-      setTimeout(() => {
-        const foundPost = mockPosts.find(p => p.id === id);
-        if (foundPost) {
-          setPost(foundPost);
-          setLikes(foundPost.likes);
+      setError(null);
+      
+      const fetchArticle = async () => {
+        try {
+          const { data } = await axios.get<ArticleDetailResponse>(`${API_BASE_URL}/api/knowledge-base/articles/${id}/`);
           
-          // Fetch related posts
-          const related = mockPosts.filter(p => 
-            foundPost.relatedPosts.includes(parseInt(p.id))
-          );
-          setRelatedPosts(related);
+          if (data.success) {
+            setArticle(data.article);
+          } else {
+            setError('Failed to load article');
+          }
+        } catch (err) {
+          console.error('Error fetching article:', err);
+          setError('Failed to load article');
+        } finally {
+          setIsLoading(false);
         }
-        setIsLoading(false);
-      }, 500);
+      };
+      
+      fetchArticle();
     }
   }, [id]);
 
+  // Fetch share links when article is loaded
   useEffect(() => {
-    // Set the post URL for sharing
-    if (typeof window !== 'undefined') {
-      setPostUrl(window.location.href);
+    if (article && typeof id === 'string') {
+      const fetchShareLinks = async () => {
+        try {
+          const { data } = await axios.get<ShareLinksResponse>(`${API_BASE_URL}/api/knowledge-base/articles/${id}/share/`);
+          
+          if (data.success) {
+            setShareLinks(data.share_links);
+          } else {
+            console.error('Failed to fetch share links:', data.error);
+            setShareLinks(null);
+          }
+        } catch (err) {
+          console.error('Error fetching share links:', err);
+          setShareLinks(null);
+        }
+      };
+      
+      fetchShareLinks();
     }
-  }, [id]);
+  }, [article, id]);
 
   // Handle ESC key press to close modal
   useEffect(() => {
@@ -275,6 +193,14 @@ export default function PostDetail() {
     };
   }, [shareModalOpen]);
 
+  // Reset states when modal is opened
+  useEffect(() => {
+    if (shareModalOpen) {
+      setCopySuccess(false);
+      setShareError(null);
+    }
+  }, [shareModalOpen]);
+
   // Handle clicks outside the modal to close it
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -294,52 +220,67 @@ export default function PostDetail() {
 
   // Function to share on social media
   const shareOnSocial = (platform: string) => {
-    const encodedUrl = encodeURIComponent(postUrl);
-    const encodedTitle = encodeURIComponent(post?.title || 'Check out this article');
+    if (!shareLinks) {
+      setShareError('Unable to share - the sharing service is currently unavailable');
+      return;
+    }
     
     let shareUrl = '';
     
     switch (platform) {
       case 'facebook':
-        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodedUrl}`;
+        shareUrl = shareLinks.facebook;
         break;
       case 'twitter':
-        shareUrl = `https://twitter.com/intent/tweet?url=${encodedUrl}&text=${encodedTitle}`;
+        shareUrl = shareLinks.twitter;
         break;
       case 'linkedin':
-        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${encodedUrl}`;
+        shareUrl = shareLinks.linkedin;
+        break;
+      case 'email':
+        shareUrl = shareLinks.email;
         break;
       default:
         break;
     }
     
     if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=450');
+      try {
+        if (platform === 'email') {
+          window.location.href = shareUrl;
+        } else {
+          window.open(shareUrl, '_blank', 'width=600,height=450');
+        }
+        // Close the modal
+        setShareModalOpen(false);
+      } catch (err) {
+        console.error(`Error sharing to ${platform}:`, err);
+        setShareError(`Failed to share to ${platform}. Please try again.`);
+      }
+    } else {
+      setShareError(`Share links are not properly configured. Please try again later.`);
     }
-    
-    // Close the modal
-    setShareModalOpen(false);
   };
 
   // Function to copy link to clipboard
   const copyToClipboard = () => {
-    navigator.clipboard.writeText(postUrl)
+    if (!article) return;
+    
+    const url = typeof window !== 'undefined' 
+      ? `${window.location.origin}/knowledge-base/post/${article.id}`
+      : '';
+    
+    navigator.clipboard.writeText(url)
       .then(() => {
-        toast({
-          title: "Link copied!",
-          description: "The article link has been copied to your clipboard.",
-          duration: 3000,
-        });
+        setCopySuccess(true);
+        // Keep the modal open so user can see the success message
       })
       .catch(err => {
         console.error('Could not copy text: ', err);
-      })
-      .finally(() => {
-        // Always close the modal regardless of success/failure
-        setShareModalOpen(false);
       });
   };
 
+  // Render loading state
   if (isLoading) {
     return (
       <Layout>
@@ -355,7 +296,35 @@ export default function PostDetail() {
     );
   }
 
-  if (!post) {
+  // Render error state
+  if (error) {
+    return (
+      <Layout>
+        <motion.div 
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.5 }}
+          className="container mx-auto px-4 py-8"
+        >
+          <motion.div 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex items-center p-4 mb-4 text-sm text-red-800 bg-red-100 rounded-lg dark:bg-red-900/50 dark:text-red-200" role="alert"
+          >
+            <AlertCircle className="w-5 h-5 mr-2" />
+            <span>{error}</span>
+          </motion.div>
+          <Button onClick={() => router.push("/knowledge-base")}>
+            Back to Knowledge Base
+          </Button>
+        </motion.div>
+      </Layout>
+    );
+  }
+
+  // Render 404 state
+  if (!article) {
     return (
       <Layout>
         <motion.div 
@@ -370,8 +339,8 @@ export default function PostDetail() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-center py-12"
           >
-            <h2 className="text-2xl font-bold mb-2">Post Not Found</h2>
-            <p className="text-muted-foreground mb-6">The post you're looking for doesn't exist or has been removed.</p>
+            <h2 className="text-2xl font-bold mb-2">Article Not Found</h2>
+            <p className="text-muted-foreground mb-6">The article you're looking for doesn't exist or has been removed.</p>
             <Button onClick={() => router.push("/knowledge-base")}>
               Back to Knowledge Base
             </Button>
@@ -413,6 +382,16 @@ export default function PostDetail() {
               transition={{ duration: 0.5, delay: 0.3 }}
               className="bg-card rounded-lg shadow-sm overflow-hidden"
             >
+              {article.banner_image && (
+                <div className="w-full h-64 md:h-80 bg-gray-100 relative overflow-hidden">
+                  <img 
+                    src={article.banner_image} 
+                    alt={article.title}
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              )}
+              
               <div className="p-6 md:p-8">
                 <motion.div 
                   initial={{ opacity: 0 }}
@@ -426,7 +405,12 @@ export default function PostDetail() {
                       animate={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.3, delay: 0.4 }}
                     >
-                      <Badge className="mb-3">{post.category}</Badge>
+                      <Badge 
+                        className="mb-3 cursor-pointer"
+                        onClick={() => router.push(`/knowledge-base?topic=${article.topic.id}`)}
+                      >
+                        {article.topic.name}
+                      </Badge>
                     </motion.div>
                     <motion.h1 
                       initial={{ opacity: 0, y: 10 }}
@@ -434,7 +418,7 @@ export default function PostDetail() {
                       transition={{ duration: 0.5, delay: 0.5 }}
                       className="text-3xl md:text-4xl font-bold mb-4"
                     >
-                      {post.title}
+                      {article.title}
                     </motion.h1>
                     
                     <motion.div 
@@ -445,19 +429,15 @@ export default function PostDetail() {
                     >
                       <div className="flex items-center">
                         <Calendar className="mr-1 h-4 w-4" />
-                        {post.date}
+                        {article.created_at}
                       </div>
                       <div className="flex items-center">
                         <Clock className="mr-1 h-4 w-4" />
-                        {post.readTime}
+                        {article.read_time} min read
                       </div>
                       <div className="flex items-center">
                         <Eye className="mr-1 h-4 w-4" />
-                        {post.views} views
-                      </div>
-                      <div className="flex items-center">
-                        <MessageSquare className="mr-1 h-4 w-4" />
-                        {post.comments} comments
+                        {article.view_count} views
                       </div>
                     </motion.div>
                   </div>
@@ -495,89 +475,71 @@ export default function PostDetail() {
                   className="flex items-center space-x-4 mb-8 pb-6 border-b"
                 >
                   <div className="w-12 h-12 rounded-full bg-gray-200 overflow-hidden">
-                    <div className="w-full h-full flex items-center justify-center text-xl font-semibold bg-primary text-primary-foreground">
-                      {post.author.name.charAt(0)}
-                    </div>
+                    {article.author.avatar ? (
+                      <img 
+                        src={article.author.avatar} 
+                        alt={article.author.username} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center text-xl font-semibold bg-primary text-primary-foreground">
+                        {article.author.username.charAt(0).toUpperCase()}
+                      </div>
+                    )}
                   </div>
                   <div>
-                    <div className="font-semibold">{post.author.name}</div>
-                    <div className="text-sm text-muted-foreground">{post.author.title}</div>
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-lg">
+                        {article.author.username}
+                      </h3>
+                      {article.author.is_verified && (
+                        <span className="text-blue-500">
+                          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className="w-5 h-5">
+                            <path fillRule="evenodd" d="M8.603 3.799A4.49 4.49 0 0112 2.25c1.357 0 2.573.6 3.397 1.549a4.49 4.49 0 013.498 1.307 4.491 4.491 0 011.307 3.497A4.49 4.49 0 0121.75 12a4.49 4.49 0 01-1.549 3.397 4.491 4.491 0 01-1.307 3.497 4.491 4.491 0 01-3.497 1.307A4.49 4.49 0 0112 21.75a4.49 4.49 0 01-3.397-1.549 4.49 4.49 0 01-3.498-1.306 4.491 4.491 0 01-1.307-3.498A4.49 4.49 0 012.25 12c0-1.357.6-2.573 1.549-3.397a4.49 4.49 0 011.307-3.497 4.49 4.49 0 013.497-1.307zm7.007 6.387a.75.75 0 10-1.22-.872l-3.236 4.53L9.53 12.22a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.14-.094l3.75-5.25z" clipRule="evenodd" />
+                          </svg>
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-sm text-muted-foreground">Joined {article.author.join_date}</p>
                   </div>
                 </motion.div>
                 
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
+                <motion.div 
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
                   transition={{ duration: 0.5, delay: 0.7 }}
-                >
-                  <Tabs value={activeTab} onValueChange={setActiveTab} className="mb-6">
-                    <TabsList>
-                      <TabsTrigger value="article">Article</TabsTrigger>
-                      <TabsTrigger value="comments">{`Comments (${post?.comments})`}</TabsTrigger>
-                    </TabsList>
-                    
-                    <TabsContent value="article" className="mt-6">
-                      <div 
-                        className="prose dark:prose-invert max-w-none prose-img:rounded-lg prose-headings:scroll-m-20 prose-headings:font-semibold prose-h1:text-3xl prose-h1:lg:text-4xl prose-h2:text-2xl prose-h2:lg:text-3xl prose-h3:text-xl prose-h3:lg:text-2xl prose-h4:text-lg prose-h4:lg:text-xl prose-blockquote:border-l-2 prose-blockquote:pl-6 prose-blockquote:italic prose-img:mx-auto"
-                        dangerouslySetInnerHTML={{ __html: post?.content }}
-                      />
-                    </TabsContent>
-                    
-                    <TabsContent value="comments" className="mt-6">
-                      <div className="bg-muted p-8 rounded-lg text-center">
-                        <h3 className="text-xl font-semibold mb-2">Comments coming soon</h3>
-                        <p className="text-muted-foreground">
-                          The comments feature is under development and will be available soon.
-                        </p>
-                      </div>
-                    </TabsContent>
-                  </Tabs>
-                  
+                  className="prose prose-lg dark:prose-invert max-w-none"
+                  dangerouslySetInnerHTML={{ __html: article.content }}
+                />
+                
+                {/* Attachments */}
+                {article.attachments && article.attachments.length > 0 && (
                   <motion.div 
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.5, delay: 0.8 }}
-                    className="border-t pt-6 flex items-center justify-between"
+                    className="mt-10 pt-6 border-t"
                   >
-                    <div className="flex items-center space-x-4">
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center gap-2"
-                        onClick={() => setLikes(likes + 1)}
-                      >
-                        <ThumbsUp className="h-4 w-4" />
-                        <span>Like</span>
-                        <Badge variant="secondary">{likes}</Badge>
-                      </Button>
-                      
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="flex items-center gap-2"
-                        onClick={() => setActiveTab("comments")}
-                      >
-                        <MessageSquare className="h-4 w-4" />
-                        <span>Comment</span>
-                        <Badge variant="secondary">{post?.comments}</Badge>
-                      </Button>
-                    </div>
-                    
-                    <div className="flex flex-wrap gap-2">
-                      {post?.tags.map((tag: string, i: number) => (
-                        <Badge 
-                          key={i} 
-                          variant="outline"
-                          className="cursor-pointer flex items-center"
-                          onClick={() => router.push(`/knowledge-base?tag=${encodeURIComponent(tag)}`)}
+                    <h3 className="text-xl font-bold mb-4">Attachments</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      {article.attachments.map((attachment) => (
+                        <a 
+                          key={attachment.id}
+                          href={attachment.file_url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center p-3 rounded-md border hover:bg-muted transition-colors"
                         >
-                          <Tag className="h-3 w-3 mr-1" />
-                          {tag}
-                        </Badge>
+                          <FileText className="w-5 h-5 mr-3 flex-shrink-0" />
+                          <div className="truncate flex-1">
+                            <p className="font-medium truncate">{attachment.filename}</p>
+                            <p className="text-xs text-muted-foreground uppercase">{attachment.file_type}</p>
+                          </div>
+                        </a>
                       ))}
                     </div>
                   </motion.div>
-                </motion.div>
+                )}
               </div>
             </motion.article>
           </motion.div>
@@ -587,193 +549,169 @@ export default function PostDetail() {
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, delay: 0.4 }}
-            className="lg:col-span-3 space-y-6"
+            className="lg:col-span-3"
           >
-            <div className="sticky top-24">
-              <motion.h3 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.5 }}
-                className="text-lg font-semibold mb-4"
-              >
-                Related Articles
-              </motion.h3>
-              
-              {relatedPosts.length > 0 ? (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.5, delay: 0.6 }}
-                  className="space-y-4"
-                >
-                  {relatedPosts.map((related, index) => (
-                    <motion.div
-                      key={related.id}
-                      initial={{ opacity: 0, y: 10 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      transition={{ duration: 0.3, delay: 0.6 + (index * 0.1) }}
-                      whileHover={{ scale: 1.02 }}
-                    >
-                      <Card className="overflow-hidden hover:shadow-md transition-shadow">
-                        <div className="p-4">
-                          <h4 className="font-medium mb-2 hover:text-primary cursor-pointer" onClick={() => router.push(`/knowledge-base/post/${related.id}`)}>
+            <div className="sticky top-24 space-y-6">
+              {/* Related Articles */}
+              {article.related_articles && article.related_articles.length > 0 && (
+                <Card className="overflow-hidden">
+                  <div className="p-6">
+                    <h3 className="text-lg font-semibold mb-4">Related Articles</h3>
+                    <div className="space-y-4">
+                      {article.related_articles.map(related => (
+                        <div 
+                          key={related.id}
+                          className="border-b pb-4 last:border-0 last:pb-0"
+                        >
+                          <h4 
+                            className="font-medium hover:text-primary transition-colors cursor-pointer line-clamp-2"
+                            onClick={() => router.push(`/knowledge-base/post/${related.id}`)}
+                          >
                             {related.title}
                           </h4>
-                          <div className="flex items-center text-xs text-muted-foreground">
-                            <Calendar className="mr-1 h-3 w-3" />
-                            <span>{related.date}</span>
-                            <span className="mx-1">•</span>
-                            <Clock className="mr-1 h-3 w-3" />
-                            <span>{related.readTime}</span>
+                          <div className="flex items-center mt-2 text-sm text-muted-foreground">
+                            <Badge 
+                              variant="outline" 
+                              className="mr-2 cursor-pointer"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                router.push(`/knowledge-base?topic=${related.topic.id}`);
+                              }}
+                            >
+                              {related.topic.name}
+                            </Badge>
+                            <span className="flex items-center">
+                              <Clock className="h-3 w-3 mr-1" />
+                              {related.read_time} min read
+                            </span>
                           </div>
                         </div>
-                      </Card>
-                    </motion.div>
-                  ))}
-                </motion.div>
-              ) : (
-                <motion.div 
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.3, delay: 0.6 }}
-                  className="text-muted-foreground text-sm"
-                >
-                  No related articles found.
-                </motion.div>
+                      ))}
+                    </div>
+                  </div>
+                </Card>
               )}
-              
-              <motion.div 
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: 0.7 }}
-                className="mt-8"
-              >
-                <h3 className="text-lg font-semibold mb-4">Popular Tags</h3>
-                <div className="flex flex-wrap gap-2">
-                  {post.tags.map((tag: string, i: number) => (
-                    <motion.div
-                      key={i}
-                      initial={{ opacity: 0, scale: 0.8 }}
-                      animate={{ opacity: 1, scale: 1 }}
-                      transition={{ duration: 0.2, delay: 0.7 + (i * 0.05) }}
-                      whileHover={{ scale: 1.05 }}
-                    >
-                      <Badge 
-                        variant="outline"
-                        className="cursor-pointer"
-                        onClick={() => router.push(`/knowledge-base?tag=${encodeURIComponent(tag)}`)}
-                      >
-                        {tag}
-                      </Badge>
-                    </motion.div>
-                  ))}
-                  <Badge 
-                    variant="outline"
-                    className="cursor-pointer"
-                    onClick={() => router.push("/knowledge-base?tag=verification")}
-                  >
-                    verification
-                  </Badge>
-                  <Badge 
-                    variant="outline"
-                    className="cursor-pointer"
-                    onClick={() => router.push("/knowledge-base?tag=disinformation")}
-                  >
-                    disinformation
-                  </Badge>
-                </div>
-              </motion.div>
             </div>
           </motion.div>
         </div>
       </motion.div>
-
-      {/* Custom Share Modal */}
+      
+      {/* Share Modal */}
       <AnimatePresence>
         {shareModalOpen && (
-          <>
-            {/* Backdrop */}
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center"
-              onClick={() => setShareModalOpen(false)}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.2 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+          >
+            <motion.div 
+              ref={modalRef}
+              initial={{ opacity: 0, scale: 0.95 }}
+              animate={{ opacity: 1, scale: 1 }}
+              exit={{ opacity: 0, scale: 0.95 }}
+              transition={{ duration: 0.2 }}
+              className="bg-background rounded-lg shadow-lg p-6 max-w-md w-full"
             >
-              {/* Modal */}
-              <motion.div
-                ref={modalRef}
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                transition={{ duration: 0.2 }}
-                className="relative w-full max-w-md mx-auto bg-background p-6 shadow-lg rounded-lg border"
-                onClick={(e) => e.stopPropagation()} // Prevent clicks from closing when clicking the modal itself
-              >
-                <div className="flex flex-col space-y-1.5 text-center sm:text-left">
-                  <h3 className="text-lg font-semibold leading-none tracking-tight">Share this article</h3>
-                  <p className="text-sm text-muted-foreground">
-                    Share this article with your friends and colleagues on social media
-                  </p>
-                </div>
-                
-                <div className="flex items-center justify-center space-x-4 py-4">
-                  <button 
-                    className="rounded-full h-12 w-12 bg-[#1877F2] text-white hover:bg-[#1877F2]/90 flex items-center justify-center"
-                    onClick={() => shareOnSocial('facebook')}
-                  >
-                    <Facebook className="h-5 w-5" />
-                    <span className="sr-only">Share on Facebook</span>
-                  </button>
-                  <button 
-                    className="rounded-full h-12 w-12 bg-[#1DA1F2] text-white hover:bg-[#1DA1F2]/90 flex items-center justify-center"
-                    onClick={() => shareOnSocial('twitter')}
-                  >
-                    <Twitter className="h-5 w-5" />
-                    <span className="sr-only">Share on Twitter</span>
-                  </button>
-                  <button 
-                    className="rounded-full h-12 w-12 bg-[#0A66C2] text-white hover:bg-[#0A66C2]/90 flex items-center justify-center"
-                    onClick={() => shareOnSocial('linkedin')}
-                  >
-                    <Linkedin className="h-5 w-5" />
-                    <span className="sr-only">Share on LinkedIn</span>
-                  </button>
-                  <button 
-                    className="rounded-full h-12 w-12 bg-gray-100 dark:bg-gray-800 flex items-center justify-center"
-                    onClick={copyToClipboard}
-                  >
-                    <LinkIcon className="h-5 w-5" />
-                    <span className="sr-only">Copy link</span>
-                  </button>
-                </div>
-                
-                <div className="flex items-center space-x-2 bg-secondary p-3 rounded-md">
-                  <input 
-                    className="flex-1 bg-transparent outline-none text-sm"
-                    value={postUrl}
-                    readOnly
-                  />
-                  <Button 
-                    size="sm" 
-                    onClick={copyToClipboard}
-                  >
-                    Copy
-                  </Button>
-                </div>
-                
+              <div className="flex justify-between items-center mb-4">
+                <h3 className="text-lg font-semibold">Share this article</h3>
                 <button
                   ref={closeButtonRef}
-                  type="button" 
-                  className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                   onClick={() => setShareModalOpen(false)}
+                  className="text-muted-foreground hover:text-foreground"
                 >
-                  <X className="h-4 w-4" />
-                  <span className="sr-only">Close</span>
+                  <X className="h-5 w-5" />
                 </button>
-              </motion.div>
+              </div>
+              
+              {/* Copy Success Message */}
+              {copySuccess && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-4 p-3 bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-200 rounded-md flex items-center"
+                >
+                  <Check className="h-5 w-5 mr-2 text-green-600 dark:text-green-400" />
+                  <span>Link copied to clipboard!</span>
+                </motion.div>
+              )}
+              
+              {/* Share Error Message */}
+              {shareError && (
+                <motion.div
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3 }}
+                  className="mb-4 p-3 bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-200 rounded-md flex items-center"
+                >
+                  <AlertCircle className="h-5 w-5 mr-2 text-red-600 dark:text-red-400" />
+                  <span>{shareError}</span>
+                </motion.div>
+              )}
+              
+              <div className="grid grid-cols-2 gap-3 mb-4">
+                <Button 
+                  variant="outline"
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => shareOnSocial('twitter')}
+                >
+                  <Twitter className="h-5 w-5" /> 
+                  Twitter
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => shareOnSocial('facebook')}
+                >
+                  <Facebook className="h-5 w-5" /> 
+                  Facebook
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => shareOnSocial('linkedin')}
+                >
+                  <Linkedin className="h-5 w-5" /> 
+                  LinkedIn
+                </Button>
+                
+                <Button 
+                  variant="outline"
+                  className="flex items-center justify-center gap-2"
+                  onClick={() => shareOnSocial('email')}
+                >
+                  <MessageSquare className="h-5 w-5" /> 
+                  Email
+                </Button>
+              </div>
+              
+              <div className="flex flex-col space-y-4">
+                <div className="flex bg-muted p-2 rounded-md items-center">
+                  <span className="truncate flex-1 pl-2 text-sm">
+                    {typeof window !== 'undefined' 
+                      ? `${window.location.origin}/knowledge-base/post/${article.id}`
+                      : ''}
+                  </span>
+                </div>
+                <Button 
+                  variant="secondary"
+                  className="w-full flex items-center justify-center gap-2"
+                  onClick={copyToClipboard}
+                >
+                  <LinkIcon className="h-5 w-5" /> 
+                  Copy Link
+                </Button>
+              </div>
+              
+              <div className="mt-4 text-sm text-center text-muted-foreground">
+                <p>Share this article with your colleagues and friends</p>
+              </div>
             </motion.div>
-          </>
+          </motion.div>
         )}
       </AnimatePresence>
     </Layout>

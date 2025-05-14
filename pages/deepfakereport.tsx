@@ -628,8 +628,10 @@ const pdaCategories = [
                         >
                           Copy Base64
                         </button>
+                      ) : typeof value === 'object' && value !== null ? (
+                        JSON.stringify(value)
                       ) : (
-                        value
+                        String(value)
                       )}
                     </td>
                   </tr>

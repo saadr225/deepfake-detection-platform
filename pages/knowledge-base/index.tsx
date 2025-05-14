@@ -14,178 +14,248 @@ import {
 } from "../../components/ui/pagination";
 import { Badge } from "../../components/ui/badge";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "../../components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "../../components/ui/tabs";
 import { Button } from "../../components/ui/button";
-import { Search, Tag, Bookmark, FileText, Zap, CheckCircle2 } from "lucide-react";
+import { Search, Bookmark, FileText, CheckCircle2, AlertCircle } from "lucide-react";
 import KnowledgeBaseBreadcrumb from "../../components/KnowledgeBaseBreadcrumb";
+import axios from "axios";
 
-// Mock data for topics, categories, and tags
-const mockTopics = [
-  { id: 1, name: "Deepfake Detection", count: 24 },
-  { id: 2, name: "AI Content Detection", count: 18 },
-  { id: 3, name: "Media Forensics", count: 15 },
-  { id: 4, name: "Ethics in AI", count: 12 },
-  { id: 5, name: "Digital Media Literacy", count: 10 }
-];
+// API base URL
+const API_BASE_URL = "http://127.0.0.1:8000";
 
-const mockCategories = [
-  { id: 1, name: "Tutorials", count: 35 },
-  { id: 2, name: "Research", count: 28 },
-  { id: 3, name: "Tools", count: 22 },
-  { id: 4, name: "Best Practices", count: 19 },
-  { id: 5, name: "News", count: 15 }
-];
+// Types for API responses
+interface Author {
+  username: string;
+  avatar: string;
+  is_verified: boolean;
+}
 
-const mockTags = [
-  { id: 1, name: "deepfake", count: 45 },
-  { id: 2, name: "machinelearning", count: 38 },
-  { id: 3, name: "aiethics", count: 30 },
-  { id: 4, name: "detection", count: 27 },
-  { id: 5, name: "verification", count: 23 },
-  { id: 6, name: "forensics", count: 19 },
-  { id: 7, name: "disinformation", count: 17 },
-  { id: 8, name: "privacy", count: 15 }
-];
+interface Topic {
+  id: number;
+  name: string;
+  description?: string;
+  icon?: string;
+  article_count: number;
+}
 
-// Mock data for posts
-const mockPosts = [
-  {
-    id: 1,
-    title: "Introduction to Deepfake Detection Methods",
-    excerpt: "Learn about the latest methods used to detect deepfakes in digital media...",
-    author: "Dr. Emily Chen",
-    date: "2023-10-15",
-    readTime: "8 min read",
-    topic: "Deepfake Detection",
-    category: "Tutorials",
-    tags: ["deepfake", "detection", "machinelearning"],
-    views: 1245
-  },
-  {
-    id: 2,
-    title: "AI Content Detection: Current Challenges and Solutions",
-    excerpt: "Explore the challenges in AI-generated content detection and the solutions being developed...",
-    author: "James Wilson",
-    date: "2023-09-28",
-    readTime: "12 min read",
-    topic: "AI Content Detection",
-    category: "Research",
-    tags: ["detection", "aiethics", "machinelearning"],
-    views: 980
-  },
-  {
-    id: 3,
-    title: "Media Forensics Tools for Everyday Users",
-    excerpt: "A comprehensive guide to accessible media forensics tools that anyone can use...",
-    author: "Sarah Johnson",
-    date: "2023-10-02",
-    readTime: "10 min read",
-    topic: "Media Forensics",
-    category: "Tools",
-    tags: ["forensics", "verification", "detection"],
-    views: 865
-  },
-  {
-    id: 4,
-    title: "Ethical Implications of Deepfake Technology",
-    excerpt: "A deep dive into the ethical concerns surrounding deepfake technology and its impact...",
-    author: "Dr. Michael Roberts",
-    date: "2023-09-18",
-    readTime: "15 min read",
-    topic: "Ethics in AI",
-    category: "Research",
-    tags: ["aiethics", "deepfake", "privacy"],
-    views: 1120
-  },
-  {
-    id: 5,
-    title: "Building Digital Literacy in the Age of Synthetic Media",
-    excerpt: "Strategies for improving digital literacy to combat misinformation in synthetic media...",
-    author: "Lisa Thompson",
-    date: "2023-10-10",
-    readTime: "9 min read",
-    topic: "Digital Media Literacy",
-    category: "Best Practices",
-    tags: ["disinformation", "verification", "privacy"],
-    views: 735
-  },
-  {
-    id: 6,
-    title: "Advanced Techniques in Voice Deepfake Detection",
-    excerpt: "Learn about sophisticated methods for detecting voice deepfakes and audio manipulations...",
-    author: "Dr. Emily Chen",
-    date: "2023-10-08",
-    readTime: "11 min read",
-    topic: "Deepfake Detection",
-    category: "Research",
-    tags: ["deepfake", "detection", "forensics"],
-    views: 890
-  },
-];
+interface Article {
+  id: number;
+  title: string;
+  author: Author;
+  created_at: string;
+  topic: Topic;
+  preview: string;
+  view_count: number;
+  has_attachments: boolean;
+  read_time?: number;
+}
+
+interface ArticlesResponse {
+  success: boolean;
+  articles: Article[];
+  page: number;
+  pages: number;
+  total: number;
+  code: string;
+}
+
+interface TopicsResponse {
+  success: boolean;
+  topics: Topic[];
+  code: string;
+}
+
+interface ErrorResponse {
+  success: false;
+  error: string;
+  code: string;
+}
+
+// Sorting options type
+type SortOption = "Most Recent" | "Most Viewed" | "A-Z";
 
 export default function KnowledgeBase() {
   const router = useRouter();
+  const { topic: topicFromUrl, page: pageFromUrl } = router.query;
+  
   const [searchQuery, setSearchQuery] = useState("");
-  const [filteredPosts, setFilteredPosts] = useState(mockPosts);
-  const [selectedTopic, setSelectedTopic] = useState<string | null>(null);
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [selectedTag, setSelectedTag] = useState<string | null>(null);
+  const [articles, setArticles] = useState<Article[]>([]);
+  const [sortedArticles, setSortedArticles] = useState<Article[]>([]);
+  const [topics, setTopics] = useState<Topic[]>([]);
+  const [selectedTopicId, setSelectedTopicId] = useState<number | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const postsPerPage = 4;
+  const [totalPages, setTotalPages] = useState(1);
+  const [totalArticles, setTotalArticles] = useState(0);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [sortOption, setSortOption] = useState<SortOption>("Most Recent");
+  
+  const itemsPerPage = 10;
 
-  // Filter posts based on search query, selected topic, category, and tag
+  // Fetch topics on initial load
   useEffect(() => {
-    let filtered = [...mockPosts];
-    
-    if (searchQuery) {
-      filtered = filtered.filter(post => 
-        post.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.excerpt.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        post.tags.some(tag => tag.toLowerCase().includes(searchQuery.toLowerCase()))
-      );
+    const fetchTopics = async () => {
+      try {
+        const { data } = await axios.get<TopicsResponse>(`${API_BASE_URL}/api/knowledge-base/topics/`);
+        if (data.success) {
+          setTopics(data.topics);
+        } else {
+          setError('Failed to load topics');
+        }
+      } catch (err) {
+        console.error('Error fetching topics:', err);
+        setError('Failed to load topics');
+      }
+    };
+
+    fetchTopics();
+  }, []);
+
+  // Set selected topic from URL parameter
+  useEffect(() => {
+    if (topicFromUrl && typeof topicFromUrl === 'string') {
+      const topicId = parseInt(topicFromUrl);
+      if (!isNaN(topicId)) {
+        setSelectedTopicId(topicId);
+      }
     }
     
-    if (selectedTopic) {
-      filtered = filtered.filter(post => post.topic === selectedTopic);
+    if (pageFromUrl && typeof pageFromUrl === 'string') {
+      const page = parseInt(pageFromUrl);
+      if (!isNaN(page) && page > 0) {
+        setCurrentPage(page);
+      }
+    }
+  }, [topicFromUrl, pageFromUrl]);
+
+  // Fetch articles when parameters change
+  useEffect(() => {
+    const fetchArticles = async () => {
+      setIsLoading(true);
+      setError(null);
+      
+      try {
+        const params: Record<string, string | number> = {
+          page: currentPage,
+          items_per_page: itemsPerPage
+        };
+        
+        if (selectedTopicId) {
+          params.topic_id = selectedTopicId;
+        }
+        
+        if (searchQuery) {
+          params.search = searchQuery;
+        }
+        
+        const { data } = await axios.get<ArticlesResponse>(`${API_BASE_URL}/api/knowledge-base/articles/`, { params });
+        
+        if (data.success) {
+          setArticles(data.articles);
+          setTotalPages(data.pages);
+          setTotalArticles(data.total);
+        } else {
+          setError('Failed to load articles');
+        }
+      } catch (err) {
+        console.error('Error fetching articles:', err);
+        setError('Failed to load articles');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchArticles();
+  }, [currentPage, selectedTopicId, searchQuery]);
+
+  // Sort articles when articles array or sort option changes
+  useEffect(() => {
+    if (articles.length === 0) {
+      setSortedArticles([]);
+      return;
+    }
+
+    let sorted = [...articles];
+    
+    switch (sortOption) {
+      case "Most Recent":
+        // Assuming created_at is a date string format
+        sorted = sorted.sort((a, b) => {
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+        });
+        break;
+      case "Most Viewed":
+        sorted = sorted.sort((a, b) => b.view_count - a.view_count);
+        break;
+      case "A-Z":
+        sorted = sorted.sort((a, b) => a.title.localeCompare(b.title));
+        break;
+      default:
+        break;
     }
     
-    if (selectedCategory) {
-      filtered = filtered.filter(post => post.category === selectedCategory);
-    }
-    
-    if (selectedTag) {
-      filtered = filtered.filter(post => post.tags.includes(selectedTag));
-    }
-    
-    setFilteredPosts(filtered);
-    setCurrentPage(1); // Reset to first page on new filter
-  }, [searchQuery, selectedTopic, selectedCategory, selectedTag]);
+    setSortedArticles(sorted);
+  }, [articles, sortOption]);
 
   // Handle search form submission
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
-    if (searchQuery.trim()) {
+    if (searchQuery.trim().length >= 3) {
       router.push(`/knowledge-base/search?q=${encodeURIComponent(searchQuery)}`);
     }
   };
 
-  // Pagination calculation
-  const indexOfLastPost = currentPage * postsPerPage;
-  const indexOfFirstPost = indexOfLastPost - postsPerPage;
-  const currentPosts = filteredPosts.slice(indexOfFirstPost, indexOfLastPost);
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+  // Handle topic selection
+  const handleTopicClick = (topicId: number) => {
+    if (selectedTopicId === topicId) {
+      setSelectedTopicId(null);
+      router.push('/knowledge-base', undefined, { shallow: true });
+    } else {
+      setSelectedTopicId(topicId);
+      setCurrentPage(1);
+      router.push(`/knowledge-base?topic=${topicId}`, undefined, { shallow: true });
+    }
+  };
+
+  // Handle page change
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    const query: { topic?: string; page?: string } = {};
+    
+    if (selectedTopicId) {
+      query.topic = selectedTopicId.toString();
+    }
+    
+    if (page > 1) {
+      query.page = page.toString();
+    }
+    
+    router.push({
+      pathname: '/knowledge-base',
+      query
+    }, undefined, { shallow: true });
+  };
+
+  // Handle sort option change
+  const handleSortChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setSortOption(e.target.value as SortOption);
+  };
 
   // Clear all filters
   const clearFilters = () => {
     setSearchQuery("");
-    setSelectedTopic(null);
-    setSelectedCategory(null);
-    setSelectedTag(null);
+    setSelectedTopicId(null);
+    setCurrentPage(1);
+    router.push('/knowledge-base', undefined, { shallow: true });
   };
+
+  // Find selected topic name
+  const selectedTopicName = selectedTopicId 
+    ? topics.find(topic => topic.id === selectedTopicId)?.name 
+    : null;
 
   return (
     <Layout>
-      {/* Enhanced Header Section with Background - similar to detect.tsx */}
+      {/* Enhanced Header Section with Background */}
       <div className="relative">
         {/* Background with visible gradient */}
         <div className="absolute inset-0 z-0 overflow-hidden">
@@ -222,11 +292,11 @@ export default function KnowledgeBase() {
             <div className="flex flex-wrap gap-4 justify-center items-center text-sm text-black/80 dark:text-white/90 mb-4">
               <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
-                <span>{mockPosts.length}+ Articles & Guides</span>
+                <span>{totalArticles}+ Articles & Guides</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
-                <span>{mockTopics.length} Specialized Topics</span>
+                <span>{topics.length} Specialized Topics</span>
               </div>
               <div className="flex items-center gap-2 px-3 py-1.5 bg-primary/10 rounded-full border border-primary/70">
                 <CheckCircle2 className="h-4 w-4 text-primary" /> 
@@ -243,48 +313,44 @@ export default function KnowledgeBase() {
         transition={{ duration: 0.5 }}
         className="container mx-auto px-4 py-8"
       >
-        {/* <KnowledgeBaseBreadcrumb items={[{ label: "Knowledge Base", href: "/knowledge-base" }]} /> */}
-        
         <div className="flex flex-col space-y-6">
+          {/* Search and Browse Section with Adjusted Layout */}
           <motion.div 
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5, delay: 0.1 }}
-            className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4"
+            className="flex flex-col lg:flex-row justify-between items-stretch gap-6"
           >
-            <div>
-              <h2 className="text-2xl font-bold">Browse Resources</h2>
-              <p className="text-muted-foreground mt-2">
-                Filter by topic, category, or search for specific content
+            <div className="flex-1">
+              <h2 className="text-2xl font-bold mb-3">Browse Resources</h2>
+              <p className="text-muted-foreground mb-5">
+                Filter by topic or search for specific content
               </p>
-            </div>
-            
-            <div className="flex items-center gap-4">
-              {/* Submit a Post Button */}
-              <Button 
-                onClick={() => router.push("/knowledge-base/submit")}
-                className="hidden md:flex"
-              >
-                Submit a Post
-              </Button>
               
-              {/* Search Form */}
-              <form onSubmit={handleSearch} className="w-full md:w-auto">
+              {/* Search Form - Repositioned */}
+              <form onSubmit={handleSearch} className="max-w-[1120px] w-full max-w-md">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                  <Search className="absolute left-3 top-1/2 h-5 w-5 -translate-y-1/2 text-muted-foreground" />
                   <Input
                     placeholder="Search knowledge base..."
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="pl-10 pr-4 w-full md:w-[300px]"
+                    className="pl-10 pr-12 py-6 border-primary/20 focus:border-primary hover:border-primary/30 transition-colors shadow-sm text-base"
                   />
+                  {/* <Button 
+                    type="submit" 
+                    size="sm" 
+                    className="absolute right-1.5 top-1/2 -translate-y-1/2 rounded-md bg-primary/90 hover:bg-primary transition-colors"
+                  >
+                    Search
+                  </Button> */}
                 </div>
               </form>
             </div>
           </motion.div>
           
           {/* Active Filters */}
-          {(selectedTopic || selectedCategory || selectedTag || searchQuery) && (
+          {(selectedTopicId || searchQuery) && (
             <motion.div 
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: "auto" }}
@@ -293,7 +359,7 @@ export default function KnowledgeBase() {
               className="flex flex-wrap gap-2 items-center"
             >
               <span className="text-sm font-medium">Active filters:</span>
-              {selectedTopic && (
+              {selectedTopicName && (
                 <motion.div
                   initial={{ opacity: 0, scale: 0.8 }}
                   animate={{ opacity: 1, scale: 1 }}
@@ -303,43 +369,9 @@ export default function KnowledgeBase() {
                   <Badge 
                     variant="secondary" 
                     className="flex items-center gap-1 cursor-pointer"
-                    onClick={() => setSelectedTopic(null)}
+                    onClick={() => setSelectedTopicId(null)}
                   >
-                    Topic: {selectedTopic}
-                    <span className="ml-1">×</span>
-                  </Badge>
-                </motion.div>
-              )}
-              {selectedCategory && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Badge 
-                    variant="secondary" 
-                    className="flex items-center gap-1 cursor-pointer"
-                    onClick={() => setSelectedCategory(null)}
-                  >
-                    Category: {selectedCategory}
-                    <span className="ml-1">×</span>
-                  </Badge>
-                </motion.div>
-              )}
-              {selectedTag && (
-                <motion.div
-                  initial={{ opacity: 0, scale: 0.8 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.8 }}
-                  transition={{ duration: 0.2 }}
-                >
-                  <Badge 
-                    variant="secondary" 
-                    className="flex items-center gap-1 cursor-pointer"
-                    onClick={() => setSelectedTag(null)}
-                  >
-                    Tag: {selectedTag}
+                    Topic: {selectedTopicName}
                     <span className="ml-1">×</span>
                   </Badge>
                 </motion.div>
@@ -372,6 +404,14 @@ export default function KnowledgeBase() {
             </motion.div>
           )}
           
+          {/* Error Message */}
+          {error && (
+            <div className="flex items-center p-4 mb-4 text-sm text-red-800 bg-red-100 rounded-lg dark:bg-red-900/50 dark:text-red-200" role="alert">
+              <AlertCircle className="w-5 h-5 mr-2" />
+              <span>{error}</span>
+            </div>
+          )}
+          
           {/* Main Content */}
           <motion.div 
             initial={{ opacity: 0 }}
@@ -379,25 +419,27 @@ export default function KnowledgeBase() {
             transition={{ duration: 0.5, delay: 0.2 }}
             className="grid grid-cols-1 lg:grid-cols-4 gap-8"
           >
-            
-            
-            {/* Posts List */}
+            {/* Posts List - Move back to left side */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }}
               animate={{ opacity: 1, x: 0 }}
               transition={{ duration: 0.5, delay: 0.4 }}
               className="lg:col-span-3 space-y-6"
             >
-              {filteredPosts.length === 0 ? (
+              {isLoading ? (
+                <div className="flex justify-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                </div>
+              ) : articles.length === 0 ? (
                 <motion.div 
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
                   transition={{ duration: 0.3 }}
                   className="bg-muted p-8 rounded-lg text-center"
                 >
-                  <h3 className="text-xl font-semibold mb-2">No results found</h3>
+                  <h3 className="text-xl font-semibold mb-2">No articles found</h3>
                   <p className="text-muted-foreground">
-                    No posts match your current search criteria. Try adjusting your filters or search query.
+                    No articles match your current search criteria. Try adjusting your filters or search query.
                   </p>
                   <Button 
                     variant="outline" 
@@ -411,22 +453,26 @@ export default function KnowledgeBase() {
                 <>
                   <div className="flex items-center justify-between">
                     <h2 className="text-xl font-semibold">
-                      {filteredPosts.length} {filteredPosts.length === 1 ? 'Result' : 'Results'}
+                      {totalArticles} {totalArticles === 1 ? 'Article' : 'Articles'} {selectedTopicName ? `in ${selectedTopicName}` : ''}
                     </h2>
                     <div className="flex items-center gap-2">
                       <span className="text-sm text-muted-foreground">Sort by:</span>
-                      <select className="text-sm border rounded-md p-1 bg-background">
-                        <option>Most Recent</option>
-                        <option>Most Viewed</option>
-                        <option>A-Z</option>
+                      <select 
+                        className="text-sm border rounded-md p-1 bg-background"
+                        value={sortOption}
+                        onChange={handleSortChange}
+                      >
+                        <option value="Most Recent">Most Recent</option>
+                        <option value="Most Viewed">Most Viewed</option>
+                        <option value="A-Z">A-Z</option>
                       </select>
                     </div>
                   </div>
                 
                   <div className="grid grid-cols-1 gap-6">
-                    {currentPosts.map((post, index) => (
+                    {sortedArticles.map((article, index) => (
                       <motion.div
-                        key={post.id}
+                        key={article.id}
                         initial={{ opacity: 0, y: 20 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ duration: 0.3, delay: 0.1 * index }}
@@ -436,42 +482,45 @@ export default function KnowledgeBase() {
                         <Card className="overflow-hidden hover:shadow-md transition-shadow">
                           <CardHeader className="pb-2">
                             <div className="flex justify-between items-start">
-                              <CardTitle className="text-xl font-bold hover:text-primary cursor-pointer" onClick={() => router.push(`/knowledge-base/post/${post.id}`)}>
-                                {post.title}
+                              <CardTitle className="text-xl font-bold hover:text-primary cursor-pointer" onClick={() => router.push(`/knowledge-base/post/${article.id}`)}>
+                                {article.title}
                               </CardTitle>
                               <Button variant="ghost" size="icon" className="h-8 w-8">
                                 <Bookmark className="h-4 w-4" />
                               </Button>
                             </div>
                             <div className="flex items-center text-sm text-muted-foreground mt-1 gap-3">
-                              <span>{post.date}</span>
+                              <span>{article.created_at}</span>
                               <span>•</span>
-                              <span>{post.readTime}</span>
-                              <span>•</span>
-                              <span>{post.views} views</span>
+                              {article.read_time && (
+                                <>
+                                  <span>{article.read_time} min read</span>
+                                  <span>•</span>
+                                </>
+                              )}
+                              <span>{article.view_count} views</span>
+                              {article.has_attachments && (
+                                <>
+                                  <span>•</span>
+                                  <span className="flex items-center">
+                                    <FileText className="h-3 w-3 mr-1" />
+                                    Has attachments
+                                  </span>
+                                </>
+                              )}
                             </div>
                           </CardHeader>
                           <CardContent>
-                            <p className="text-muted-foreground">{post.excerpt}</p>
+                            <p className="text-muted-foreground">{article.preview}</p>
                           </CardContent>
                           <CardFooter className="flex flex-wrap gap-2 pt-0">
                             <Badge 
                               variant="secondary" 
                               className="cursor-pointer"
-                              onClick={() => setSelectedTopic(post.topic)}
+                              onClick={() => handleTopicClick(article.topic.id)}
                             >
-                              {post.topic}
+                              {article.topic.name}
                             </Badge>
-                            {post.tags.map((tag, i) => (
-                              <Badge 
-                                key={i} 
-                                variant="outline"
-                                className="cursor-pointer"
-                                onClick={() => setSelectedTag(tag)}
-                              >
-                                {tag}
-                              </Badge>
-                            ))}
                           </CardFooter>
                         </Card>
                       </motion.div>
@@ -493,7 +542,7 @@ export default function KnowledgeBase() {
                               href="#" 
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (currentPage > 1) setCurrentPage(currentPage - 1);
+                                if (currentPage > 1) handlePageChange(currentPage - 1);
                               }}
                               className={currentPage === 1 ? "pointer-events-none opacity-50" : ""}
                             />
@@ -514,7 +563,7 @@ export default function KnowledgeBase() {
                                     href="#" 
                                     onClick={(e) => {
                                       e.preventDefault();
-                                      setCurrentPage(i + 1);
+                                      handlePageChange(i + 1);
                                     }}
                                     isActive={currentPage === i + 1}
                                   >
@@ -544,7 +593,7 @@ export default function KnowledgeBase() {
                               href="#" 
                               onClick={(e) => {
                                 e.preventDefault();
-                                if (currentPage < totalPages) setCurrentPage(currentPage + 1);
+                                if (currentPage < totalPages) handlePageChange(currentPage + 1);
                               }}
                               className={currentPage === totalPages ? "pointer-events-none opacity-50" : ""}
                             />
@@ -557,7 +606,8 @@ export default function KnowledgeBase() {
                 </>
               )}
             </motion.div>
-            {/* Sidebar with Filters */}
+            
+            {/* Sidebar with Topics - Move back to right side */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }}
               animate={{ opacity: 1, x: 0 }}
@@ -565,67 +615,41 @@ export default function KnowledgeBase() {
               className="lg:col-span-1"
             >
               <div className="sticky top-24 space-y-6">
-                <Tabs defaultValue="topics" className="w-full">
-                  <TabsList className="grid w-full grid-cols-3">
-                    <TabsTrigger value="topics">Topics</TabsTrigger>
-                    <TabsTrigger value="categories">Categories</TabsTrigger>
-                    <TabsTrigger value="tags">Tags</TabsTrigger>
-                  </TabsList>
-                  
-                  <TabsContent value="topics" className="space-y-2 mt-4">
-                    {mockTopics.map((topic) => (
-                      <div 
-                        key={topic.id}
-                        onClick={() => setSelectedTopic(selectedTopic === topic.name ? null : topic.name)}
-                        className={`flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors ${
-                          selectedTopic === topic.name 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        <span className="font-medium">{topic.name}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          {topic.count}
-                        </Badge>
-                      </div>
-                    ))}
-                  </TabsContent>
-                  
-                  <TabsContent value="categories" className="space-y-2 mt-4">
-                    {mockCategories.map((category) => (
-                      <div 
-                        key={category.id}
-                        onClick={() => setSelectedCategory(selectedCategory === category.name ? null : category.name)}
-                        className={`flex justify-between items-center p-3 rounded-md cursor-pointer transition-colors ${
-                          selectedCategory === category.name 
-                            ? 'bg-primary text-primary-foreground' 
-                            : 'hover:bg-muted'
-                        }`}
-                      >
-                        <span className="font-medium">{category.name}</span>
-                        <Badge variant="outline" className="ml-auto">
-                          {category.count}
-                        </Badge>
-                      </div>
-                    ))}
-                  </TabsContent>
-                  
-                  <TabsContent value="tags" className="mt-4">
-                    <div className="flex flex-wrap gap-2">
-                      {mockTags.map((tag) => (
-                        <Badge 
-                          key={tag.id}
-                          variant={selectedTag === tag.name ? "default" : "outline"}
-                          className="cursor-pointer py-1 px-3"
-                          onClick={() => setSelectedTag(selectedTag === tag.name ? null : tag.name)}
+                <div className="w-full bg-card rounded-xl shadow-sm border border-muted p-5">
+                  <h3 className="text-lg font-semibold mb-4 flex items-center">
+                    <span className="bg-primary/10 p-1.5 rounded-md mr-2">
+                      <FileText className="h-5 w-5 text-primary" />
+                    </span>
+                    Topics
+                  </h3>
+                  {topics.length === 0 && !error ? (
+                    <div className="flex justify-center py-8">
+                      <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                    </div>
+                  ) : (
+                    <div className="space-y-2 max-h-[600px] overflow-y-auto pr-1 custom-scrollbar">
+                      {topics.map((topic) => (
+                        <div 
+                          key={topic.id}
+                          onClick={() => handleTopicClick(topic.id)}
+                          className={`flex justify-between items-center p-3 rounded-lg cursor-pointer transition-all ${
+                            selectedTopicId === topic.id 
+                              ? 'bg-primary text-primary-foreground shadow-sm' 
+                              : 'hover:bg-muted/60 hover:shadow-sm'
+                          }`}
                         >
-                          <Tag className="h-3 w-3 mr-1" />
-                          {tag.name} ({tag.count})
-                        </Badge>
+                          <span className="font-medium">{topic.name}</span>
+                          <Badge 
+                            variant={selectedTopicId === topic.id ? "secondary" : "outline"} 
+                            className="ml-auto"
+                          >
+                            {topic.article_count}
+                          </Badge>
+                        </div>
                       ))}
                     </div>
-                  </TabsContent>
-                </Tabs>
+                  )}
+                </div>
               </div>
             </motion.div>
           </motion.div>
