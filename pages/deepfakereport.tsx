@@ -133,16 +133,106 @@ const pdaCategories = [
     const fetchData = async () => {
       // Case 1: Coming directly from detection
       if (fromDetection === 'true') {
-        const storedResult = sessionStorage.getItem('deepfakeResult');
-        if (storedResult) {
-          setAnalysisResult(JSON.parse(storedResult));
-          // Clear after using
-          sessionStorage.removeItem('deepfakeResult');
-        } 
-        // else {
-        //   console.error('No stored detection result found');
-        //   router.push('/detect');
-        // }
+        const storedIdentifier = sessionStorage.getItem('submissionIdentifier');
+        if (storedIdentifier) {
+          try {
+            // Get the access token from cookies
+            let accessToken = Cookies.get('accessToken');
+            
+            if (!accessToken) {
+              alert('Please login first to view detection results.');
+              router.push('/login');
+              return;
+            }
+            
+            try {
+              const response = await axios.get(
+                `http://127.0.0.1:8000/api/user/submissions/${storedIdentifier}/`,
+                {
+                  headers: {
+                    Authorization: `Bearer ${accessToken}`
+                  }
+                }
+              );
+              
+              setAnalysisResult({
+                id: response.data.data.id,
+                submission_identifier: response.data.data.submission_identifier,
+                media_upload: response.data.data.id,
+                is_deepfake: response.data.data.data.is_deepfake,
+                confidence_score: response.data.data.data.confidence_score,
+                analysis_report: response.data.data.data.analysis_report,
+                metadata: response.data.data.metadata,
+                frames_analyzed: response.data.data.data.frames_analyzed,
+                fake_frames: response.data.data.data.fake_frames,
+              });
+              
+              // Clear after using
+              sessionStorage.removeItem('submissionIdentifier');
+              
+            } catch (error) {
+              if (axios.isAxiosError(error) && error.response && error.response.status === 401) {
+                // Handle token refresh (same as in the existing code for Case 2)
+                const refreshToken = Cookies.get('refreshToken');
+                
+                if (refreshToken) {
+                  // Get a new access token using the refresh token
+                  const refreshResponse = await axios.post(
+                    'http://127.0.0.1:8000/api/auth/refresh_token/',
+                    { refresh: refreshToken }
+                  );
+                  
+                  accessToken = refreshResponse.data.access;
+                  
+                  // Store the new access token in cookies
+                  if (accessToken) {
+                    Cookies.set('accessToken', accessToken);
+                    
+                    // Retry the fetch with the new access token
+                    const response = await axios.get(
+                      `http://127.0.0.1:8000/api/user/submissions/${storedIdentifier}/`,
+                      {
+                        headers: {
+                          Authorization: `Bearer ${accessToken}`
+                        }
+                      }
+                    );
+                    
+                    setAnalysisResult({
+                      id: response.data.data.id,
+                      submission_identifier: response.data.data.submission_identifier,
+                      media_upload: response.data.data.id,
+                      is_deepfake: response.data.data.data.is_deepfake,
+                      confidence_score: response.data.data.data.confidence_score,
+                      analysis_report: response.data.data.data.analysis_report,
+                      metadata: response.data.data.metadata,
+                      frames_analyzed: response.data.data.data.frames_analyzed,
+                      fake_frames: response.data.data.data.fake_frames,
+                    });
+                    
+                    // Clear after using
+                    sessionStorage.removeItem('submissionIdentifier');
+                  } else {
+                    alert('Please login first to view detection results.');
+                    router.push('/login');
+                  }
+                } else {
+                  alert('Please login first to view detection results.');
+                  router.push('/login');
+                }
+              } else {
+                console.error('Failed to fetch detection result:', error);
+                router.push('/detect');
+              }
+            }
+          } catch (error) {
+            console.error('Failed to fetch detection result:', error);
+            router.push('/detect');
+          }
+        } else {
+          console.error('No stored submission identifier found');
+          router.push('/detect');
+        }
       }
       // Case 2: Coming from history with file_id
       else if (submission_identifier && fromHistory) {

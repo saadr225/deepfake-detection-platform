@@ -38,31 +38,13 @@ export default function DetectPage() {
   const [file, setFile] = useState<File | null>(null)
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analysisProgress, setAnalysisProgress] = useState(0)
+  
+  // Social media import functionality - temporarily disabled
+  /*
   const [socialMediaUrl, setSocialMediaUrl] = useState<string>("")
-  const [importError, setImportError] = useState<string | null>(null)
   const [isCustomModalOpen, setIsCustomModalOpen] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
-
-  // Animations variants
-  const containerVariants = {
-    hidden: { opacity: 0 },
-    visible: {
-      opacity: 1,
-      transition: {
-        staggerChildren: 0.1
-      }
-    }
-  };
-
-  const itemVariants = {
-    hidden: { opacity: 0, y: 20 },
-    visible: { 
-      opacity: 1, 
-      y: 0,
-      transition: { duration: 0.5 }
-    }
-  };
-
+  
   // Modal animations
   const modalVariants = {
     hidden: { opacity: 0, scale: 0.95 },
@@ -109,6 +91,87 @@ export default function DetectPage() {
       window.removeEventListener('keydown', handleEsc);
     };
   }, []);
+  
+  // Social media import handler
+  const handleSocialMediaImport = async () => {
+    setImportError(null)
+
+    try {
+      // Basic URL validation
+      if (!socialMediaUrl.trim()) {
+        setImportError("Please enter a valid social media URL")
+        return
+      }
+
+      // URL format validation (basic example)
+      const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
+      if (!urlPattern.test(socialMediaUrl)) {
+        setImportError("Invalid URL format")
+        return
+      }
+
+      // Simulate social media import
+      const response = await fetch("/api/import-social-media", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ url: socialMediaUrl }),
+      })
+
+      if (response.ok) {
+        const mediaFile = await response.blob()
+        const importedFile = new File([mediaFile], "social-media-import", {
+          type: mediaFile.type,
+        })
+
+        // Use onDrop to handle file validation and setting
+        onDrop([importedFile])
+        setIsCustomModalOpen(false)
+      } else {
+        const errorData = await response.json()
+        setImportError(errorData.message || "Failed to import media")
+      }
+    } catch (error) {
+      console.error("Social media import error:", error)
+      setImportError("An error occurred while importing media")
+    }
+  }
+
+  // Open modal and reset state
+  const openImportModal = () => {
+    setSocialMediaUrl("")
+    setImportError(null)
+    setIsCustomModalOpen(true)
+  }
+
+  // Handle modal close
+  const closeImportModal = () => {
+    setIsCustomModalOpen(false)
+  }
+  */
+  
+  const [importError, setImportError] = useState<string | null>(null)
+
+  // Animations variants
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { opacity: 0, y: 20 },
+    visible: { 
+      opacity: 1, 
+      y: 0,
+      transition: { duration: 0.5 }
+    }
+  };
 
   // Dropzone configuration
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -144,6 +207,7 @@ export default function DetectPage() {
 
     setIsAnalyzing(true)
     setAnalysisProgress(0)
+    setImportError(null) // Reset any previous error messages
 
     try {
       // Simulate analysis progress
@@ -228,13 +292,20 @@ export default function DetectPage() {
       setAnalysisProgress(100)
       setIsAnalyzing(false)
 
+      // Check if the response indicates no faces were detected
+      if (response.data.message === "Media file contains no faces." || 
+          (response.data.data.analysis_report && response.data.data.analysis_report.final_verdict === "MEDIA_CONTAINS_NO_FACES")) {
+        setImportError("The uploaded media doesn't contain any human faces. Please upload a different file with faces to analyze.")
+        return
+      }
+
       // Extract detection results from the response
       const detectionResult = response.data.data
 
-      // Store in sessionStorage
-      sessionStorage.setItem("deepfakeResult", JSON.stringify(detectionResult))
+      // Instead of storing the full result, just store the submission identifier
+      sessionStorage.setItem("submissionIdentifier", detectionResult.submission_identifier)
 
-      // Navigate to results page with only a flag
+      // Navigate to results page with query parameters
       router.push({
         pathname: "/deepfakereport",
         query: { fromDetection: "true" },
@@ -242,7 +313,7 @@ export default function DetectPage() {
     } catch (error) {
       console.error("Detection analysis error:", error)
       setIsAnalyzing(false)
-      alert("An error occurred during analysis. Please try again.")
+      setImportError("An error occurred during analysis. Please try again.")
     }
   }
 
@@ -261,64 +332,6 @@ export default function DetectPage() {
     if (document.getElementById("fileUpload")) {
       ;(document.getElementById("fileUpload") as HTMLInputElement).value = ""
     }
-  }
-
-  // Social media import handler
-  const handleSocialMediaImport = async () => {
-    setImportError(null)
-
-    try {
-      // Basic URL validation
-      if (!socialMediaUrl.trim()) {
-        setImportError("Please enter a valid social media URL")
-        return
-      }
-
-      // URL format validation (basic example)
-      const urlPattern = /^(https?:\/\/)?([\da-z.-]+)\.([a-z.]{2,6})([/\w .-]*)*\/?$/
-      if (!urlPattern.test(socialMediaUrl)) {
-        setImportError("Invalid URL format")
-        return
-      }
-
-      // Simulate social media import
-      const response = await fetch("/api/import-social-media", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ url: socialMediaUrl }),
-      })
-
-      if (response.ok) {
-        const mediaFile = await response.blob()
-        const importedFile = new File([mediaFile], "social-media-import", {
-          type: mediaFile.type,
-        })
-
-        // Use onDrop to handle file validation and setting
-        onDrop([importedFile])
-        setIsCustomModalOpen(false)
-      } else {
-        const errorData = await response.json()
-        setImportError(errorData.message || "Failed to import media")
-      }
-    } catch (error) {
-      console.error("Social media import error:", error)
-      setImportError("An error occurred while importing media")
-    }
-  }
-
-  // Open modal and reset state
-  const openImportModal = () => {
-    setSocialMediaUrl("")
-    setImportError(null)
-    setIsCustomModalOpen(true)
-  }
-
-  // Handle modal close
-  const closeImportModal = () => {
-    setIsCustomModalOpen(false)
   }
 
   return (
@@ -393,22 +406,13 @@ export default function DetectPage() {
                   Upload Media for Analysis
                 </h2>
                 
-                {/* Action Buttons */}
+                {/* Action Buttons - Import URL temporarily disabled */}
                 <div className="grid grid-cols-2 gap-4 mb-8">
                   <Button 
                     className="h-14 text-base font-medium bg-primary hover:bg-primary-600 transition-all shadow-subtle hover:shadow-elevation"
                     onClick={() => document.getElementById("fileUpload")?.click()}
                   >
                     <Upload className="mr-2 h-5 w-5" /> Upload File
-                  </Button>
-                  
-                  {/* Custom Import URL Button */}
-                  <Button 
-                    variant="outline" 
-                    className="h-14 text-base font-medium border-primary/20 hover:bg-primary/5"
-                    onClick={openImportModal}
-                  >
-                    <LinkIcon className="mr-2 h-5 w-5" /> Import URL
                   </Button>
                   
                   <input
@@ -475,6 +479,21 @@ export default function DetectPage() {
                     </div>
                   )}
                 </div>
+
+                {/* Display error message if there is one */}
+                {importError && (
+                  <motion.div
+                    className="mb-6"
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <div className="p-4 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 rounded-xl text-sm flex items-start">
+                      <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
+                      <p>{importError}</p>
+                    </div>
+                  </motion.div>
+                )}
 
                 {/* Analysis Controls - Moved inside the Upload Media section */}
                 <div className="border-t border-border/40 pt-6 mt-auto">
@@ -673,89 +692,7 @@ export default function DetectPage() {
         </motion.div>
       </div>
 
-      {/* Custom modal implementation */}
-      <AnimatePresence>
-        {isCustomModalOpen && (
-          <>
-            {/* Background overlay */}
-            <motion.div 
-              className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={closeImportModal}
-            />
-            
-            {/* Modal content */}
-            <motion.div 
-              className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto p-4"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-            >
-              <motion.div 
-                ref={modalRef}
-                className="bg-card rounded-2xl border-0 shadow-elevation max-w-md w-full mx-auto"
-                variants={modalVariants}
-                initial="hidden"
-                animate="visible"
-                exit="exit"
-                onClick={(e) => e.stopPropagation()}
-              >
-                {/* Modal header */}
-                <div className="p-6 border-b border-border">
-                  <div className="flex items-center justify-between">
-                    <h2 className="text-xl font-semibold">Import from Social Media</h2>
-                    <button 
-                      onClick={closeImportModal}
-                      className="h-8 w-8 rounded-full flex items-center justify-center hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
-                    >
-                      <X className="h-4 w-4" />
-                    </button>
-                  </div>
-                </div>
-                
-                {/* Modal body */}
-                <div className="p-6 space-y-4">
-                  <div className="bg-primary/5 p-4 rounded-xl border border-primary/10 text-sm text-muted-foreground mb-6">
-                    <div className="flex">
-                      <Info className="h-5 w-5 text-primary mr-2 flex-shrink-0" />
-                      <p>Enter the URL of a public social media post containing media you want to analyze</p>
-                    </div>
-                  </div>
-                  
-                  <input
-                    type="text"
-                    placeholder="https://www.example.com/post/..."
-                    value={socialMediaUrl}
-                    onChange={(e) => setSocialMediaUrl(e.target.value)}
-                    className="w-full p-4 border rounded-xl bg-background focus:ring-2 focus:ring-primary/30 focus:border-primary focus:outline-none transition-all"
-                  />
-                  
-                  <Button onClick={handleSocialMediaImport} className="w-full h-12 shadow-subtle hover:shadow-elevation transition-all">
-                    <LinkIcon className="mr-2 h-4 w-4" />
-                    Import Media
-                  </Button>
-                  
-                  {importError && (
-                    <div className="p-3 bg-red-50 text-red-700 rounded-lg text-sm flex items-start">
-                      <AlertTriangle className="h-5 w-5 mr-2 flex-shrink-0" />
-                      <p>{importError}</p>
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-wrap gap-2 justify-center pt-2">
-                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">Instagram</div>
-                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">Twitter</div>
-                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">Facebook</div>
-                    <div className="px-3 py-1 bg-muted rounded-full text-xs text-muted-foreground">TikTok</div>
-                  </div>
-                </div>
-              </motion.div>
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
+      {/* Custom modal implementation for URL import - temporarily disabled */}
     </Layout>
   )
 }
