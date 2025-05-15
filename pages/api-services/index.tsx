@@ -34,17 +34,19 @@ import { useUser } from "../../contexts/UserContext";
 
 // API Key type definition
 interface ApiKey {
-  id: string;
+  id: number;
   name: string;
   key: string;
   created_at: string;
   expires_at: string | null;
   daily_limit: number;
-  is_active: boolean;
+  daily_usage?: number;
+  last_used_at?: string;
+  is_active?: boolean; // Now optional, will be inferred
   can_use_deepfake_detection: boolean;
   can_use_ai_text_detection: boolean;
   can_use_ai_media_detection: boolean;
-  last_used: string | null;
+  last_used?: string | null; // For backward compatibility
 }
 
 // Fix the TypeScript errors by creating an interface for the request body
@@ -117,17 +119,25 @@ export default function APIServices() {
       
       console.log("API Keys response:", response.data);
       
-      // Ensure we're setting an array
-      if (Array.isArray(response.data)) {
+      // Handle the updated response structure
+      if (response.data && response.data.success && Array.isArray(response.data.api_keys)) {
+        // Mark all returned keys as active
+        const activeKeys = response.data.api_keys.map((key: any) => ({
+          ...key,
+          is_active: true
+        }));
+        setApiKeys(activeKeys);
+      } else if (Array.isArray(response.data)) {
+        // Fallback for backward compatibility
         setApiKeys(response.data);
       } else if (response.data && Array.isArray(response.data.data)) {
-        // API returns data in a 'data' property
+        // Fallback for backward compatibility
         setApiKeys(response.data.data);
       } else if (response.data && Array.isArray(response.data.results)) {
-        // Some APIs return paginated results in a 'results' field
+        // Fallback for backward compatibility
         setApiKeys(response.data.results);
       } else {
-        // If the response is not an array or doesn't contain a results array, set empty array
+        // If the response is not in the expected format, set empty array
         console.error("Unexpected API response format:", response.data);
         setApiKeys([]);
         setError("Received unexpected data format from the server");
@@ -155,22 +165,32 @@ export default function APIServices() {
                 },
               });
               
-              // Ensure we're setting an array
-              if (Array.isArray(retryResponse.data)) {
+              // Handle the updated response structure
+              if (retryResponse.data && retryResponse.data.success && Array.isArray(retryResponse.data.api_keys)) {
+                // Mark all returned keys as active
+                const activeKeys = retryResponse.data.api_keys.map((key: any) => ({
+                  ...key,
+                  is_active: true
+                }));
+                setApiKeys(activeKeys);
+              } else if (Array.isArray(retryResponse.data)) {
+                // Fallback for backward compatibility
                 setApiKeys(retryResponse.data);
               } else if (retryResponse.data && Array.isArray(retryResponse.data.data)) {
-                // API returns data in a 'data' property
+                // Fallback for backward compatibility
                 setApiKeys(retryResponse.data.data);
               } else if (retryResponse.data && Array.isArray(retryResponse.data.results)) {
+                // Fallback for backward compatibility
                 setApiKeys(retryResponse.data.results);
               } else {
+                // If the response is not in the expected format, set empty array
                 console.error("Unexpected API response format:", retryResponse.data);
                 setApiKeys([]);
                 setError("Received unexpected data format from the server");
               }
+            } else {
+              setError("Authentication expired. Please log in again.");
             }
-          } else {
-            setError("Authentication expired. Please log in again.");
           }
         } catch (refreshError) {
           setError("Failed to authenticate. Please log in again.");
@@ -234,12 +254,20 @@ export default function APIServices() {
       
       // Handle different response formats
       let newKey: ApiKey;
-      if (response.data && response.data.data) {
-        // API returns data in a 'data' property
+      
+      if (response.data && response.data.success && response.data.api_key) {
+        // New API response format
+        newKey = {
+          ...response.data.api_key,
+          is_active: true
+        };
+        setShowNewKey(response.data.api_key.key);
+      } else if (response.data && response.data.data) {
+        // Legacy: API returns data in a 'data' property
         newKey = response.data.data;
         setShowNewKey(response.data.data.key);
       } else {
-        // Direct response
+        // Legacy: Direct response
         newKey = response.data;
         setShowNewKey(response.data.key);
       }
@@ -273,54 +301,38 @@ export default function APIServices() {
             // Store the new access token in cookies
             if (newAccessToken) {
               Cookies.set("accessToken", newAccessToken);
-              // Retry creating the key with new token
-              const requestBody: CreateApiKeyRequest = {
-                name: newKeyName,
-                daily_limit: newKeyDailyLimit,
-                can_use_deepfake_detection: newKeyPermissions.can_use_deepfake_detection,
-                can_use_ai_text_detection: newKeyPermissions.can_use_ai_text_detection,
-                can_use_ai_media_detection: newKeyPermissions.can_use_ai_media_detection
-              };
-              
-              if (newKeyExpiration) {
-                requestBody.expires_at = newKeyExpiration;
-              }
-              
-              const retryResponse = await axios.post(
-                "http://127.0.0.1:8000/api/api-keys/",
-                requestBody,
-                {
-                  headers: {
-                    Authorization: `Bearer ${newAccessToken}`,
-                    "Content-Type": "application/json",
-                  },
-                }
-              );
-              
-              // Handle different response formats
-              let newKey: ApiKey;
-              if (retryResponse.data && retryResponse.data.data) {
-                // API returns data in a 'data' property
-                newKey = retryResponse.data.data;
-                setShowNewKey(retryResponse.data.data.key);
-              } else {
-                // Direct response
-                newKey = retryResponse.data;
-                setShowNewKey(retryResponse.data.key);
-              }
-              
-              setApiKeys([newKey, ...apiKeys]);
-              setSuccessMessage("API key created successfully");
-              
-              // Reset form fields
-              setNewKeyName("");
-              setNewKeyExpiration("");
-              setNewKeyDailyLimit(1000);
-              setNewKeyPermissions({
-                can_use_deepfake_detection: true,
-                can_use_ai_text_detection: true,
-                can_use_ai_media_detection: true
+              // Retry the fetch with new token
+              const retryResponse = await axios.get("http://127.0.0.1:8000/api/api-keys/", {
+                headers: {
+                  Authorization: `Bearer ${newAccessToken}`,
+                },
               });
+              
+              // Handle the updated response structure
+              if (retryResponse.data && retryResponse.data.success && Array.isArray(retryResponse.data.api_keys)) {
+                // Mark all returned keys as active
+                const activeKeys = retryResponse.data.api_keys.map((key: any) => ({
+                  ...key,
+                  is_active: true
+                }));
+                setApiKeys(activeKeys);
+              } else if (Array.isArray(retryResponse.data)) {
+                // Fallback for backward compatibility
+                setApiKeys(retryResponse.data);
+              } else if (retryResponse.data && Array.isArray(retryResponse.data.data)) {
+                // Fallback for backward compatibility
+                setApiKeys(retryResponse.data.data);
+              } else if (retryResponse.data && Array.isArray(retryResponse.data.results)) {
+                // Fallback for backward compatibility
+                setApiKeys(retryResponse.data.results);
+              } else {
+                // If the response is not in the expected format, set empty array
+                console.error("Unexpected API response format:", retryResponse.data);
+                setApiKeys([]);
+                setError("Received unexpected data format from the server");
+              }
+            } else {
+              setError("Authentication expired. Please log in again.");
             }
           } else {
             setError("Authentication expired. Please log in again.");
@@ -357,14 +369,18 @@ export default function APIServices() {
       }
       
       // Make API request to revoke the API key
-      await axios.delete(`http://127.0.0.1:8000/api/api-keys/${keyId}/`, {
+      const response = await axios.delete(`http://127.0.0.1:8000/api/api-keys/${keyId}/`, {
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
       });
       
-      // Show success message
-      setSuccessMessage("API key revoked successfully");
+      // Show success message from the API response if available
+      if (response.data && response.data.success && response.data.message) {
+        setSuccessMessage(response.data.message);
+      } else {
+        setSuccessMessage("API key revoked successfully");
+      }
       
       // Fetch the updated list of API keys
       await fetchApiKeys();
@@ -384,14 +400,18 @@ export default function APIServices() {
             if (newAccessToken) {
               Cookies.set("accessToken", newAccessToken);
               // Retry revoking the key with new token
-              await axios.delete(`http://127.0.0.1:8000/api/api-keys/${keyId}/`, {
+              const response = await axios.delete(`http://127.0.0.1:8000/api/api-keys/${keyId}/`, {
                 headers: {
                   Authorization: `Bearer ${newAccessToken}`,
                 },
               });
               
-              // Show success message
-              setSuccessMessage("API key revoked successfully");
+              // Show success message from the API response if available
+              if (response.data && response.data.success && response.data.message) {
+                setSuccessMessage(response.data.message);
+              } else {
+                setSuccessMessage("API key revoked successfully");
+              }
               
               // Fetch the updated list of API keys
               await fetchApiKeys();
@@ -434,7 +454,7 @@ export default function APIServices() {
       details: [
         {
           title: "Input",
-          content: "Images (JPG, PNG) or videos (MP4, MOV) containing human faces."
+          content: "Images (JPEG, PNG, GIF, BMP) or videos (MP4, MOV, AVI, WMV) containing human faces. Maximum file size: 25MB."
         },
         {
           title: "Output",
@@ -453,19 +473,55 @@ export default function APIServices() {
       },
       responseExample: `{
   "success": true,
-  "code": "SUCCESS",
+  "code": "SUC001",
   "result": {
     "is_deepfake": true,
     "confidence_score": 0.94,
+    "file_type": "Video",
     "frames_analyzed": 25,
     "fake_frames": 21,
-    "fake_frames_percentage": 84.0,
-    "file_type": "Video"
+    "fake_frames_percentage": 84.0
   },
   "metadata": {
-    // File metadata (varies by file type)
+    "width": 1920,
+    "height": 1080,
+    "format": "mp4",
+    "duration": 15.5,
+    "codec": "h264"
   }
-}`
+}`,
+      errorResponses: [
+        {
+          code: "AUT001",
+          status: "403 Forbidden",
+          message: "Missing API key. Please provide your API key in the X-API-Key header."
+        },
+        {
+          code: "AUT001",
+          status: "403 Forbidden",
+          message: "Invalid API key. Please check your API key and try again."
+        },
+        {
+          code: "AUT004",
+          status: "403 Forbidden",
+          message: "This API key does not have permission to access the deepfake detection endpoint."
+        },
+        {
+          code: "FIL001",
+          status: "400 Bad Request",
+          message: "No file was provided. Please upload a file."
+        },
+        {
+          code: "FIL002",
+          status: "400 Bad Request",
+          message: "File too large. Maximum file size is 25MB."
+        },
+        {
+          code: "FIL003",
+          status: "400 Bad Request",
+          message: "Unsupported file type. Allowed types: image/jpeg, image/png, image/gif, image/bmp, video/mp4, video/quicktime, video/x-msvideo, video/x-ms-wmv"
+        }
+      ]
     },
     {
       id: "ai-text-detection",
@@ -509,17 +565,49 @@ export default function APIServices() {
       },
       responseExample: `{
   "success": true,
-  "code": "SUCCESS",
+  "code": "SUC001",
   "result": {
     "is_ai_generated": true,
-    "source_prediction": "Human"|"AI",
+    "source_prediction": "GPT-3",
     "confidence_scores": {
       "Human": 0.12,
       "AI": 0.88
     },
-    "highlighted_text": "HTML formatted text with highlights"
+    "highlighted_text": "This is some text that I want to analyze..."
   }
-}`
+}`,
+      errorResponses: [
+        {
+          code: "AUT001",
+          status: "403 Forbidden",
+          message: "Missing API key. Please provide your API key in the X-API-Key header."
+        },
+        {
+          code: "AUT001",
+          status: "403 Forbidden",
+          message: "Invalid API key. Please check your API key and try again."
+        },
+        {
+          code: "AUT004",
+          status: "403 Forbidden",
+          message: "This API key does not have permission to access the AI text detection endpoint."
+        },
+        {
+          code: "SYS003",
+          status: "400 Bad Request",
+          message: "Invalid JSON data"
+        },
+        {
+          code: "TXT001",
+          status: "400 Bad Request",
+          message: "No text was provided. Please provide text for analysis."
+        },
+        {
+          code: "TXT002",
+          status: "400 Bad Request",
+          message: "Text too short. Please provide at least 50 characters for reliable analysis."
+        }
+      ]
     },
     {
       id: "ai-media-detection",
@@ -544,7 +632,7 @@ export default function APIServices() {
       details: [
         {
           title: "Input",
-          content: "Images in common formats (JPG, PNG, WEBP)."
+          content: "Images in common formats (JPEG, PNG, GIF, BMP). Maximum file size: 25MB."
         },
         {
           title: "Output",
@@ -563,19 +651,53 @@ export default function APIServices() {
       },
       responseExample: `{
   "success": true,
-  "code": "SUCCESS",
+  "code": "SUC001",
   "result": {
     "is_ai_generated": true,
-    "prediction": "real"|"fake",
+    "prediction": "fake",
     "confidence_scores": {
       "ai_generated": 0.92,
       "real": 0.08
     }
   },
   "metadata": {
-    // File metadata
+    "width": 1024,
+    "height": 1024,
+    "format": "png"
   }
-}`
+}`,
+      errorResponses: [
+        {
+          code: "AUT001",
+          status: "403 Forbidden",
+          message: "Missing API key. Please provide your API key in the X-API-Key header."
+        },
+        {
+          code: "AUT001",
+          status: "403 Forbidden",
+          message: "Invalid API key. Please check your API key and try again."
+        },
+        {
+          code: "AUT004",
+          status: "403 Forbidden",
+          message: "This API key does not have permission to access the AI media detection endpoint."
+        },
+        {
+          code: "FIL001",
+          status: "400 Bad Request",
+          message: "No file was provided. Please upload a file."
+        },
+        {
+          code: "FIL002",
+          status: "400 Bad Request",
+          message: "File too large. Maximum file size is 25MB."
+        },
+        {
+          code: "FIL003",
+          status: "400 Bad Request",
+          message: "Unsupported file type. Allowed types: image/jpeg, image/png, image/gif, image/bmp"
+        }
+      ]
     }
   ];
 
@@ -715,7 +837,7 @@ export default function APIServices() {
                     {showNewKey}
                   </div>
                   <p className="mt-2 text-sm text-blue-700 dark:text-blue-400">
-                    This key is only shown once. Please copy it now and store it securely.
+                    Your API key has been generated successfully. Make sure to safely store it in your application.
                   </p>
                   <div className="flex justify-end mt-2">
                     <Button 
@@ -881,7 +1003,7 @@ export default function APIServices() {
                             <div>
                               <div className="flex items-center">
                                 <h3 className="font-medium text-lg">{key.name}</h3>
-                                {!key.is_active && (
+                                {key.is_active === false && (
                                   <Badge variant="outline" className="ml-2 text-red-500 border-red-200 bg-red-50 dark:bg-red-950/20">
                                     Revoked
                                   </Badge>
@@ -891,11 +1013,11 @@ export default function APIServices() {
                                 Created: {new Date(key.created_at).toLocaleDateString()}
                               </p>
                             </div>
-                            {key.is_active && (
+                            {key.is_active !== false && (
                               <Button 
                                 variant="destructive" 
                                 size="sm" 
-                                onClick={() => revokeApiKey(key.id)}
+                                onClick={() => revokeApiKey(key.id.toString())}
                                 disabled={isLoading}
                                 className="mt-3 md:mt-0"
                               >
@@ -924,6 +1046,9 @@ export default function APIServices() {
                             <div className="font-mono text-sm break-all bg-background p-2 rounded border">
                               {key.key}
                             </div>
+                            <p className="text-xs text-muted-foreground mt-1">
+                              Use this 64-character token in your API requests via the X-API-Key header.
+                            </p>
                           </div>
                           
                           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2 text-sm">
@@ -936,8 +1061,16 @@ export default function APIServices() {
                               <span>{key.daily_limit} requests</span>
                             </div>
                             <div className="bg-muted p-3 rounded">
+                              <span className="block text-muted-foreground">Usage:</span>
+                              <span>{key.daily_usage !== undefined ? `${key.daily_usage}/${key.daily_limit}` : '0'} requests today</span>
+                            </div>
+                            <div className="bg-muted p-3 rounded">
                               <span className="block text-muted-foreground">Expires:</span>
                               <span>{key.expires_at ? new Date(key.expires_at).toLocaleDateString() : 'Never'}</span>
+                            </div>
+                            <div className="bg-muted p-3 rounded">
+                              <span className="block text-muted-foreground">Last Used:</span>
+                              <span>{key.last_used_at ? new Date(key.last_used_at).toLocaleDateString() : key.last_used ? new Date(key.last_used).toLocaleDateString() : 'Never'}</span>
                             </div>
                           </div>
                           
@@ -963,6 +1096,63 @@ export default function APIServices() {
               </Card>
             </>
           )}
+        </div>
+
+        {/* General API Information */}
+        <div className="mb-12">
+          <h2 className="text-2xl font-bold mb-6 flex items-center">
+            <Server className="mr-2 h-6 w-6 text-primary" />
+            API Documentation
+          </h2>
+          
+          <Card className="mb-8">
+            <CardHeader>
+              <CardTitle className="text-xl">Overview</CardTitle>
+              <CardDescription>
+                Essential information for integrating with our detection APIs
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div>
+                <h3 className="text-lg font-medium mb-2">Base URL</h3>
+                <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
+                  <pre>https://your-domain.com/api/public-api/</pre>
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-2">Authentication</h3>
+                <p className="mb-3 text-muted-foreground">All API calls require authentication using an API key in the request header:</p>
+                <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto mb-3">
+                  <pre>X-API-Key: your_api_key</pre>
+                </div>
+                <p className="text-sm text-muted-foreground">API keys are managed through the DMI web interface and can be configured with specific permissions and rate limits.</p>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-2">Rate Limiting</h3>
+                <ul className="list-disc pl-5 space-y-1 text-muted-foreground">
+                  <li>Each API key has a configurable daily request limit (default: 1000 requests per day)</li>
+                  <li>When the limit is reached, requests will be rejected with a 403 Forbidden response</li>
+                  <li>The current usage count resets at midnight UTC</li>
+                </ul>
+              </div>
+              
+              <div>
+                <h3 className="text-lg font-medium mb-2">Response Format</h3>
+                <p className="mb-3 text-muted-foreground">All API endpoints return responses in JSON format with a consistent structure:</p>
+                <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
+                  <pre>{`{
+  "success": true|false,        // Indicates if the request was successful
+  "code": "CODE",               // Response code
+  "result": { ... },            // Result data (on success)
+  "message": "Error message",   // Error message (on failure)
+  "metadata": { ... }           // Optional metadata
+}`}</pre>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Tabs for API Services */}
@@ -1043,18 +1233,36 @@ export default function APIServices() {
                         </div>
                       </div>
 
-                      <h3 className="text-lg font-medium pt-4">Response Example</h3>
+                      <h3 className="text-lg font-medium pt-4">Success Response</h3>
                       <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
                         <pre className="text-xs whitespace-pre-wrap break-all sm:break-normal">
                           {service.responseExample}
                         </pre>
                       </div>
+                      
+                      {service.errorResponses && (
+                        <>
+                          <h3 className="text-lg font-medium pt-4">Error Responses</h3>
+                          <div className="space-y-3">
+                            {service.errorResponses.map((error, i) => (
+                              <div key={i} className="bg-red-50 dark:bg-red-950/20 p-3 rounded-md border border-red-100 dark:border-red-900">
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="text-sm font-medium text-red-700 dark:text-red-300">
+                                    {error.status}
+                                  </span>
+                                  <Badge variant="outline" className="bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 border-red-200 dark:border-red-800">
+                                    {error.code}
+                                  </Badge>
+                                </div>
+                                <p className="text-sm text-red-600 dark:text-red-400">
+                                  {error.message}
+                                </p>
+                              </div>
+                            ))}
+                          </div>
+                        </>
+                      )}
                     </CardContent>
-                    {/* <CardFooter>
-                      <Button className="w-full md:w-auto">
-                        View Documentation
-                      </Button>
-                    </CardFooter> */}
                   </Card>
                 </div>
 
@@ -1116,13 +1324,123 @@ export default function APIServices() {
 
         {/* Integrations Section */}
         <div className="mb-16">
-          <h2 className="text-2xl font-bold mb-6 text-center">Integration Examples</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="text-2xl font-bold mb-6 text-center">Client Libraries</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  <span>Code Example</span>
+                  <span>Python Client Library</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
+                  <pre className="text-xs whitespace-pre-wrap break-all sm:break-normal">
+{`import requests
+
+def detect_ai_text(api_key, text, highlight=False):
+    url = "https://your-domain.com/api/public-api/ai-text-detection/"
+    headers = {"X-API-Key": api_key}
+    data = {"text": text, "highlight": highlight}
+
+    response = requests.post(url, headers=headers, json=data)
+    return response.json()
+
+def detect_deepfake(api_key, file_path):
+    url = "https://your-domain.com/api/public-api/deepfake-detection/"
+    headers = {"X-API-Key": api_key}
+
+    with open(file_path, "rb") as f:
+        files = {"file": f}
+        response = requests.post(url, headers=headers, files=files)
+
+    return response.json()
+
+def detect_ai_media(api_key, file_path):
+    url = "https://your-domain.com/api/public-api/ai-media-detection/"
+    headers = {"X-API-Key": api_key}
+
+    with open(file_path, "rb") as f:
+        files = {"file": f}
+        response = requests.post(url, headers=headers, files=files)
+
+    return response.json()`}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  <span>JavaScript Client Library</span>
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="bg-muted p-4 rounded-md font-mono text-sm overflow-x-auto">
+                  <pre className="text-xs whitespace-pre-wrap break-all sm:break-normal">
+{`// Deepfake detection example
+async function detectDeepfake(apiKey, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("https://your-domain.com/api/public-api/deepfake-detection/", {
+    method: "POST",
+    headers: {
+      "X-API-Key": apiKey,
+    },
+    body: formData,
+  });
+
+  return await response.json();
+}
+
+// AI text detection example
+async function detectAIText(apiKey, text, highlight = false) {
+  const response = await fetch("https://your-domain.com/api/public-api/ai-text-detection/", {
+    method: "POST",
+    headers: {
+      "X-API-Key": apiKey,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      text: text,
+      highlight: highlight,
+    }),
+  });
+
+  return await response.json();
+}
+
+// AI media detection example
+async function detectAIMedia(apiKey, file) {
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const response = await fetch("https://your-domain.com/api/public-api/ai-media-detection/", {
+    method: "POST",
+    headers: {
+      "X-API-Key": apiKey,
+    },
+    body: formData,
+  });
+
+  return await response.json();
+}`}
+                  </pre>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+
+          <h2 className="text-2xl font-bold my-6 text-center">Implementation Examples</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <FileText className="h-5 w-5" />
+                  <span>Deepfake Detection</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1133,18 +1451,29 @@ const detectDeepfake = async (imageFile) => {
   const formData = new FormData();
   formData.append('file', imageFile);
   
-  const response = await fetch(
-    'https://api.deepmediainspection.com/public-api/deepfake-detection/',
-    {
-      method: 'POST',
-      headers: {
-        'X-API-Key': 'YOUR_API_KEY'
-      },
-      body: formData
+  try {
+    const response = await fetch(
+      'https://your-domain.com/api/public-api/deepfake-detection/',
+      {
+        method: 'POST',
+        headers: {
+          'X-API-Key': 'YOUR_API_KEY'
+        },
+        body: formData
+      }
+    );
+    
+    const data = await response.json();
+    
+    if (!data.success) {
+      throw new Error(\`Error \${data.code}: \${data.message}\`);
     }
-  );
-  
-  return await response.json();
+    
+    return data;
+  } catch (error) {
+    console.error('Deepfake detection failed:', error);
+    throw error;
+  }
 };`}
                   </pre>
                 </div>
@@ -1155,7 +1484,7 @@ const detectDeepfake = async (imageFile) => {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  <span>Error Handling</span>
+                  <span>AI Text Detection</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1164,28 +1493,30 @@ const detectDeepfake = async (imageFile) => {
 {`// Python Example
 import requests
 
-def detect_ai_text(text):
+def detect_ai_text(text, highlight=False):
     try:
         response = requests.post(
-            'https://api.deepmediainspection.com/public-api/ai-text-detection/',
+            'https://your-domain.com/api/public-api/ai-text-detection/',
             headers={
                 'Content-Type': 'application/json',
                 'X-API-Key': 'YOUR_API_KEY'
             },
             json={
                 'text': text,
-                'highlight': True
+                'highlight': highlight
             }
         )
-        response.raise_for_status()
-        return response.json()
-    except requests.exceptions.HTTPError as e:
-        if e.response.status_code == 400:
-            return {"error": "Invalid text or too short"}
-        elif e.response.status_code == 403:
-            return {"error": "Invalid API key"}
-        else:
-            return {"error": "API error", "code": e.response.status_code}
+        
+        # Parse the response
+        data = response.json()
+        
+        if not data.get('success'):
+            raise Exception(f"Error {data.get('code')}: {data.get('message')}")
+            
+        return data
+    except Exception as e:
+        print(f"AI text detection failed: {str(e)}")
+        raise
 `}
                   </pre>
                 </div>
@@ -1196,7 +1527,7 @@ def detect_ai_text(text):
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <FileText className="h-5 w-5" />
-                  <span>Media Detection Example</span>
+                  <span>AI Media Detection</span>
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -1210,14 +1541,21 @@ def detect_ai_image(image_path):
         with open(image_path, 'rb') as img:
             files = {'file': img}
             response = requests.post(
-                'https://api.deepmediainspection.com/public-api/ai-media-detection/',
+                'https://your-domain.com/api/public-api/ai-media-detection/',
                 headers={'X-API-Key': 'YOUR_API_KEY'},
                 files=files
             )
-            response.raise_for_status()
-            return response.json()
+            
+            # Parse the response
+            data = response.json()
+            
+            if not data.get('success'):
+                raise Exception(f"Error {data.get('code')}: {data.get('message')}")
+                
+            return data
     except Exception as e:
-        return {"error": str(e)}
+        print(f"AI media detection failed: {str(e)}")
+        raise
 `}
                   </pre>
                 </div>
@@ -1246,8 +1584,8 @@ def detect_ai_image(image_path):
                   <AlertCircle className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="font-medium mb-1">Content Quality</h4>
-                  <p className="text-sm text-muted-foreground">Detection accuracy may vary based on content quality. Higher resolution images and videos provide better results.</p>
+                  <h4 className="font-medium mb-1">File Size Limits</h4>
+                  <p className="text-sm text-muted-foreground">Maximum file size for all API endpoints is 25MB. Larger files will be rejected with a 400 Bad Request response.</p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -1255,8 +1593,35 @@ def detect_ai_image(image_path):
                   <AlertCircle className="h-4 w-4" />
                 </div>
                 <div>
-                  <h4 className="font-medium mb-1">Face Detection</h4>
-                  <p className="text-sm text-muted-foreground">For deepfake detection, ensure faces are clearly visible. The API requires at least one detectable face.</p>
+                  <h4 className="font-medium mb-1">Error Handling</h4>
+                  <p className="text-sm text-muted-foreground">Always implement proper error handling to deal with API errors, network issues, and rate limiting responses.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1">API Response Structure</h4>
+                  <p className="text-sm text-muted-foreground">All API responses follow a consistent format with success flag, code, and result/message properties.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1">Usage Tracking</h4>
+                  <p className="text-sm text-muted-foreground">All API requests are logged for audit and billing purposes. Daily usage is tracked for each API key.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <div className="h-7 w-7 rounded-full bg-amber-100 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-400 mt-0.5 flex-shrink-0">
+                  <AlertCircle className="h-4 w-4" />
+                </div>
+                <div>
+                  <h4 className="font-medium mb-1">Processing Time</h4>
+                  <p className="text-sm text-muted-foreground">Large files may take longer to process, especially video files. For AI text detection, provide at least 50 characters for reliable analysis.</p>
                 </div>
               </div>
             </div>
