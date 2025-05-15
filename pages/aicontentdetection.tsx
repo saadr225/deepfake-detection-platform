@@ -31,6 +31,17 @@ import { useUser } from "../contexts/UserContext"
 import Cookies from "js-cookie"
 import axios from "axios"
 
+// Add custom CSS for text wrapping in the highlighted text
+const highlightedTextStyles = `
+  .highlighted-text-container span {
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: break-word !important;
+    max-width: 100% !important;
+    display: inline !important;
+  }
+`;
+
 export default function AIContentDetectionPage() {
   const router = useRouter()
   const { user } = useUser()
@@ -329,7 +340,13 @@ export default function AIContentDetectionPage() {
     if (textResults?.html_text) {
       return (
         <div
-          className="whitespace-pre-wrap text-left p-4 border rounded-xl bg-card"
+          className="whitespace-pre-wrap text-left p-4 border rounded-xl bg-card overflow-hidden break-words highlighted-text-container"
+          style={{
+            wordWrap: 'break-word',
+            overflowWrap: 'break-word',
+            maxWidth: '100%',
+            wordBreak: 'break-word'
+          }}
           dangerouslySetInnerHTML={{ __html: textResults.html_text }}
         />
       )
@@ -339,6 +356,9 @@ export default function AIContentDetectionPage() {
 
   return (
     <Layout>
+      {/* Add the custom styles */}
+      <style jsx global>{highlightedTextStyles}</style>
+      
       {/* Enhanced Header Section with Background */}
       <div className="relative">
         {/* Background with more visible gradient */}
@@ -741,13 +761,15 @@ export default function AIContentDetectionPage() {
               </div>
 
               {/* Analyzed Text with Highlights */}
-              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border">
+              <div className="bg-white/50 dark:bg-gray-800/50 backdrop-blur-sm p-6 rounded-xl border border-border overflow-hidden">
                 <h3 className="font-semibold mb-2 flex items-center">
                   <FileText className="h-4 w-4 mr-2 text-primary" />
                   Analyzed Text
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">Highlighted portions indicate potential AI-generated content</p>
-                {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}
+                <div className="overflow-x-auto max-w-full">
+                  {renderHighlightedText(textResults.highlighted_text || textResults.html_text)}
+                </div>
               </div>
             </motion.div>
           )}

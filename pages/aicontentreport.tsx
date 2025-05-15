@@ -62,7 +62,7 @@ interface AIContentDetectionResult {
     prediction: string
     confidence: number
   }
-  metadata: Record<string, string>
+  metadata: Record<string, any>
 }
 
 /**
@@ -554,8 +554,8 @@ export default function AIContentReportPage() {
     )
   }
 
-  const renderMetadata = (metadata: Record<string, string>) => {
-    const groupedMetadata: Record<string, Record<string, string>> = {};
+  const renderMetadata = (metadata: Record<string, any>) => {
+    const groupedMetadata: Record<string, Record<string, any>> = {};
 
     // Group metadata by category
     Object.entries(metadata).forEach(([key, value]) => {
@@ -585,6 +585,8 @@ export default function AIContentReportPage() {
                         >
                           Copy Base64
                         </button>
+                      ) : typeof value === 'object' ? (
+                        JSON.stringify(value)
                       ) : (
                         value
                       )}
