@@ -15,7 +15,7 @@ import {
 } from "lucide-react"
 import { motion, AnimatePresence } from "framer-motion"
 import Link from "next/link"
-import Image from "next/image"
+
 import axios from "axios"
 import Cookies from "js-cookie"
 import { Label } from "@/components/ui/label"
@@ -283,14 +283,11 @@ const ReplyItem = ({
         
         {/* Reply content */}
         <div className="flex-1 p-4">
-          <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground mb-2">
-            <div className="h-5 w-5 rounded-full overflow-hidden mr-1">
-              <Image 
+          <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground mb-2">            <div className="h-5 w-5 rounded-full overflow-hidden mr-1">
+              <img 
                 src={reply.author.avatar || '/images/avatars/default.png'} 
                 alt={reply.author.username}
-                width={20}
-                height={20}
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
             </div>
             <span className="font-medium text-foreground">{reply.author.username}</span>
@@ -359,17 +356,14 @@ const ReplyItem = ({
               {reply.content}
             </div>
           )}
-          
-          {/* Display media if any */}
+            {/* Display media if any */}
           {reply.media && reply.media.url && !isEditing && !isConfirmingDelete && (
             <div className="mb-4">
               <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
-                <Image 
+                <img 
                   src={reply.media.url} 
                   alt="Attached media"
-                  width={400}
-                  height={300}
-                  className="object-contain w-full"
+                  className="w-full h-auto object-contain"
                 />
               </div>
             </div>
@@ -482,18 +476,15 @@ const ReplyItem = ({
           )}
         </div>
       </div>
-      
-      {/* Inline reply form */}
+        {/* Inline reply form */}
       {replyTo === reply.id && !replyToMain && (
         <div className="ml-8 mt-3 bg-card border border-border rounded-xl p-3">
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-full overflow-hidden">
-              <Image 
+              <img 
                 src={user?.avatar || "/images/avatars/default.png"}
                 alt={user?.username || "User"}
-                width={32}
-                height={32}
-                className="object-cover"
+                className="w-full h-full object-cover"
               />
             </div>
             
@@ -506,8 +497,7 @@ const ReplyItem = ({
               />
               
               {/* Media upload preview for inline reply */}
-              {inlineMediaPreview && (
-                <div className="relative rounded-lg overflow-hidden border border-border max-w-md mb-3">
+              {inlineMediaPreview && (                <div className="relative rounded-lg overflow-hidden border border-border max-w-md mb-3">
                   <Button 
                     variant="destructive" 
                     size="sm" 
@@ -516,12 +506,10 @@ const ReplyItem = ({
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                  <Image 
+                  <img 
                     src={inlineMediaPreview} 
                     alt="Media preview"
-                    width={400}
-                    height={300}
-                    className="object-contain w-full"
+                    className="w-full h-auto object-contain"
                   />
                 </div>
               )}
@@ -1680,16 +1668,13 @@ export default function ThreadPage() {
             </div>
 
             {/* Thread content */}
-            <div className="flex-1 p-4">
-              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+            <div className="flex-1 p-4">              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
                 <span className="flex items-center">
                   <div className="h-6 w-6 rounded-full overflow-hidden mr-1.5">
-                    <Image 
+                    <img 
                       src={thread?.author.avatar || '/images/avatars/default.png'} 
                       alt={thread?.author.username || 'Author'}
-                      width={24}
-                      height={24}
-                      className="object-cover"
+                      className="w-full h-full object-cover"
                     />
                   </div>
                   <span className="font-medium text-foreground">{thread?.author.username}</span>
@@ -1860,17 +1845,14 @@ export default function ThreadPage() {
                       <p key={idx}>{paragraph}</p>
                     ))}
                   </div>
-                  
-                  {/* Display thread image if any */}
+                    {/* Display thread image if any */}
                   {thread?.media && thread.media.url && (
                     <div className="mb-6">
                       <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
-                        <Image 
+                        <img 
                           src={thread.media.url} 
                           alt="Thread image"
-                          width={600}
-                          height={400}
-                          className="object-contain w-full"
+                          className="w-full h-auto object-contain"
                         />
                       </div>
                     </div>
@@ -2042,8 +2024,7 @@ export default function ThreadPage() {
                     
                     {/* Media upload preview */}
                     {mediaPreview && replyToMain && (
-                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
-                        <Button 
+                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">                        <Button 
                           variant="destructive" 
                           size="sm" 
                           className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
@@ -2051,12 +2032,10 @@ export default function ThreadPage() {
                         >
                           <X className="h-4 w-4" />
                         </Button>
-                        <Image 
+                        <img 
                           src={mediaPreview} 
                           alt="Media preview"
-                          width={400}
-                          height={300}
-                          className="object-contain w-full"
+                          className="w-full h-auto object-contain"
                         />
                       </div>
                     )}
