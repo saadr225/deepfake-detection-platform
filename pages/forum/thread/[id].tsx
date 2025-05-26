@@ -1,25 +1,38 @@
-"use client"
+"use client";
 
-import { useState, useEffect, useRef } from "react"
-import { useRouter } from "next/router"
-import Layout from "@/components/Layout"
-import { Button } from "@/components/ui/button"
-import { Textarea } from "@/components/ui/textarea"
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { useUser } from "@/contexts/UserContext"
-import { 
-  MessageSquare, ThumbsUp, Flag, Share2, ArrowLeft, Send, AlertCircle, 
-  Image as ImageIcon, X, CornerUpRight, Upload, BookmarkIcon, ArrowUp, 
-  ArrowDown, Link as LinkIcon, Sparkles
-} from "lucide-react"
-import { motion, AnimatePresence } from "framer-motion"
-import Link from "next/link"
+import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/router";
+import Layout from "@/components/Layout";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useUser } from "@/contexts/UserContext";
+import {
+  MessageSquare,
+  ThumbsUp,
+  Flag,
+  Share2,
+  ArrowLeft,
+  Send,
+  AlertCircle,
+  Image as ImageIcon,
+  X,
+  CornerUpRight,
+  Upload,
+  BookmarkIcon,
+  ArrowUp,
+  ArrowDown,
+  Link as LinkIcon,
+  Sparkles,
+} from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import Link from "next/link";
 
-import axios from "axios"
-import Cookies from "js-cookie"
-import { Label } from "@/components/ui/label"
-import { Input } from "@/components/ui/input"
+import axios from "axios";
+import Cookies from "js-cookie";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
 
 // Type definitions
 interface Author {
@@ -102,7 +115,7 @@ interface ThreadData {
 }
 
 // Constants
-const API_URL = "http://localhost:8000"
+const API_URL = "http://localhost:8000";
 
 interface ThreadDetailResponse {
   status: string;
@@ -148,31 +161,31 @@ interface Tag {
 }
 
 // Add a recursive component to render replies and their nested replies
-const ReplyItem = ({ 
-  reply, 
-  level = 0, 
-  user, 
-  handleVote, 
-  toggleReactionPicker, 
-  showReactionPicker, 
-  availableReactions, 
-  hasUserReacted, 
-  handleAddReaction, 
-  replyTo, 
-  replyToMain, 
-  handleReplyToComment, 
-  inlineReplyContent, 
-  setInlineReplyContent, 
-  cancelReplyToComment, 
-  handleSubmitReply, 
-  isSubmitting, 
+const ReplyItem = ({
+  reply,
+  level = 0,
+  user,
+  handleVote,
+  toggleReactionPicker,
+  showReactionPicker,
+  availableReactions,
+  hasUserReacted,
+  handleAddReaction,
+  replyTo,
+  replyToMain,
+  handleReplyToComment,
+  inlineReplyContent,
+  setInlineReplyContent,
+  cancelReplyToComment,
+  handleSubmitReply,
+  isSubmitting,
   errorMessage,
-  editingReplyId, 
+  editingReplyId,
   handleEditReply,
-  editReplyContent, 
+  editReplyContent,
   setEditReplyContent,
   submitEditReply,
-  cancelEditReply, 
+  cancelEditReply,
   isEditingReply,
   deleteConfirmReplyId,
   confirmDeleteReply,
@@ -183,17 +196,17 @@ const ReplyItem = ({
   inlineMediaPreview,
   inlineFileInputRef,
   handleInlineFileUpload,
-  removeInlineMedia
-}: { 
-  reply: ThreadReply; 
-  level?: number; 
+  removeInlineMedia,
+}: {
+  reply: ThreadReply;
+  level?: number;
   user: UserData | null;
-  handleVote: (type: 'thread' | 'reply', id: number, isUpvote: boolean) => void;
-  toggleReactionPicker: (type: 'thread' | 'reply', id: number) => void;
-  showReactionPicker: { type: 'thread' | 'reply'; id: number } | null;
+  handleVote: (type: "thread" | "reply", id: number, isUpvote: boolean) => void;
+  toggleReactionPicker: (type: "thread" | "reply", id: number) => void;
+  showReactionPicker: { type: "thread" | "reply"; id: number } | null;
   availableReactions: { emoji: string; name: string }[];
   hasUserReacted: (reactions: Reaction[] | undefined, emoji: string) => boolean;
-  handleAddReaction: (type: 'thread' | 'reply', id: number, emoji: string) => void;
+  handleAddReaction: (type: "thread" | "reply", id: number, emoji: string) => void;
   replyTo: number | null;
   replyToMain: boolean;
   handleReplyToComment: (replyId: number) => void;
@@ -225,104 +238,93 @@ const ReplyItem = ({
   const isEditing = editingReplyId === reply.id;
   const isConfirmingDelete = deleteConfirmReplyId === reply.id;
   const isCurrentUserAuthor = user?.username === reply.author.username;
-  
+
   return (
-    <div className={`mb-3 ${isNested ? 'pl-4 sm:pl-8' : ''} ${level > 0 ? 'relative' : ''}`}>
+    <div className={`mb-3 ${isNested ? "pl-4 sm:pl-8" : ""} ${level > 0 ? "relative" : ""}`}>
       {/* Connection Line for nested replies */}
       {level > 0 && (
-        <div 
+        <div
           className="absolute left-0 top-0 bottom-0 w-[1px] bg-border"
-          style={{ 
-            top: '0',
-            bottom: '0', 
-            left: '10px'
+          style={{
+            top: "0",
+            bottom: "0",
+            left: "10px",
           }}
         ></div>
       )}
-      
+
       {/* Horizontal connection line */}
       {level > 0 && (
-        <div 
+        <div
           className="absolute left-0 top-8 w-[10px] h-[1px] bg-border"
-          style={{ 
-            left: '10px'
+          style={{
+            left: "10px",
           }}
         ></div>
       )}
-      
+
       {/* Main reply */}
       <div className="flex gap-3 bg-card rounded-xl shadow-sm overflow-hidden">
         {/* Voting buttons */}
         <div className="flex flex-col items-center justify-start bg-muted/30 py-3 px-2">
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             className={`h-6 w-6 p-0 ${
-              reply.user_liked 
-                ? "text-primary bg-primary/10" 
-                : "text-muted-foreground hover:text-primary hover:bg-transparent"
+              reply.user_liked ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary hover:bg-transparent"
             }`}
-            onClick={() => handleVote('reply', reply.id, true)}
+            onClick={() => handleVote("reply", reply.id, true)}
           >
             <ArrowUp size={16} />
           </Button>
           <span className="text-xs font-medium my-0.5">{reply.net_count}</span>
-          <Button 
-            variant="ghost" 
+          <Button
+            variant="ghost"
             size="sm"
             className={`h-6 w-6 p-0 ${
-              reply.user_disliked 
-                ? "text-destructive bg-destructive/10" 
+              reply.user_disliked
+                ? "text-destructive bg-destructive/10"
                 : "text-muted-foreground hover:text-destructive hover:bg-transparent"
             }`}
-            onClick={() => handleVote('reply', reply.id, false)}
+            onClick={() => handleVote("reply", reply.id, false)}
           >
             <ArrowDown size={16} />
           </Button>
         </div>
-        
+
         {/* Reply content */}
         <div className="flex-1 p-4">
-          <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground mb-2">            <div className="h-5 w-5 rounded-full overflow-hidden mr-1">
-              <img 
-                src={reply.author.avatar || '/images/avatars/default.png'} 
+          <div className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground mb-2">
+            {" "}
+            <div className="h-5 w-5 rounded-full overflow-hidden mr-1">
+              <img
+                src={reply.author.avatar || "/images/avatars/default.png"}
                 alt={reply.author.username}
                 className="w-full h-full object-cover"
               />
             </div>
             <span className="font-medium text-foreground">{reply.author.username}</span>
             {reply.author.isVerified && (
-              <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">Verified</Badge>
+              <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
+                Verified
+              </Badge>
             )}
             <span className="ml-1">• {reply.timeAgo}</span>
-            {reply.updated_at && reply.updated_at !== reply.created_at && (
-              <span className="ml-1">(edited)</span>
-            )}
+            {reply.updated_at && reply.updated_at !== reply.created_at && <span className="ml-1">(edited)</span>}
           </div>
-          
+
           {isEditing ? (
             <div className="mb-3">
-              <Textarea 
+              <Textarea
                 value={editReplyContent}
                 onChange={(e) => setEditReplyContent(e.target.value)}
                 className="min-h-[100px] rounded-xl mb-3 text-sm"
               />
               <div className="flex gap-2 justify-end">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={cancelEditReply}
-                  disabled={isEditingReply}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={cancelEditReply} disabled={isEditingReply}>
                   Cancel
                 </Button>
-                <Button 
-                  type="button"
-                  size="sm"
-                  onClick={submitEditReply}
-                  disabled={!editReplyContent.trim() || isEditingReply}
-                >
+                <Button type="button" size="sm" onClick={submitEditReply} disabled={!editReplyContent.trim() || isEditingReply}>
                   {isEditingReply ? "Saving..." : "Save Changes"}
                 </Button>
               </div>
@@ -331,50 +333,32 @@ const ReplyItem = ({
             <div className="bg-destructive/10 p-3 rounded-lg mb-3">
               <p className="text-sm text-destructive mb-3">Are you sure you want to delete this reply? This action cannot be undone.</p>
               <div className="flex gap-2 justify-end">
-                <Button 
-                  type="button" 
-                  variant="outline" 
-                  size="sm"
-                  onClick={cancelDeleteReply}
-                  disabled={isDeletingReply}
-                >
+                <Button type="button" variant="outline" size="sm" onClick={cancelDeleteReply} disabled={isDeletingReply}>
                   Cancel
                 </Button>
-                <Button 
-                  type="button"
-                  variant="destructive"
-                  size="sm"
-                  onClick={() => deleteReply(reply.id)}
-                  disabled={isDeletingReply}
-                >
+                <Button type="button" variant="destructive" size="sm" onClick={() => deleteReply(reply.id)} disabled={isDeletingReply}>
                   {isDeletingReply ? "Deleting..." : "Delete"}
                 </Button>
               </div>
             </div>
           ) : (
-            <div className="prose prose-sm dark:prose-invert max-w-none mb-3">
-              {reply.content}
-            </div>
+            <div className="prose prose-sm dark:prose-invert max-w-none mb-3">{reply.content}</div>
           )}
-            {/* Display media if any */}
+          {/* Display media if any */}
           {reply.media && reply.media.url && !isEditing && !isConfirmingDelete && (
             <div className="mb-4">
               <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
-                <img 
-                  src={reply.media.url} 
-                  alt="Attached media"
-                  className="w-full h-auto object-contain"
-                />
+                <img src={reply.media.url} alt="Attached media" className="w-full h-auto object-contain" />
               </div>
             </div>
           )}
-          
+
           {!isEditing && !isConfirmingDelete && (
             <div className="flex flex-wrap items-center gap-2 mt-2">
               {user && (
                 <>
-                  <Button 
-                    variant="ghost" 
+                  <Button
+                    variant="ghost"
                     size="sm"
                     className="h-8 text-xs text-muted-foreground hover:text-foreground flex items-center"
                     onClick={() => handleReplyToComment(reply.id)}
@@ -382,30 +366,52 @@ const ReplyItem = ({
                     <CornerUpRight className="h-3 w-3 mr-1" />
                     Reply
                   </Button>
-                  
+
                   {/* Edit/Delete buttons (only visible to author) */}
                   {isCurrentUserAuthor && (
                     <>
-                      <Button 
-                        variant="ghost" 
+                      <Button
+                        variant="ghost"
                         size="sm"
                         className="h-8 text-xs text-muted-foreground hover:text-foreground flex items-center"
                         onClick={() => handleEditReply(reply.id, reply.content)}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-1"
+                        >
                           <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                           <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                         </svg>
                         Edit
                       </Button>
-                      
-                      <Button 
-                        variant="ghost" 
+
+                      <Button
+                        variant="ghost"
                         size="sm"
                         className="h-8 text-xs text-destructive hover:text-destructive/80 hover:bg-destructive/10 flex items-center"
                         onClick={() => confirmDeleteReply(reply.id)}
                       >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="12"
+                          height="12"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="mr-1"
+                        >
                           <path d="M3 6h18"></path>
                           <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
                           <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -416,32 +422,30 @@ const ReplyItem = ({
                   )}
                 </>
               )}
-              
+
               {/* Add Reaction Button for Reply */}
               <div className="relative">
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   size="sm"
                   className="h-8 text-xs text-muted-foreground hover:text-foreground flex items-center"
-                  onClick={() => toggleReactionPicker('reply', reply.id)}
+                  onClick={() => toggleReactionPicker("reply", reply.id)}
                 >
                   <ThumbsUp className="h-3 w-3 mr-1" />
                   React
                 </Button>
-                
+
                 {/* Emoji Reaction Picker */}
-                {showReactionPicker && 
-                 showReactionPicker.type === 'reply' && 
-                 showReactionPicker.id === reply.id && (
+                {showReactionPicker && showReactionPicker.type === "reply" && showReactionPicker.id === reply.id && (
                   <div className="absolute bottom-full left-0 mb-2 p-1.5 bg-card border border-border rounded-lg shadow-lg z-10 w-[350px]">
                     <div className="flex flex-wrap gap-1.5">
-                      {availableReactions.map(reaction => (
-                        <button 
+                      {availableReactions.map((reaction) => (
+                        <button
                           key={reaction.emoji}
                           className={`text-sm p-1.5 rounded-full transition-all hover:bg-accent ${
-                            hasUserReacted(reply.reactions, reaction.emoji) ? 'bg-accent/50' : ''
+                            hasUserReacted(reply.reactions, reaction.emoji) ? "bg-accent/50" : ""
                           }`}
-                          onClick={() => handleAddReaction('reply', reply.id, reaction.emoji)}
+                          onClick={() => handleAddReaction("reply", reply.id, reaction.emoji)}
                           title={reaction.name}
                         >
                           {reaction.emoji}
@@ -451,19 +455,19 @@ const ReplyItem = ({
                   </div>
                 )}
               </div>
-              
+
               {/* Display Reactions */}
               {reply.reactions && reply.reactions.length > 0 && (
                 <div className="ml-auto flex flex-wrap gap-1">
-                  {reply.reactions.map(reaction => (
+                  {reply.reactions.map((reaction) => (
                     <motion.button
                       key={reaction.emoji}
                       className={`text-xs px-1.5 py-0.5 rounded-full flex items-center gap-1 border ${
-                        hasUserReacted(reply.reactions, reaction.emoji) 
-                          ? 'bg-accent border-primary/30' 
-                          : 'bg-background border-border hover:bg-accent/50'
+                        hasUserReacted(reply.reactions, reaction.emoji)
+                          ? "bg-accent border-primary/30"
+                          : "bg-background border-border hover:bg-accent/50"
                       }`}
-                      onClick={() => handleAddReaction('reply', reply.id, reaction.emoji)}
+                      onClick={() => handleAddReaction("reply", reply.id, reaction.emoji)}
                       whileTap={{ scale: 0.95 }}
                     >
                       <span>{reaction.emoji}</span>
@@ -476,49 +480,46 @@ const ReplyItem = ({
           )}
         </div>
       </div>
-        {/* Inline reply form */}
+      {/* Inline reply form */}
       {replyTo === reply.id && !replyToMain && (
         <div className="ml-8 mt-3 bg-card border border-border rounded-xl p-3">
           <div className="flex gap-3">
             <div className="w-8 h-8 rounded-full overflow-hidden">
-              <img 
+              <img
                 src={user?.avatar || "/images/avatars/default.png"}
                 alt={user?.username || "User"}
                 className="w-full h-full object-cover"
               />
             </div>
-            
+
             <div className="flex-1">
-              <Textarea 
+              <Textarea
                 placeholder={`Replying to ${reply.author.username}...`}
                 className="min-h-[80px] rounded-xl mb-3 text-sm"
                 value={inlineReplyContent}
                 onChange={(e) => setInlineReplyContent(e.target.value)}
               />
-              
+
               {/* Media upload preview for inline reply */}
-              {inlineMediaPreview && (                <div className="relative rounded-lg overflow-hidden border border-border max-w-md mb-3">
-                  <Button 
-                    variant="destructive" 
-                    size="sm" 
+              {inlineMediaPreview && (
+                <div className="relative rounded-lg overflow-hidden border border-border max-w-md mb-3">
+                  <Button
+                    variant="destructive"
+                    size="sm"
                     className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
                     onClick={removeInlineMedia}
                   >
                     <X className="h-4 w-4" />
                   </Button>
-                  <img 
-                    src={inlineMediaPreview} 
-                    alt="Media preview"
-                    className="w-full h-auto object-contain"
-                  />
+                  <img src={inlineMediaPreview} alt="Media preview" className="w-full h-auto object-contain" />
                 </div>
               )}
-              
+
               <div className="flex justify-between items-center">
                 <div className="flex items-center gap-2">
-                  <Button 
-                    type="button" 
-                    variant="outline" 
+                  <Button
+                    type="button"
+                    variant="outline"
                     size="sm"
                     onClick={() => inlineFileInputRef.current?.click()}
                     className="flex items-center gap-1"
@@ -526,35 +527,20 @@ const ReplyItem = ({
                     <ImageIcon className="h-3 w-3 mr-1" />
                     {inlineMediaFile ? "Change" : "Attach Image"}
                   </Button>
-                  
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={cancelReplyToComment}
-                  >
+
+                  <Button type="button" variant="outline" size="sm" onClick={cancelReplyToComment}>
                     Cancel
                   </Button>
-                  
+
                   {/* Hidden file input for inline replies */}
-                  <input
-                    type="file"
-                    ref={inlineFileInputRef}
-                    className="hidden"
-                    accept="image/*"
-                    onChange={handleInlineFileUpload}
-                  />
+                  <input type="file" ref={inlineFileInputRef} className="hidden" accept="image/*" onChange={handleInlineFileUpload} />
                 </div>
-                
-                <Button 
-                  onClick={handleSubmitReply}
-                  disabled={!inlineReplyContent.trim() || isSubmitting}
-                  size="sm"
-                >
+
+                <Button onClick={handleSubmitReply} disabled={!inlineReplyContent.trim() || isSubmitting} size="sm">
                   {isSubmitting ? "Posting..." : "Reply"}
                 </Button>
               </div>
-              
+
               {errorMessage && !replyToMain && (
                 <div className="bg-destructive/10 text-destructive p-2 rounded-lg text-xs flex items-center mt-2">
                   <AlertCircle size={12} className="mr-1" />
@@ -565,14 +551,14 @@ const ReplyItem = ({
           </div>
         </div>
       )}
-      
+
       {/* Nested replies */}
       {reply.replies && reply.replies.length > 0 && (
         <div className="mt-2 space-y-2 relative">
-          {reply.replies.map(nestedReply => (
-            <ReplyItem 
-              key={nestedReply.id} 
-              reply={nestedReply} 
+          {reply.replies.map((nestedReply) => (
+            <ReplyItem
+              key={nestedReply.id}
+              reply={nestedReply}
               level={level + 1}
               user={user}
               handleVote={handleVote}
@@ -616,50 +602,50 @@ const ReplyItem = ({
 };
 
 export default function ThreadPage() {
-  const { user } = useUser()
-  const router = useRouter()
-  const { id } = router.query
-  
-  const [replyContent, setReplyContent] = useState("")
-  const [inlineReplyContent, setInlineReplyContent] = useState("")
-  const [replyTo, setReplyTo] = useState<number | null>(null)
-  const [replyToMain, setReplyToMain] = useState(true)
-  const [isSubmitting, setIsSubmitting] = useState(false)
-  const [errorMessage, setErrorMessage] = useState("")
-  const [thread, setThread] = useState<ThreadData | null>(null)
-  const [isLoading, setIsLoading] = useState(true)
-  const [mediaPreview, setMediaPreview] = useState<string | null>(null)
-  const [mediaFile, setMediaFile] = useState<File | null>(null)
-  const [sortBy, setSortBy] = useState<'best' | 'top' | 'new' | 'old'>('best')
-  
+  const { user } = useUser();
+  const router = useRouter();
+  const { id } = router.query;
+
+  const [replyContent, setReplyContent] = useState("");
+  const [inlineReplyContent, setInlineReplyContent] = useState("");
+  const [replyTo, setReplyTo] = useState<number | null>(null);
+  const [replyToMain, setReplyToMain] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [thread, setThread] = useState<ThreadData | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [sortBy, setSortBy] = useState<"best" | "top" | "new" | "old">("best");
+
   // Add state for reaction UI
-  const [showReactionPicker, setShowReactionPicker] = useState<{ type: 'thread' | 'reply'; id: number } | null>(null)
-  const [reactionAdded, setReactionAdded] = useState<number | null>(null)
-  
+  const [showReactionPicker, setShowReactionPicker] = useState<{ type: "thread" | "reply"; id: number } | null>(null);
+  const [reactionAdded, setReactionAdded] = useState<number | null>(null);
+
   // Add state for share functionality
-  const [showShareOptions, setShowShareOptions] = useState(false)
-  const [shareSuccess, setShareSuccess] = useState(false)
-  
+  const [showShareOptions, setShowShareOptions] = useState(false);
+  const [shareSuccess, setShareSuccess] = useState(false);
+
   // Add these new state variables after the existing state declarations
-  const [editingReplyId, setEditingReplyId] = useState<number | null>(null)
-  const [editReplyContent, setEditReplyContent] = useState("")
-  const [isEditingReply, setIsEditingReply] = useState(false)
-  const [deleteConfirmReplyId, setDeleteConfirmReplyId] = useState<number | null>(null)
-  const [isDeletingReply, setIsDeletingReply] = useState(false)
-  
+  const [editingReplyId, setEditingReplyId] = useState<number | null>(null);
+  const [editReplyContent, setEditReplyContent] = useState("");
+  const [isEditingReply, setIsEditingReply] = useState(false);
+  const [deleteConfirmReplyId, setDeleteConfirmReplyId] = useState<number | null>(null);
+  const [isDeletingReply, setIsDeletingReply] = useState(false);
+
   // Add these new state variables for thread editing and deletion
-  const [isEditingThread, setIsEditingThread] = useState(false)
-  const [editThreadTitle, setEditThreadTitle] = useState("")
-  const [editThreadContent, setEditThreadContent] = useState("")
-  const [editThreadTags, setEditThreadTags] = useState<number[]>([])
-  const [isSubmittingThreadEdit, setIsSubmittingThreadEdit] = useState(false)
-  const [showDeleteThreadConfirm, setShowDeleteThreadConfirm] = useState(false)
-  const [isDeletingThread, setIsDeletingThread] = useState(false)
-  
+  const [isEditingThread, setIsEditingThread] = useState(false);
+  const [editThreadTitle, setEditThreadTitle] = useState("");
+  const [editThreadContent, setEditThreadContent] = useState("");
+  const [editThreadTags, setEditThreadTags] = useState<number[]>([]);
+  const [isSubmittingThreadEdit, setIsSubmittingThreadEdit] = useState(false);
+  const [showDeleteThreadConfirm, setShowDeleteThreadConfirm] = useState(false);
+  const [isDeletingThread, setIsDeletingThread] = useState(false);
+
   // Add state for available tags
-  const [availableTags, setAvailableTags] = useState<Tag[]>([])
-  const [isLoadingTags, setIsLoadingTags] = useState(false)
-  
+  const [availableTags, setAvailableTags] = useState<Tag[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
+
   // Available emoji reactions
   const availableReactions = [
     { emoji: "👍", name: "Thumbs Up" },
@@ -670,39 +656,36 @@ export default function ThreadPage() {
     { emoji: "😡", name: "Angry" },
     { emoji: "🔥", name: "Fire" },
     { emoji: "👏", name: "Clap" },
-    { emoji: "🧠", name: "Brain" }
-  ]
-  
-  const fileInputRef = useRef<HTMLInputElement>(null)
-  
+    { emoji: "🧠", name: "Brain" },
+  ];
+
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
   // Add state for inline reply media
-  const [inlineMediaFile, setInlineMediaFile] = useState<File | null>(null)
-  const [inlineMediaPreview, setInlineMediaPreview] = useState<string | null>(null)
-  
+  const [inlineMediaFile, setInlineMediaFile] = useState<File | null>(null);
+  const [inlineMediaPreview, setInlineMediaPreview] = useState<string | null>(null);
+
   // Add ref for inline file input
-  const inlineFileInputRef = useRef<HTMLInputElement>(null)
-  
+  const inlineFileInputRef = useRef<HTMLInputElement>(null);
+
   // Fetch thread data
   useEffect(() => {
     const fetchThread = async () => {
       if (!id) return;
-      
+
       setIsLoading(true);
       try {
         // Get access token for authorization
-        const accessToken = Cookies.get('accessToken');
-        
+        const accessToken = Cookies.get("accessToken");
+
         // Prepare headers with authorization if token exists
         const headers: Record<string, string> = {};
         if (accessToken) {
-          headers['Authorization'] = `Bearer ${accessToken}`;
+          headers["Authorization"] = `Bearer ${accessToken}`;
         }
-        
-        const response = await axios.get<ThreadDetailResponse>(
-          `${API_URL}/api/forum/threads/${id}/`,
-          { headers }
-        );
-        
+
+        const response = await axios.get<ThreadDetailResponse>(`${API_URL}/api/forum/threads/${id}/`, { headers });
+
         if (response.data && response.data.data) {
           setThread(response.data.data);
         } else {
@@ -716,7 +699,7 @@ export default function ThreadPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchThread();
   }, [id]);
 
@@ -726,7 +709,7 @@ export default function ThreadPage() {
       fetchTags();
     }
   }, [isEditingThread]);
-  
+
   // Function to fetch tags
   const fetchTags = async () => {
     setIsLoadingTags(true);
@@ -746,71 +729,64 @@ export default function ThreadPage() {
 
   // Function to handle reply submission
   const handleSubmitReply = async (e: React.FormEvent) => {
-    e.preventDefault()
-    
+    e.preventDefault();
+
     // Determine which content to use based on whether it's a main reply or inline reply
-    const content = replyToMain ? replyContent : inlineReplyContent
-    
+    const content = replyToMain ? replyContent : inlineReplyContent;
+
     if (!content.trim()) {
-      setErrorMessage("Please enter your reply.")
-      return
+      setErrorMessage("Please enter your reply.");
+      return;
     }
-    
-    setIsSubmitting(true)
-    setErrorMessage("")
-    
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
     try {
-      const accessToken = Cookies.get('accessToken')
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        setErrorMessage("Authentication required. Please log in.")
-        router.push('/login')
-        setIsSubmitting(false)
-        return
+        setErrorMessage("Authentication required. Please log in.");
+        router.push("/login");
+        setIsSubmitting(false);
+        return;
       }
-      
+
       // Create form data for the request
-      const formData = new FormData()
-      formData.append('content', content)
-      
+      const formData = new FormData();
+      formData.append("content", content);
+
       // Add parent reply ID if this is a nested reply
       if (!replyToMain && replyTo) {
-        formData.append('parent_reply_id', String(replyTo))
+        formData.append("parent_reply_id", String(replyTo));
       }
-      
+
       // Add media file if available - choose the appropriate media file based on reply type
       if (replyToMain && mediaFile) {
-        formData.append('media_file', mediaFile)
+        formData.append("media_file", mediaFile);
       } else if (!replyToMain && inlineMediaFile) {
-        formData.append('media_file', inlineMediaFile)
+        formData.append("media_file", inlineMediaFile);
       }
-      
+
       // Make API request
-      const response = await axios.post(
-        `${API_URL}/api/forum/threads/${id}/reply/`,
-        formData,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'multipart/form-data'
-          }
-        }
-      )
-      
+      const response = await axios.post(`${API_URL}/api/forum/threads/${id}/reply/`, formData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "multipart/form-data",
+        },
+      });
+
       if (response.data.success) {
         // Fetch the updated thread data to get the new reply structure
-        const threadResponse = await axios.get(
-          `${API_URL}/api/forum/threads/${id}/`,
-          {
-            headers: {
-              'Authorization': `Bearer ${accessToken}`
-            }
-          }
-        )
-        
+        const threadResponse = await axios.get(`${API_URL}/api/forum/threads/${id}/`, {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+          },
+        });
+
         if (threadResponse.data && threadResponse.data.data) {
           // Update thread with new data including the new reply
-          setThread(threadResponse.data.data)
+          setThread(threadResponse.data.data);
         } else {
           // If we can't fetch the whole thread, at least show the new reply
           // This is a fallback in case the thread fetch fails
@@ -821,7 +797,7 @@ export default function ThreadPage() {
               username: user?.username || "current_user",
               avatar: user?.avatar || "/images/avatars/default.png",
               joinDate: new Date().toISOString(),
-              isVerified: false
+              isVerified: false,
             },
             created_at: new Date().toISOString(),
             updated_at: new Date().toISOString(),
@@ -834,288 +810,268 @@ export default function ThreadPage() {
             reactions: [],
             user_liked: false,
             user_disliked: false,
-            replies: []
-          }
-          
+            replies: [],
+          };
+
           if (thread) {
             if (replyToMain) {
               // Adding reply to main thread
               setThread({
                 ...thread,
                 replies: [...thread.replies, newReply],
-                reply_count: thread.reply_count + 1
-              })
+                reply_count: thread.reply_count + 1,
+              });
             } else if (replyTo) {
               // Adding nested reply
               const updateReplies = (replies: ThreadReply[]): ThreadReply[] => {
-                return replies.map(reply => {
+                return replies.map((reply) => {
                   if (reply.id === replyTo) {
                     return {
                       ...reply,
-                      replies: [...(reply.replies || []), newReply]
-                    }
+                      replies: [...(reply.replies || []), newReply],
+                    };
                   }
-                  
+
                   if (reply.replies && reply.replies.length > 0) {
                     return {
                       ...reply,
-                      replies: updateReplies(reply.replies)
-                    }
+                      replies: updateReplies(reply.replies),
+                    };
                   }
-                  
-                  return reply
-                })
-              }
-              
+
+                  return reply;
+                });
+              };
+
               setThread({
                 ...thread,
                 replies: updateReplies(thread.replies),
-                reply_count: thread.reply_count + 1
-              })
+                reply_count: thread.reply_count + 1,
+              });
             }
           }
         }
-      
+
         // Reset form
-        setReplyContent("")
-        setInlineReplyContent("")
-        setReplyTo(null)
-        setReplyToMain(true)
-        setMediaPreview(null)
-        setMediaFile(null)
-        setInlineMediaPreview(null)
-        setInlineMediaFile(null)
-        
+        setReplyContent("");
+        setInlineReplyContent("");
+        setReplyTo(null);
+        setReplyToMain(true);
+        setMediaPreview(null);
+        setMediaFile(null);
+        setInlineMediaPreview(null);
+        setInlineMediaFile(null);
+
         // Scroll to the new reply if needed
         // This could be implemented with useRef and scrollIntoView
       } else {
-        setErrorMessage(response.data.message || "Failed to post reply")
+        setErrorMessage(response.data.message || "Failed to post reply");
       }
     } catch (error: any) {
-      console.error("Error posting reply:", error)
-      setErrorMessage(error.response?.data?.message || "An error occurred while posting your reply. Please try again.")
+      console.error("Error posting reply:", error);
+      setErrorMessage(error.response?.data?.message || "An error occurred while posting your reply. Please try again.");
     } finally {
-      setIsSubmitting(false)
+      setIsSubmitting(false);
     }
-  }
-  
+  };
+
   // Function to handle file upload
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     // Check file type and size
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
     if (!validTypes.includes(file.type)) {
-      setErrorMessage("Please upload only image files (JPEG, PNG, GIF, WEBP).")
-      return
+      setErrorMessage("Please upload only image files (JPEG, PNG, GIF, WEBP).");
+      return;
     }
-    
+
     if (file.size > maxSize) {
-      setErrorMessage("File size must be less than 5MB.")
-      return
+      setErrorMessage("File size must be less than 5MB.");
+      return;
     }
-    
-    setMediaFile(file)
-    
+
+    setMediaFile(file);
+
     // Create preview
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onloadend = () => {
-      setMediaPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-    
-    setErrorMessage("")
-  }
-  
+      setMediaPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    setErrorMessage("");
+  };
+
   // Function to remove uploaded media
   const removeMedia = () => {
-    setMediaPreview(null)
-    setMediaFile(null)
+    setMediaPreview(null);
+    setMediaFile(null);
     if (fileInputRef.current) {
-      fileInputRef.current.value = ""
+      fileInputRef.current.value = "";
     }
-  }
-  
+  };
+
   // Function to handle reply to specific comment
   const handleReplyToComment = (replyId: number) => {
-    setReplyTo(replyId)
-    setReplyToMain(false)
-    
+    setReplyTo(replyId);
+    setReplyToMain(false);
+
     // Don't scroll to bottom form - we'll use the inline form instead
-  }
-  
+  };
+
   // Function to cancel replying to specific comment
   const cancelReplyToComment = () => {
-    setReplyTo(null)
-    setReplyToMain(true)
-    setInlineReplyContent("")
-    setInlineMediaFile(null)
-    setInlineMediaPreview(null)
-  }
-  
+    setReplyTo(null);
+    setReplyToMain(true);
+    setInlineReplyContent("");
+    setInlineMediaFile(null);
+    setInlineMediaPreview(null);
+  };
+
   // Function to handle vote
-  const handleVote = async (type: 'thread' | 'reply', id: number, isUpvote: boolean) => {
+  const handleVote = async (type: "thread" | "reply", id: number, isUpvote: boolean) => {
     try {
-      const accessToken = Cookies.get('accessToken');
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
 
       const endpoint = isUpvote ? `${API_URL}/api/forum/like/` : `${API_URL}/api/forum/dislike/`;
-      
-      const payload = type === 'thread' 
-        ? { thread_id: id }
-        : { reply_id: id };
-      
-      const response = await axios.post<VoteResponse>(
-        endpoint,
-        payload,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
+
+      const payload = type === "thread" ? { thread_id: id } : { reply_id: id };
+
+      const response = await axios.post<VoteResponse>(endpoint, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
 
       if (response.data.success) {
-        if (type === 'thread' && thread) {
+        if (type === "thread" && thread) {
           // Update thread votes in UI
           setThread({
             ...thread,
             net_count: response.data.net_count,
-            user_liked: isUpvote && 
-              (response.data.action === "added" || response.data.action === "changed"),
-            user_disliked: !isUpvote && 
-              (response.data.action === "added" || response.data.action === "changed")
+            user_liked: isUpvote && (response.data.action === "added" || response.data.action === "changed"),
+            user_disliked: !isUpvote && (response.data.action === "added" || response.data.action === "changed"),
           });
         } else if (thread) {
           // Update reply votes in UI
           const updateRepliesVotes = (replies: ThreadReply[]): ThreadReply[] => {
-            return replies.map(reply => {
+            return replies.map((reply) => {
               if (reply.id === id) {
                 return {
                   ...reply,
                   net_count: response.data.net_count,
-                  user_liked: isUpvote && 
-                    (response.data.action === "added" || response.data.action === "changed"),
-                  user_disliked: !isUpvote && 
-                    (response.data.action === "added" || response.data.action === "changed")
+                  user_liked: isUpvote && (response.data.action === "added" || response.data.action === "changed"),
+                  user_disliked: !isUpvote && (response.data.action === "added" || response.data.action === "changed"),
                 };
               }
-              
+
               if (reply.replies && reply.replies.length > 0) {
                 return {
                   ...reply,
-                  replies: updateRepliesVotes(reply.replies)
+                  replies: updateRepliesVotes(reply.replies),
                 };
               }
-              
+
               return reply;
             });
           };
-          
+
           if (thread !== null) {
             setThread({
               ...thread,
-              replies: updateRepliesVotes(thread.replies)
+              replies: updateRepliesVotes(thread.replies),
             });
           }
         }
       }
     } catch (error) {
-      console.error(`Error ${isUpvote ? 'liking' : 'disliking'} ${type}:`, error);
+      console.error(`Error ${isUpvote ? "liking" : "disliking"} ${type}:`, error);
     }
-  }
-  
+  };
+
   // Function to toggle the reaction picker
-  const toggleReactionPicker = (type: 'thread' | 'reply', id: number) => {
+  const toggleReactionPicker = (type: "thread" | "reply", id: number) => {
     if (showReactionPicker && showReactionPicker.type === type && showReactionPicker.id === id) {
-      setShowReactionPicker(null)
+      setShowReactionPicker(null);
     } else {
-      setShowReactionPicker({ type, id })
+      setShowReactionPicker({ type, id });
     }
-  }
-  
+  };
+
   // Function to handle adding a reaction
-  const handleAddReaction = async (type: 'thread' | 'reply', id: number, emoji: string) => {
+  const handleAddReaction = async (type: "thread" | "reply", id: number, emoji: string) => {
     if (!user) {
       // Prompt login if user is not logged in
-      router.push('/login');
+      router.push("/login");
       return;
     }
-    
+
     try {
-      const accessToken = Cookies.get('accessToken');
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        router.push('/login');
+        router.push("/login");
         return;
       }
-      
+
       // Prepare request data
-      const payload = type === 'thread' 
-        ? { reaction_type: emoji, thread_id: id }
-        : { reaction_type: emoji, reply_id: id };
-      
+      const payload = type === "thread" ? { reaction_type: emoji, thread_id: id } : { reaction_type: emoji, reply_id: id };
+
       // Make the API request
-      const response = await axios.post(
-        `${API_URL}/api/forum/reaction/`,
-        payload,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      );
-      
+      const response = await axios.post(`${API_URL}/api/forum/reaction/`, payload, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
       if (response.data.success) {
         // Hide the reaction picker
         setShowReactionPicker(null);
-        
+
         // Update the UI
-        if (type === 'thread' && thread) {
+        if (type === "thread" && thread) {
           // Fetch updated thread reactions
-          const reactionsResponse = await axios.get(
-            `${API_URL}/api/forum/threads/${id}/reactions/`
-          );
-          
+          const reactionsResponse = await axios.get(`${API_URL}/api/forum/threads/${id}/reactions/`);
+
           if (reactionsResponse.data) {
             const updatedThread = { ...thread };
             updatedThread.reactions = reactionsResponse.data.reaction_counts;
             setThread(updatedThread);
-            
+
             // Visual feedback
             setReactionAdded(Date.now());
           }
         } else if (thread) {
           // Fetch updated reply reactions
-          const reactionsResponse = await axios.get(
-            `${API_URL}/api/forum/replies/${id}/reactions/`
-          );
-          
+          const reactionsResponse = await axios.get(`${API_URL}/api/forum/replies/${id}/reactions/`);
+
           if (reactionsResponse.data) {
             // Deep clone of thread to ensure we don't mutate state directly
             const updatedThread = JSON.parse(JSON.stringify(thread)) as ThreadData;
-            
+
             // Recursive function to find and update the reply reactions
             const updateReplyReactions = (replies: ThreadReply[]): boolean => {
               for (let i = 0; i < replies.length; i++) {
                 if (replies[i].id === id) {
                   // Update the reply with the new reactions
                   replies[i].reactions = reactionsResponse.data.reaction_counts;
-                  
+
                   // Visual feedback
                   setReactionAdded(Date.now());
                   return true;
                 }
-                
+
                 const nestedReplies = replies[i].replies;
                 if (nestedReplies && nestedReplies.length > 0) {
                   if (updateReplyReactions(nestedReplies)) {
@@ -1125,453 +1081,442 @@ export default function ThreadPage() {
               }
               return false;
             };
-            
+
             if (updateReplyReactions(updatedThread.replies)) {
               setThread(updatedThread);
             }
-            }
           }
-        } else {
+        }
+      } else {
         console.error("Failed to add reaction:", response.data.message);
       }
     } catch (error) {
       console.error("Error adding reaction:", error);
     }
-  }
-  
+  };
+
   // Function to check if current user has reacted with a specific emoji
   const hasUserReacted = (reactions: Reaction[] | undefined, emoji: string): boolean => {
     if (!user || !reactions) return false;
-    
-    const username = user.username || 'anonymous';
-    const reaction = reactions.find(r => r.emoji === emoji);
-    
+
+    const username = user.username || "anonymous";
+    const reaction = reactions.find((r) => r.emoji === emoji);
+
     return reaction ? reaction.users.includes(username) : false;
-  }
-  
+  };
+
   // Function to handle editing a reply
   const handleEditReply = async (replyId: number, content: string) => {
     // If we're already editing a different reply, cancel that edit first
     if (editingReplyId !== null && editingReplyId !== replyId) {
-      cancelEditReply()
+      cancelEditReply();
     }
-    
+
     // Set up the new editing state
-    setEditingReplyId(replyId)
-    setEditReplyContent(content)
-    setIsEditingReply(false) // Make sure we start with isEditingReply set to false
-    setErrorMessage("") // Clear any previous error messages
-  }
-  
+    setEditingReplyId(replyId);
+    setEditReplyContent(content);
+    setIsEditingReply(false); // Make sure we start with isEditingReply set to false
+    setErrorMessage(""); // Clear any previous error messages
+  };
+
   // Function to cancel editing a reply
   const cancelEditReply = () => {
-    setEditingReplyId(null)
-    setEditReplyContent("")
-    setIsEditingReply(false)
-    setErrorMessage("") // Clear any error messages when canceling edit
-  }
-  
+    setEditingReplyId(null);
+    setEditReplyContent("");
+    setIsEditingReply(false);
+    setErrorMessage(""); // Clear any error messages when canceling edit
+  };
+
   // Function to submit an edited reply
   const submitEditReply = async () => {
-    if (!editingReplyId || !editReplyContent.trim()) return
-    
-    console.log("Starting edit submission, setting isEditingReply to true")
-    setIsEditingReply(true)
-    setErrorMessage("") // Clear any previous error messages
-    
+    if (!editingReplyId || !editReplyContent.trim()) return;
+
+    console.log("Starting edit submission, setting isEditingReply to true");
+    setIsEditingReply(true);
+    setErrorMessage(""); // Clear any previous error messages
+
     try {
-      const accessToken = Cookies.get('accessToken')
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        setErrorMessage("Authentication required. Please log in.")
-        router.push('/login')
-        setIsEditingReply(false)
-        return
+        setErrorMessage("Authentication required. Please log in.");
+        router.push("/login");
+        setIsEditingReply(false);
+        return;
       }
-      
+
       // Make API request to edit the reply
       const response = await axios.put(
         `${API_URL}/api/forum/replies/${editingReplyId}/edit/`,
         { content: editReplyContent },
         {
           headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      
-      console.log("Response received:", response.data)
-      
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        },
+      );
+
+      console.log("Response received:", response.data);
+
       if (response.data.success) {
         // Update the reply in the UI
         if (thread) {
           const updateReplyContent = (replies: ThreadReply[]): ThreadReply[] => {
-            return replies.map(reply => {
+            return replies.map((reply) => {
               if (reply.id === editingReplyId) {
                 return {
                   ...reply,
                   content: editReplyContent,
-                  updated_at: new Date().toISOString() // Update the timestamp
-                }
+                  updated_at: new Date().toISOString(), // Update the timestamp
+                };
               }
-              
+
               if (reply.replies && reply.replies.length > 0) {
                 return {
                   ...reply,
-                  replies: updateReplyContent(reply.replies)
-                }
+                  replies: updateReplyContent(reply.replies),
+                };
               }
-              
-              return reply
-            })
-          }
-          
+
+              return reply;
+            });
+          };
+
           setThread({
             ...thread,
-            replies: updateReplyContent(thread.replies)
-          })
+            replies: updateReplyContent(thread.replies),
+          });
         }
-        
+
         // Reset edit state
-        console.log("Edit successful, resetting state")
-        cancelEditReply()
+        console.log("Edit successful, resetting state");
+        cancelEditReply();
       } else {
-        console.log("Edit failed:", response.data.message)
-        setErrorMessage(response.data.message || "Failed to update reply")
+        console.log("Edit failed:", response.data.message);
+        setErrorMessage(response.data.message || "Failed to update reply");
       }
     } catch (error: any) {
-      console.error("Error updating reply:", error)
-      setErrorMessage(error.response?.data?.message || "An error occurred while updating your reply.")
+      console.error("Error updating reply:", error);
+      setErrorMessage(error.response?.data?.message || "An error occurred while updating your reply.");
     } finally {
       // Ensure the editing state is set to false regardless of success or failure
-      console.log("Setting isEditingReply to false in finally block")
-      setIsEditingReply(false)
+      console.log("Setting isEditingReply to false in finally block");
+      setIsEditingReply(false);
     }
-  }
-  
+  };
+
   // Function to confirm delete a reply
   const confirmDeleteReply = (replyId: number) => {
-    setDeleteConfirmReplyId(replyId)
-  }
-  
+    setDeleteConfirmReplyId(replyId);
+  };
+
   // Function to cancel delete a reply
   const cancelDeleteReply = () => {
-    setDeleteConfirmReplyId(null)
-  }
-  
+    setDeleteConfirmReplyId(null);
+  };
+
   // Function to delete a reply
   const deleteReply = async (replyId: number) => {
-    setIsDeletingReply(true)
-    
+    setIsDeletingReply(true);
+
     try {
-      const accessToken = Cookies.get('accessToken')
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        setErrorMessage("Authentication required. Please log in.")
-        router.push('/login')
-        setIsDeletingReply(false)
-        return
+        setErrorMessage("Authentication required. Please log in.");
+        router.push("/login");
+        setIsDeletingReply(false);
+        return;
       }
-      
+
       // Make API request to delete the reply
-      const response = await axios.delete(
-        `${API_URL}/api/forum/replies/${replyId}/delete/`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
-      )
-      
+      const response = await axios.delete(`${API_URL}/api/forum/replies/${replyId}/delete/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
       if (response.data.success) {
         // Update the UI by removing the reply
         if (thread) {
           // Function to remove the reply from the thread
           const filterDeletedReply = (replies: ThreadReply[]): ThreadReply[] => {
             // First, filter out the top-level reply if it matches
-            const filteredReplies = replies.filter(reply => reply.id !== replyId)
-            
+            const filteredReplies = replies.filter((reply) => reply.id !== replyId);
+
             // Then, check for nested replies
-            return filteredReplies.map(reply => {
+            return filteredReplies.map((reply) => {
               if (reply.replies && reply.replies.length > 0) {
                 return {
                   ...reply,
-                  replies: filterDeletedReply(reply.replies)
-                }
+                  replies: filterDeletedReply(reply.replies),
+                };
               }
-              return reply
-            })
-          }
-          
+              return reply;
+            });
+          };
+
           setThread({
             ...thread,
             replies: filterDeletedReply(thread.replies),
-            reply_count: Math.max(0, thread.reply_count - 1) // Decrement reply count
-          })
+            reply_count: Math.max(0, thread.reply_count - 1), // Decrement reply count
+          });
         }
-        
+
         // Reset delete confirmation
-        cancelDeleteReply()
+        cancelDeleteReply();
       } else {
-        setErrorMessage(response.data.message || "Failed to delete reply")
+        setErrorMessage(response.data.message || "Failed to delete reply");
       }
     } catch (error: any) {
-      console.error("Error deleting reply:", error)
-      setErrorMessage(error.response?.data?.message || "An error occurred while deleting the reply.")
+      console.error("Error deleting reply:", error);
+      setErrorMessage(error.response?.data?.message || "An error occurred while deleting the reply.");
     } finally {
-      setIsDeletingReply(false)
+      setIsDeletingReply(false);
     }
-  }
-  
+  };
+
   // Function to start editing a thread
   const handleEditThread = () => {
-    if (!thread) return
-    
-    setEditThreadTitle(thread.title)
-    setEditThreadContent(thread.content)
+    if (!thread) return;
+
+    setEditThreadTitle(thread.title);
+    setEditThreadContent(thread.content);
     // Set initial tag IDs from thread's tags if available
     if (thread.tagIds && Array.isArray(thread.tagIds)) {
-      setEditThreadTags(thread.tagIds)
+      setEditThreadTags(thread.tagIds);
     } else {
-      setEditThreadTags([])
+      setEditThreadTags([]);
     }
-    setIsEditingThread(true)
-  }
-  
+    setIsEditingThread(true);
+  };
+
   // Function to cancel thread editing
   const cancelEditThread = () => {
-    setIsEditingThread(false)
-    setEditThreadTitle("")
-    setEditThreadContent("")
-    setEditThreadTags([])
-    setErrorMessage("")
-  }
-  
+    setIsEditingThread(false);
+    setEditThreadTitle("");
+    setEditThreadContent("");
+    setEditThreadTags([]);
+    setErrorMessage("");
+  };
+
   // Function to handle tag selection when editing thread
   const handleTagSelection = (tagId: number) => {
-    setEditThreadTags(prev => 
-      prev.includes(tagId) 
-        ? prev.filter(id => id !== tagId) 
-        : [...prev, tagId]
-    )
-  }
-  
+    setEditThreadTags((prev) => (prev.includes(tagId) ? prev.filter((id) => id !== tagId) : [...prev, tagId]));
+  };
+
   // Function to submit thread edit
   const submitThreadEdit = async () => {
     if (!thread || !editThreadTitle.trim() || !editThreadContent.trim()) {
-      setErrorMessage("Title and content are required.")
-      return
+      setErrorMessage("Title and content are required.");
+      return;
     }
-    
-    setIsSubmittingThreadEdit(true)
-    setErrorMessage("")
-    
+
+    setIsSubmittingThreadEdit(true);
+    setErrorMessage("");
+
     try {
-      const accessToken = Cookies.get('accessToken')
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        setErrorMessage("Authentication required. Please log in.")
-        router.push('/login')
-        setIsSubmittingThreadEdit(false)
-        return
+        setErrorMessage("Authentication required. Please log in.");
+        router.push("/login");
+        setIsSubmittingThreadEdit(false);
+        return;
       }
-      
+
       // Prepare request data
       const threadData = {
         title: editThreadTitle.trim(),
         content: editThreadContent.trim(),
-        tags: editThreadTags
-      }
-      
+        tags: editThreadTags,
+      };
+
       // Make API request
-      const response = await axios.put(
-        `${API_URL}/api/forum/threads/${id}/edit/`,
-        threadData,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`,
-            'Content-Type': 'application/json'
-          }
-        }
-      )
-      
-      console.log("Thread edit response:", response.data)
-      
+      const response = await axios.put(`${API_URL}/api/forum/threads/${id}/edit/`, threadData, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+          "Content-Type": "application/json",
+        },
+      });
+
+      console.log("Thread edit response:", response.data);
+
       if (response.data.success) {
         // Update the thread data in state
         if (thread) {
           // Get tag names from availableTags
-          const updatedTags = editThreadTags.map(tagId => {
-            const tag = availableTags.find(t => t.id === tagId);
+          const updatedTags = editThreadTags.map((tagId) => {
+            const tag = availableTags.find((t) => t.id === tagId);
             return tag ? tag.name : `Tag ${tagId}`;
           });
-          
+
           setThread({
             ...thread,
             title: editThreadTitle,
             content: editThreadContent,
             tags: updatedTags,
             tagIds: editThreadTags,
-            updated_at: new Date().toISOString() // Update the timestamp
-          })
+            updated_at: new Date().toISOString(), // Update the timestamp
+          });
         }
-        
+
         // Exit edit mode
-        setIsEditingThread(false)
-        setEditThreadTitle("")
-        setEditThreadContent("")
-        setEditThreadTags([])
+        setIsEditingThread(false);
+        setEditThreadTitle("");
+        setEditThreadContent("");
+        setEditThreadTags([]);
       } else {
-        setErrorMessage(response.data.message || "Failed to update thread.")
+        setErrorMessage(response.data.message || "Failed to update thread.");
       }
     } catch (error: any) {
-      console.error("Error updating thread:", error)
-      setErrorMessage(error.response?.data?.message || "An error occurred while updating the thread.")
+      console.error("Error updating thread:", error);
+      setErrorMessage(error.response?.data?.message || "An error occurred while updating the thread.");
     } finally {
-      setIsSubmittingThreadEdit(false)
+      setIsSubmittingThreadEdit(false);
     }
-  }
-  
+  };
+
   // Function to confirm thread deletion
   const confirmDeleteThread = () => {
-    setShowDeleteThreadConfirm(true)
-  }
-  
+    setShowDeleteThreadConfirm(true);
+  };
+
   // Function to cancel thread deletion
   const cancelDeleteThread = () => {
-    setShowDeleteThreadConfirm(false)
-  }
-  
+    setShowDeleteThreadConfirm(false);
+  };
+
   // Function to delete a thread
   const deleteThread = async () => {
-    if (!thread) return
-    
-    setIsDeletingThread(true)
-    setErrorMessage("")
-    
+    if (!thread) return;
+
+    setIsDeletingThread(true);
+    setErrorMessage("");
+
     try {
-      const accessToken = Cookies.get('accessToken')
-      
+      const accessToken = Cookies.get("accessToken");
+
       if (!accessToken) {
-        setErrorMessage("Authentication required. Please log in.")
-        router.push('/login')
-        setIsDeletingThread(false)
-        return
+        setErrorMessage("Authentication required. Please log in.");
+        router.push("/login");
+        setIsDeletingThread(false);
+        return;
       }
-      
+
       // Make API request
-      const response = await axios.delete(
-        `${API_URL}/api/forum/threads/${id}/delete/`,
-        {
-          headers: {
-            'Authorization': `Bearer ${accessToken}`
-          }
-        }
-      )
-      
-      console.log("Thread delete response:", response.data)
-      
+      const response = await axios.delete(`${API_URL}/api/forum/threads/${id}/delete/`, {
+        headers: {
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+
+      console.log("Thread delete response:", response.data);
+
       if (response.data.success) {
         // Redirect to forum home after successful deletion
-        router.push('/forum')
+        router.push("/forum");
       } else {
-        setErrorMessage(response.data.message || "Failed to delete thread.")
-        setShowDeleteThreadConfirm(false)
+        setErrorMessage(response.data.message || "Failed to delete thread.");
+        setShowDeleteThreadConfirm(false);
       }
     } catch (error: any) {
-      console.error("Error deleting thread:", error)
-      setErrorMessage(error.response?.data?.message || "An error occurred while deleting the thread.")
-      setShowDeleteThreadConfirm(false)
+      console.error("Error deleting thread:", error);
+      setErrorMessage(error.response?.data?.message || "An error occurred while deleting the thread.");
+      setShowDeleteThreadConfirm(false);
     } finally {
-      setIsDeletingThread(false)
+      setIsDeletingThread(false);
     }
-  }
-  
+  };
+
   // Add function to handle copying thread link to clipboard
   const copyLinkToClipboard = () => {
     const url = window.location.href;
-    navigator.clipboard.writeText(url).then(() => {
-      setShareSuccess(true);
-      setTimeout(() => {
-        setShareSuccess(false);
-        setShowShareOptions(false);
-      }, 2000);
-    }).catch(err => {
-      console.error("Could not copy link: ", err);
-    });
-  }
+    navigator.clipboard
+      .writeText(url)
+      .then(() => {
+        setShareSuccess(true);
+        setTimeout(() => {
+          setShareSuccess(false);
+          setShowShareOptions(false);
+        }, 2000);
+      })
+      .catch((err) => {
+        console.error("Could not copy link: ", err);
+      });
+  };
 
   // Add function to share on social media
   const shareOnSocialMedia = (platform: string) => {
     const url = encodeURIComponent(window.location.href);
     const title = encodeURIComponent(thread?.title || "Check out this thread!");
-    
-    let shareUrl = '';
-    
-    switch(platform) {
-      case 'twitter':
+
+    let shareUrl = "";
+
+    switch (platform) {
+      case "twitter":
         shareUrl = `https://twitter.com/intent/tweet?url=${url}&text=${title}`;
         break;
-      case 'facebook':
+      case "facebook":
         shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
         break;
-      case 'linkedin':
+      case "linkedin":
         shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
         break;
-      case 'whatsapp':
+      case "whatsapp":
         shareUrl = `https://api.whatsapp.com/send?text=${title}%20${url}`;
         break;
       default:
         break;
     }
-    
+
     if (shareUrl) {
-      window.open(shareUrl, '_blank', 'width=600,height=400');
+      window.open(shareUrl, "_blank", "width=600,height=400");
       setShowShareOptions(false);
     }
-  }
-  
+  };
+
   // Function to handle file upload for inline replies
   const handleInlineFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    
+    const file = e.target.files?.[0];
+    if (!file) return;
+
     // Check file type and size
-    const validTypes = ['image/jpeg', 'image/png', 'image/gif', 'image/webp']
-    const maxSize = 5 * 1024 * 1024 // 5MB
-    
+    const validTypes = ["image/jpeg", "image/png", "image/gif", "image/webp"];
+    const maxSize = 5 * 1024 * 1024; // 5MB
+
     if (!validTypes.includes(file.type)) {
-      setErrorMessage("Please upload only image files (JPEG, PNG, GIF, WEBP).")
-      return
+      setErrorMessage("Please upload only image files (JPEG, PNG, GIF, WEBP).");
+      return;
     }
-    
+
     if (file.size > maxSize) {
-      setErrorMessage("File size must be less than 5MB.")
-      return
+      setErrorMessage("File size must be less than 5MB.");
+      return;
     }
-    
-    setInlineMediaFile(file)
-    
+
+    setInlineMediaFile(file);
+
     // Create preview
-    const reader = new FileReader()
+    const reader = new FileReader();
     reader.onloadend = () => {
-      setInlineMediaPreview(reader.result as string)
-    }
-    reader.readAsDataURL(file)
-    
-    setErrorMessage("")
-  }
-  
+      setInlineMediaPreview(reader.result as string);
+    };
+    reader.readAsDataURL(file);
+
+    setErrorMessage("");
+  };
+
   // Function to remove uploaded inline media
   const removeInlineMedia = () => {
-    setInlineMediaPreview(null)
-    setInlineMediaFile(null)
+    setInlineMediaPreview(null);
+    setInlineMediaFile(null);
     if (inlineFileInputRef.current) {
-      inlineFileInputRef.current.value = ""
+      inlineFileInputRef.current.value = "";
     }
-  }
-  
+  };
+
   // Loading state
   if (isLoading) {
     return (
@@ -1599,19 +1544,19 @@ export default function ThreadPage() {
       </Layout>
     );
   }
-  
+
   // Find the reply that the user is responding to
-  const currentReplyTo = replyTo ? thread.replies.find(r => r.id === replyTo) : null;
+  const currentReplyTo = replyTo ? thread.replies.find((r) => r.id === replyTo) : null;
 
   // Sort replies based on selected sort option
   const sortedReplies = [...thread.replies].sort((a, b) => {
-    if (sortBy === 'best') {
+    if (sortBy === "best") {
       // Sort by net vote count (likes - dislikes)
       return b.net_count - a.net_count;
-    } else if (sortBy === 'top') {
+    } else if (sortBy === "top") {
       // Sort by total likes
       return b.likes - a.likes;
-    } else if (sortBy === 'new') {
+    } else if (sortBy === "new") {
       // Sort by date (newest first)
       return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
     } else {
@@ -1623,11 +1568,7 @@ export default function ThreadPage() {
   return (
     <Layout>
       <div className="max-w-5xl mx-auto px-4 py-6">
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           {/* Breadcrumb navigation */}
           <div className="mb-4">
             <Link href="/forum" className="text-primary hover:text-primary/80 flex items-center">
@@ -1635,56 +1576,58 @@ export default function ThreadPage() {
               Back to Forum
             </Link>
           </div>
-          
+
           {/* Thread details - Reddit-style */}
           <div className="flex gap-3 bg-card rounded-xl shadow-sm overflow-hidden mb-6">
             {/* Voting buttons */}
             <div className="flex flex-col items-center justify-start bg-muted/30 py-4 px-2">
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 className={`h-8 w-8 p-0 ${
-                  thread?.user_liked 
-                    ? "text-primary bg-primary/10" 
-                    : "text-muted-foreground hover:text-primary hover:bg-transparent"
+                  thread?.user_liked ? "text-primary bg-primary/10" : "text-muted-foreground hover:text-primary hover:bg-transparent"
                 }`}
-                onClick={() => thread && handleVote('thread', thread.id, true)}
+                onClick={() => thread && handleVote("thread", thread.id, true)}
               >
                 <ArrowUp size={20} />
               </Button>
               <span className="text-sm font-medium my-1">{thread?.net_count || 0}</span>
-              <Button 
-                variant="ghost" 
+              <Button
+                variant="ghost"
                 size="sm"
                 className={`h-8 w-8 p-0 ${
-                  thread?.user_disliked 
-                    ? "text-destructive bg-destructive/10" 
+                  thread?.user_disliked
+                    ? "text-destructive bg-destructive/10"
                     : "text-muted-foreground hover:text-destructive hover:bg-transparent"
                 }`}
-                onClick={() => thread && handleVote('thread', thread.id, false)}
+                onClick={() => thread && handleVote("thread", thread.id, false)}
               >
                 <ArrowDown size={20} />
               </Button>
             </div>
 
             {/* Thread content */}
-            <div className="flex-1 p-4">              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
+            <div className="flex-1 p-4">
+              {" "}
+              <div className="flex items-center gap-1 text-xs text-muted-foreground mb-2">
                 <span className="flex items-center">
                   <div className="h-6 w-6 rounded-full overflow-hidden mr-1.5">
-                    <img 
-                      src={thread?.author.avatar || '/images/avatars/default.png'} 
-                      alt={thread?.author.username || 'Author'}
+                    <img
+                      src={thread?.author.avatar || "/images/avatars/default.png"}
+                      alt={thread?.author.username || "Author"}
                       className="w-full h-full object-cover"
                     />
                   </div>
                   <span className="font-medium text-foreground">{thread?.author.username}</span>
                   {thread?.author.isVerified && (
-                    <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">Verified</Badge>
+                    <Badge variant="secondary" className="ml-1 text-[10px] py-0 px-1">
+                      Verified
+                    </Badge>
                   )}
                 </span>
                 <span className="ml-1">• {thread?.timeAgo || thread?.date}</span>
                 <span className="ml-1">• {thread?.views} views</span>
-                {thread?.status === 'open' && (
+                {thread?.status === "open" && (
                   <Badge variant="outline" className="text-[10px] py-0 px-1 border-primary text-primary ml-1">
                     <Sparkles size={10} className="mr-0.5" />
                     ACTIVE
@@ -1693,25 +1636,47 @@ export default function ThreadPage() {
                 {/* Add Edit/Delete buttons for thread author */}
                 {user && thread && user.username === thread.author.username && !isEditingThread && !showDeleteThreadConfirm && (
                   <div className="ml-auto flex items-center gap-2">
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-6 text-xs flex items-center gap-1 text-muted-foreground hover:text-foreground"
                       onClick={handleEditThread}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
                         <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
                         <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                       </svg>
                       Edit
                     </Button>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
+                    <Button
+                      variant="ghost"
+                      size="sm"
                       className="h-6 text-xs flex items-center gap-1 text-destructive"
                       onClick={confirmDeleteThread}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-1">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="2"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        className="mr-1"
+                      >
                         <path d="M3 6h18"></path>
                         <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"></path>
                         <path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -1721,11 +1686,12 @@ export default function ThreadPage() {
                   </div>
                 )}
               </div>
-
               {isEditingThread ? (
                 <div className="mb-6">
                   <div className="mb-4">
-                    <Label htmlFor="thread-title" className="block mb-2 text-sm font-medium">Thread Title</Label>
+                    <Label htmlFor="thread-title" className="block mb-2 text-sm font-medium">
+                      Thread Title
+                    </Label>
                     <Input
                       id="thread-title"
                       value={editThreadTitle}
@@ -1733,8 +1699,10 @@ export default function ThreadPage() {
                       className="w-full mb-4"
                       placeholder="Enter thread title"
                     />
-                    
-                    <Label htmlFor="thread-content" className="block mb-2 text-sm font-medium">Thread Content</Label>
+
+                    <Label htmlFor="thread-content" className="block mb-2 text-sm font-medium">
+                      Thread Content
+                    </Label>
                     <Textarea
                       id="thread-content"
                       value={editThreadContent}
@@ -1742,7 +1710,7 @@ export default function ThreadPage() {
                       className="w-full min-h-[200px]"
                       placeholder="Enter thread content"
                     />
-                    
+
                     {/* Tags Selection */}
                     <div className="mt-4">
                       <Label className="block mb-2 text-sm font-medium">Tags</Label>
@@ -1753,19 +1721,19 @@ export default function ThreadPage() {
                       ) : (
                         <div className="bg-background rounded-xl p-4 border border-input">
                           <div className="flex flex-wrap gap-2">
-                            {availableTags.map(tag => (
-                              <Badge 
-                                key={tag.id} 
+                            {availableTags.map((tag) => (
+                              <Badge
+                                key={tag.id}
                                 variant={editThreadTags.includes(tag.id) ? "default" : "outline"}
                                 className="cursor-pointer hover:bg-primary/20"
                                 onClick={() => handleTagSelection(tag.id)}
                               >
                                 {tag.name} ({tag.thread_count})
                                 {editThreadTags.includes(tag.id) && (
-                                  <Button 
-                                    variant="ghost" 
-                                    size="sm" 
-                                    className="ml-1 h-4 w-4 p-0" 
+                                  <Button
+                                    variant="ghost"
+                                    size="sm"
+                                    className="ml-1 h-4 w-4 p-0"
                                     onClick={(e) => {
                                       e.stopPropagation();
                                       handleTagSelection(tag.id);
@@ -1781,20 +1749,16 @@ export default function ThreadPage() {
                       )}
                     </div>
                   </div>
-                  
+
                   {errorMessage && (
                     <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center mb-4">
                       <AlertCircle size={16} className="mr-2" />
                       {errorMessage}
                     </div>
                   )}
-                  
+
                   <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={cancelEditThread}
-                      disabled={isSubmittingThreadEdit}
-                    >
+                    <Button variant="outline" onClick={cancelEditThread} disabled={isSubmittingThreadEdit}>
                       Cancel
                     </Button>
                     <Button
@@ -1808,22 +1772,12 @@ export default function ThreadPage() {
               ) : showDeleteThreadConfirm ? (
                 <div className="bg-destructive/10 p-4 rounded-lg mb-4">
                   <h3 className="text-lg font-semibold text-destructive mb-2">Delete Thread</h3>
-                  <p className="text-sm mb-4">
-                    Are you sure you want to delete this thread? This action cannot be undone.
-                  </p>
+                  <p className="text-sm mb-4">Are you sure you want to delete this thread? This action cannot be undone.</p>
                   <div className="flex justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      onClick={cancelDeleteThread}
-                      disabled={isDeletingThread}
-                    >
+                    <Button variant="outline" onClick={cancelDeleteThread} disabled={isDeletingThread}>
                       Cancel
                     </Button>
-                    <Button
-                      variant="destructive"
-                      onClick={deleteThread}
-                      disabled={isDeletingThread}
-                    >
+                    <Button variant="destructive" onClick={deleteThread} disabled={isDeletingThread}>
                       {isDeletingThread ? "Deleting..." : "Delete Thread"}
                     </Button>
                   </div>
@@ -1831,33 +1785,29 @@ export default function ThreadPage() {
               ) : (
                 <>
                   <h1 className="text-2xl font-bold mb-3">{thread?.title}</h1>
-                  
+
                   <div className="flex flex-wrap gap-2 mb-4">
-                    {thread?.tags.map(tag => (
+                    {thread?.tags.map((tag) => (
                       <Badge key={tag} variant="secondary" className="text-xs">
                         {tag}
                       </Badge>
                     ))}
                   </div>
-                  
+
                   <div className="prose prose-sm dark:prose-invert max-w-none mb-6">
-                    {thread?.content.split('\n').map((paragraph, idx) => (
+                    {thread?.content.split("\n").map((paragraph, idx) => (
                       <p key={idx}>{paragraph}</p>
                     ))}
                   </div>
-                    {/* Display thread image if any */}
+                  {/* Display thread image if any */}
                   {thread?.media && thread.media.url && (
                     <div className="mb-6">
                       <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
-                        <img 
-                          src={thread.media.url} 
-                          alt="Thread image"
-                          className="w-full h-auto object-contain"
-                        />
+                        <img src={thread.media.url} alt="Thread image" className="w-full h-auto object-contain" />
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Add Thread Reactions and Stats */}
                   <div className="flex flex-wrap items-center justify-between mt-4 pt-3 border-t border-border">
                     {/* Left side: Reply Count */}
@@ -1865,21 +1815,21 @@ export default function ThreadPage() {
                       <MessageSquare size={16} className="mr-2" />
                       <span>{thread?.reply_count || 0} replies</span>
                     </div>
-                    
+
                     {/* Right side: Reactions & React Button */}
                     <div className="flex items-center gap-2">
                       {/* Display Reactions */}
                       {thread?.reactions && thread.reactions.length > 0 && (
                         <div className="flex flex-wrap gap-1">
-                          {thread.reactions.map(reaction => (
+                          {thread.reactions.map((reaction) => (
                             <motion.button
                               key={reaction.emoji}
                               className={`text-xs px-2 py-1 rounded-full flex items-center gap-1 border ${
-                                hasUserReacted(thread.reactions, reaction.emoji) 
-                                  ? 'bg-accent border-primary/30' 
-                                  : 'bg-background border-border hover:bg-accent/50'
+                                hasUserReacted(thread.reactions, reaction.emoji)
+                                  ? "bg-accent border-primary/30"
+                                  : "bg-background border-border hover:bg-accent/50"
                               }`}
-                              onClick={() => thread && handleAddReaction('thread', thread.id, reaction.emoji)}
+                              onClick={() => thread && handleAddReaction("thread", thread.id, reaction.emoji)}
                               whileTap={{ scale: 0.95 }}
                             >
                               <span>{reaction.emoji}</span>
@@ -1888,33 +1838,31 @@ export default function ThreadPage() {
                           ))}
                         </div>
                       )}
-                      
+
                       {/* Add Reaction Button */}
                       {user && (
                         <div className="relative">
-                          <Button 
-                            variant="ghost" 
+                          <Button
+                            variant="ghost"
                             size="sm"
                             className="h-8 text-xs text-muted-foreground hover:text-foreground flex items-center"
-                            onClick={() => thread && toggleReactionPicker('thread', thread.id)}
+                            onClick={() => thread && toggleReactionPicker("thread", thread.id)}
                           >
                             <ThumbsUp className="h-3 w-3 mr-1" />
                             React
                           </Button>
-                          
+
                           {/* Emoji Reaction Picker */}
-                          {showReactionPicker && 
-                           showReactionPicker.type === 'thread' && 
-                           thread && showReactionPicker.id === thread.id && (
+                          {showReactionPicker && showReactionPicker.type === "thread" && thread && showReactionPicker.id === thread.id && (
                             <div className="absolute bottom-full right-0 mb-2 p-1.5 bg-card border border-border rounded-lg shadow-lg z-10 w-[200px]">
                               <div className="flex flex-wrap gap-1.5">
-                                {availableReactions.map(reaction => (
-                                  <button 
+                                {availableReactions.map((reaction) => (
+                                  <button
                                     key={reaction.emoji}
                                     className={`text-sm p-1.5 rounded-full transition-all hover:bg-accent ${
-                                      hasUserReacted(thread.reactions, reaction.emoji) ? 'bg-accent/50' : ''
+                                      hasUserReacted(thread.reactions, reaction.emoji) ? "bg-accent/50" : ""
                                     }`}
-                                    onClick={() => handleAddReaction('thread', thread.id, reaction.emoji)}
+                                    onClick={() => handleAddReaction("thread", thread.id, reaction.emoji)}
                                     title={reaction.name}
                                   >
                                     {reaction.emoji}
@@ -1925,11 +1873,11 @@ export default function ThreadPage() {
                           )}
                         </div>
                       )}
-                      
+
                       {/* Add Share Button */}
                       <div className="relative">
-                        <Button 
-                          variant="ghost" 
+                        <Button
+                          variant="ghost"
                           size="sm"
                           className="h-8 text-xs text-muted-foreground hover:text-foreground flex items-center"
                           onClick={() => setShowShareOptions(!showShareOptions)}
@@ -1937,52 +1885,92 @@ export default function ThreadPage() {
                           <Share2 className="h-3 w-3 mr-1" />
                           Share
                         </Button>
-                        
+
                         {/* Share Options Dropdown */}
                         {showShareOptions && (
                           <div className="absolute bottom-full right-0 mb-2 p-1.5 bg-card border border-border rounded-lg shadow-lg z-10 w-[200px]">
                             <div className="flex flex-col gap-1">
-                              <button 
+                              <button
                                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent text-sm"
                                 onClick={copyLinkToClipboard}
                               >
                                 <LinkIcon className="h-4 w-4" />
                                 {shareSuccess ? "Copied!" : "Copy Link"}
                               </button>
-                              <button 
+                              <button
                                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent text-sm"
-                                onClick={() => shareOnSocialMedia('twitter')}
+                                onClick={() => shareOnSocialMedia("twitter")}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
                                   <path d="M22 4s-.7 2.1-2 3.4c1.6 10-9.4 17.3-18 11.6 2.2.1 4.4-.6 6-2C3 15.5.5 9.6 3 5c2.2 2.6 5.6 4.1 9 4-.9-4.2 4-6.6 7-3.8 1.1 0 3-1.2 3-1.2z"></path>
                                 </svg>
                                 Twitter
                               </button>
-                              <button 
+                              <button
                                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent text-sm"
-                                onClick={() => shareOnSocialMedia('facebook')}
+                                onClick={() => shareOnSocialMedia("facebook")}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
                                   <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path>
                                 </svg>
                                 Facebook
                               </button>
-                              <button 
+                              <button
                                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent text-sm"
-                                onClick={() => shareOnSocialMedia('linkedin')}
+                                onClick={() => shareOnSocialMedia("linkedin")}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
                                   <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"></path>
                                   <rect x="2" y="9" width="4" height="12"></rect>
                                   <circle cx="4" cy="4" r="2"></circle>
                                 </svg>
                                 LinkedIn
                               </button>
-                              <button 
+                              <button
                                 className="flex items-center gap-2 px-2 py-1.5 rounded-md hover:bg-accent text-sm"
-                                onClick={() => shareOnSocialMedia('whatsapp')}
+                                onClick={() => shareOnSocialMedia("whatsapp")}
                               >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  width="14"
+                                  height="14"
+                                  viewBox="0 0 24 24"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  strokeWidth="2"
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                >
                                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                                 </svg>
                                 WhatsApp
@@ -1997,20 +1985,18 @@ export default function ThreadPage() {
               )}
             </div>
           </div>
-          
+
           {/* Reply form at the top */}
           {user ? (
             <Card className="bg-card mb-6" id="reply-form">
               <CardHeader className="pb-3">
                 <CardTitle>Post a Comment</CardTitle>
-                <CardDescription>
-                  Join the discussion on this topic
-                </CardDescription>
+                <CardDescription>Join the discussion on this topic</CardDescription>
               </CardHeader>
               <CardContent>
                 <form onSubmit={handleSubmitReply}>
                   <div className="space-y-4">
-                    <Textarea 
+                    <Textarea
                       value={replyToMain ? replyContent : ""}
                       onChange={(e) => replyToMain && setReplyContent(e.target.value)}
                       placeholder="What are your thoughts on this discussion?"
@@ -2021,46 +2007,38 @@ export default function ThreadPage() {
                       }}
                       required
                     />
-                    
+
                     {/* Media upload preview */}
                     {mediaPreview && replyToMain && (
-                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">                        <Button 
-                          variant="destructive" 
-                          size="sm" 
+                      <div className="relative rounded-lg overflow-hidden border border-border max-w-md">
+                        {" "}
+                        <Button
+                          variant="destructive"
+                          size="sm"
                           className="absolute top-2 right-2 h-8 w-8 p-0 rounded-full"
                           onClick={removeMedia}
                         >
                           <X className="h-4 w-4" />
                         </Button>
-                        <img 
-                          src={mediaPreview} 
-                          alt="Media preview"
-                          className="w-full h-auto object-contain"
-                        />
+                        <img src={mediaPreview} alt="Media preview" className="w-full h-auto object-contain" />
                       </div>
                     )}
-                    
+
                     {errorMessage && replyToMain && (
                       <div className="bg-destructive/10 text-destructive p-3 rounded-lg text-sm flex items-center">
                         <AlertCircle size={16} className="mr-2" />
                         {errorMessage}
                       </div>
                     )}
-                    
+
                     <div className="flex justify-between items-center">
                       {/* Hidden file input */}
-                      <input
-                        type="file"
-                        ref={fileInputRef}
-                        className="hidden"
-                        accept="image/*"
-                        onChange={handleFileUpload}
-                      />
-                      
+                      <input type="file" ref={fileInputRef} className="hidden" accept="image/*" onChange={handleFileUpload} />
+
                       {/* Media upload button */}
-                      <Button 
-                        type="button" 
-                        variant="outline" 
+                      <Button
+                        type="button"
+                        variant="outline"
                         onClick={() => fileInputRef.current?.click()}
                         className="flex items-center gap-2"
                         disabled={isSubmitting || !replyToMain}
@@ -2068,8 +2046,8 @@ export default function ThreadPage() {
                         <Upload className="h-4 w-4" />
                         Attach Media
                       </Button>
-                      
-                      <Button 
+
+                      <Button
                         type="submit"
                         disabled={!replyContent.trim() || isSubmitting || !replyToMain}
                         className="flex items-center gap-2"
@@ -2094,7 +2072,7 @@ export default function ThreadPage() {
               </CardContent>
             </Card>
           )}
-          
+
           {/* Comments sorting options */}
           <div className="flex justify-between items-center mb-4">
             <h2 className="text-xl font-semibold">
@@ -2104,41 +2082,41 @@ export default function ThreadPage() {
               <span className="text-muted-foreground">Sort by:</span>
               <div className="relative group">
                 <Button variant="ghost" size="sm" className="h-8 font-medium">
-                  {sortBy === 'best' && 'Best'}
-                  {sortBy === 'top' && 'Top'}
-                  {sortBy === 'new' && 'New'}
-                  {sortBy === 'old' && 'Old'}
+                  {sortBy === "best" && "Best"}
+                  {sortBy === "top" && "Top"}
+                  {sortBy === "new" && "New"}
+                  {sortBy === "old" && "Old"}
                 </Button>
                 <div className="absolute right-0 top-full mt-1 p-1 bg-card border border-border rounded-lg shadow-lg opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all z-10 w-36">
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`w-full justify-start ${sortBy === 'best' ? 'bg-accent/50' : ''}`}
-                    onClick={() => setSortBy('best')}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full justify-start ${sortBy === "best" ? "bg-accent/50" : ""}`}
+                    onClick={() => setSortBy("best")}
                   >
                     Best
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`w-full justify-start ${sortBy === 'top' ? 'bg-accent/50' : ''}`}
-                    onClick={() => setSortBy('top')}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full justify-start ${sortBy === "top" ? "bg-accent/50" : ""}`}
+                    onClick={() => setSortBy("top")}
                   >
                     Top
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`w-full justify-start ${sortBy === 'new' ? 'bg-accent/50' : ''}`}
-                    onClick={() => setSortBy('new')}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full justify-start ${sortBy === "new" ? "bg-accent/50" : ""}`}
+                    onClick={() => setSortBy("new")}
                   >
                     New
                   </Button>
-                  <Button 
-                    variant="ghost" 
-                    size="sm" 
-                    className={`w-full justify-start ${sortBy === 'old' ? 'bg-accent/50' : ''}`}
-                    onClick={() => setSortBy('old')}
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className={`w-full justify-start ${sortBy === "old" ? "bg-accent/50" : ""}`}
+                    onClick={() => setSortBy("old")}
                   >
                     Old
                   </Button>
@@ -2146,13 +2124,13 @@ export default function ThreadPage() {
               </div>
             </div>
           </div>
-          
+
           {/* Replies section - Reddit style */}
           <div className="mb-8 space-y-4">
             {sortedReplies.map((reply) => (
-              <ReplyItem 
-                key={reply.id} 
-                reply={reply} 
+              <ReplyItem
+                key={reply.id}
+                reply={reply}
                 user={user}
                 handleVote={handleVote}
                 toggleReactionPicker={toggleReactionPicker}
@@ -2192,5 +2170,5 @@ export default function ThreadPage() {
         </motion.div>
       </div>
     </Layout>
-  )
-} 
+  );
+}
