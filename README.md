@@ -1,8 +1,8 @@
 <p align="center">
-  <img src="https://github.com/Spectrewolf8/DMI-Digital-Media-Integrity-Platform-NextJS-Frontend/raw/main/Banner.jpg" alt="DMI - Digital Media Integrity Platform" width="100%" />
+  <img src="https://github.com/Spectrewolf8/DMI-Digital-Media-Integrity-Platform-NextJS-Frontend/raw/main/Banner.jpg" alt="DMI - Deep Media Inspection Platform" width="100%" />
 </p>
 
-<h1 align="center">DMI - Digital Media Integrity Platform</h1>
+<h1 align="center">DMI - Deep Media Inspection Platform</h1>
 
 <p align="center">
   <strong>AI-Powered Deepfake and Synthetic Media Detection Platform</strong>
